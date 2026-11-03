@@ -100,3 +100,18 @@ describe('Journal page: reflections', () => {
         expect(panel).toHaveTextContent('Older reflection.');
     });
 });
+
+describe('Journal page: history is not an arrival', () => {
+    it('shows no jump pill for notes loaded with the entry, but does for one that arrives while writing', async () => {
+        open_entry('start', {
+            'GET /api/journal/5/insights': [margin_note({ id: 4, entry_id: 5 })],
+            'POST /api/journal/5/notes': { outcome: 'written', link: { problem_id: 3, problem_title: 'Racing mind at night', confidence: 0.9 }, note: margin_note({ id: 9, entry_id: 5, anchor: PARAGRAPH.slice(0, 80) }) },
+        });
+        show('/journal/5');
+        await screen.findByRole('region', { name: 'Margin notes list' });
+        expect(screen.queryByRole('button', { name: /New margin note/ })).not.toBeInTheDocument();
+        type(`start\n\n${PARAGRAPH}`);
+        await tick(SETTLE_MS + 100);
+        expect(await screen.findByRole('button', { name: /New margin note/ })).toBeInTheDocument();
+    });
+});

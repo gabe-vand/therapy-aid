@@ -51,7 +51,7 @@ describe('MarginNotes', () => {
         expect(on_dismiss).toHaveBeenCalledWith(7);
     });
 
-    it('offers a jump pill when a new note arrives on the narrow layout', () => {
+    it('offers a jump pill when a new note arrives on the narrow layout, never for loaded history', () => {
         const { rerender } = mount([margin_note({ id: 1 })]);
         expect(screen.queryByRole('button', { name: /New margin note/ })).not.toBeInTheDocument();
         rerender(

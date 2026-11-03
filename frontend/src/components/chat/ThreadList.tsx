@@ -48,11 +48,14 @@ const Body = ({ threads, loading, error, active_id, on_retry, on_delete }: Props
                     <Link to={paths.chat_thread(t.id)} className="ta-thread-link" aria-current={t.id === active_id ? 'page' : undefined}>
                         <span className="ta-thread-link__top">
                             <span className="ta-thread-link__title">{t.title}</span>
+                        </span>
+                        <span className="ta-thread-link__meta">
+                            {count(t)}
+                            {' · '}
                             <time className="ta-thread-link__time" dateTime={t.updated_at}>
                                 {relative_time(t.updated_at)}
                             </time>
                         </span>
-                        <span className="ta-thread-link__meta">{count(t)}</span>
                     </Link>
                     <Menu label={`Chat actions: ${t.title}`} size="sm" items={[{ label: 'Delete chat', tone: 'danger', icon: <Trash2 aria-hidden />, on_select: () => on_delete(t) }]} />
                 </li>

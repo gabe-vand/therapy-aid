@@ -14,6 +14,8 @@ const newest_first = (a: JournalInsight, b: JournalInsight) => (a.created_at ===
 export const useInsights = (entry_id: number | null) => {
     const [insights, set_insights] = useState<JournalInsight[]>([]);
     const [loading, set_loading] = useState(false);
+    // True once the history has been fetched (at once for a brand-new draft, which has none).
+    const [loaded, set_loaded] = useState(entry_id === null);
     const [error, set_error] = useState<string | null>(null);
     const [generating, set_generating] = useState(false);
     const [generate_error, set_generate_error] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export const useInsights = (entry_id: number | null) => {
         async (signal: { cancelled: boolean }) => {
             if (entry_id === null) return;
             set_loading(true);
+            set_loaded(false);
             const res = await getAPI<JournalInsight[]>(`journal/${entry_id}/insights`);
             if (signal.cancelled) return;
             if (isOk(res)) {
@@ -31,6 +34,7 @@ export const useInsights = (entry_id: number | null) => {
                 set_error(res.message);
             }
             set_loading(false);
+            set_loaded(true);
         },
         [entry_id],
     );
@@ -42,11 +46,12 @@ export const useInsights = (entry_id: number | null) => {
         set_error(null);
         set_generate_error(null);
         set_generating(false);
+        set_loaded(entry_id === null);
         void load(signal);
         return () => {
             signal.cancelled = true;
         };
-    }, [load]);
+    }, [load, entry_id]);
 
     const reload = useCallback(() => load({ cancelled: false }), [load]);
 
@@ -87,5 +92,5 @@ export const useInsights = (entry_id: number | null) => {
         [entry_id],
     );
 
-    return { insights, loading, error, reload, generating, generate_error, generate, add, dismiss };
+    return { insights, loading, loaded, error, reload, generating, generate_error, generate, add, dismiss };
 };

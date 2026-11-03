@@ -38,7 +38,7 @@ export function EntryEditor({ entry_id, on_change, on_created, on_deleted, on_ba
     // Memoised: the margin view keys its measuring effect on this array's identity.
     const margin_notes = useMemo(() => notes.insights.filter((n) => n.source === 'margin'), [notes.insights]);
     const reflections = useMemo(() => notes.insights.filter((n) => n.source === 'reflection'), [notes.insights]);
-    const margin_view = useMarginView(margin_notes, doc);
+    const margin_view = useMarginView(margin_notes, doc, notes.loaded);
     const dismiss = (id: number) => void notes.dismiss(id);
 
     // Bring the panel into view when a reflection starts — on a phone it sits below the keyboard area.

@@ -22,12 +22,15 @@ export interface MarginView {
 
 const matches = (): boolean => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(MARGIN_QUERY).matches;
 
-export const useMarginView = (notes: JournalInsight[], doc: HTMLElement | null): MarginView => {
+/* `loaded`: whether the entry's note history has been fetched. Notes that appear before that are
+   history, not arrivals, so they never fade in or raise the pill. */
+export const useMarginView = (notes: JournalInsight[], doc: HTMLElement | null, loaded = true): MarginView => {
     const [column, set_column] = useState<HTMLElement | null>(null);
     const [wide, set_wide] = useState(matches);
     const [fresh, set_fresh] = useState<number | null>(null);
     const [pill, set_pill] = useState<number | null>(null);
     const known = useRef<Set<number>>(new Set(notes.map((n) => n.id)));
+    const was_loaded = useRef(loaded);
     const placed = useNoteAnchors(notes, doc, column, wide);
 
     useEffect(() => {
@@ -40,7 +43,10 @@ export const useMarginView = (notes: JournalInsight[], doc: HTMLElement | null):
 
     // A note we have not seen before arrived: mark it fresh (and, on a phone, offer to jump to it).
     useEffect(() => {
-        const arrived = notes.find((n) => !known.current.has(n.id));
+        // The history landing (loaded flipping on, often in the same render as its notes) is not an arrival.
+        const settled = was_loaded.current;
+        was_loaded.current = loaded;
+        const arrived = loaded && settled ? notes.find((n) => !known.current.has(n.id)) : undefined;
         for (const n of notes) known.current.add(n.id);
         if (!arrived) return;
         set_fresh(arrived.id);
@@ -50,7 +56,7 @@ export const useMarginView = (notes: JournalInsight[], doc: HTMLElement | null):
             set_pill(null);
         }, FRESH_MS);
         return () => clearTimeout(timer);
-    }, [notes, wide]);
+    }, [notes, wide, loaded]);
 
     const jump = useCallback((id: number) => {
         set_pill(null);

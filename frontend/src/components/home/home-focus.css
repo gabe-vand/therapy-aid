@@ -122,7 +122,7 @@
 @media (min-width: 768px) {
     .ta-focus__headline {
         font-size: 22px;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
     }
 
     .ta-focus-row {
