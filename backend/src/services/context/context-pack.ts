@@ -49,8 +49,11 @@ export const fitSessions = (full: string[], lines: string[], budget_tokens: numb
 };
 
 /** The full context pack. Sections in order: About Gabe, Current focus, Problems, Therapy
-    sessions (ready only, newest first), Recent journal entries (last 8, ≤ 700 words each). */
-export const buildContextPack = (opts: { budget_tokens?: number } = {}): string => {
+    sessions (ready only, newest first), Recent journal entries (last 8, ≤ 700 words each).
+    `exclude_entry_id` leaves one journal entry out: an insight call saves its draft to the entry
+    first, and the draft rides in the user message, so keeping it out of the cached system block
+    stops every click from rewriting the cache. Not passed ⇒ the pack is unchanged. */
+export const buildContextPack = (opts: { budget_tokens?: number; exclude_entry_id?: number } = {}): string => {
     const budget = opts.budget_tokens ?? PACK_BUDGET_TOKENS;
     const active = repo_problems.selectProblemsByStatus(['active']);
     const resolved = repo_problems.selectProblemsByStatus(['resolved']);
@@ -59,7 +62,7 @@ export const buildContextPack = (opts: { budget_tokens?: number } = {}): string 
         renderProfile(getProfile().profile),
         renderFocus(repo_focus.selectLatestFocusSnapshot()),
         renderProblems(active, resolved, updatesFor(active, 2)),
-        renderJournal(repo_journal.selectJournalEntries(PACK_JOURNAL_ENTRIES)),
+        renderJournal(repo_journal.selectJournalEntries(PACK_JOURNAL_ENTRIES, opts.exclude_entry_id)),
     ];
     const sessions = repo_sessions.selectReadySessionSummaries();
     const fixed_tokens = estimateTokens(fixed.join('\n\n')) + 2;

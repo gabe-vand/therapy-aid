@@ -1,5 +1,5 @@
-// Writes a ProblemExtraction to the problems tables. Re-processing a session replaces what it
-// wrote before (deleteUpdatesForSession), so retry is idempotent; a "new" problem whose title
+// Writes a ProblemExtraction to the problems tables. It only ADDS: the pipeline clears the
+// session's earlier notes (deleteUpdatesForSession) before mapping, so retry is idempotent; a "new" problem whose title
 // matches an existing one becomes an update instead of a duplicate; last_discussed_at only ever
 // moves forward; and an id the model made up is skipped with a log line, never a crash.
 import * as repo_updates from '@/repositories/problem-updates';
@@ -24,7 +24,6 @@ const normTitle = (title: string): string =>
 /** Applies `extraction` for `session`: notes dated at the session, discussion dates bumped
     forward, new problems opened, resolved suggestions honoured. */
 export const applyProblemUpdates = (session: SessionRow, extraction: ProblemExtraction): ApplyResult => {
-    repo_updates.deleteUpdatesForSession(session.id);
     const result: ApplyResult = { updated: 0, created: 0, resolved: 0, skipped: 0 };
     const live = new Map<number, ProblemRow>(repo_problems.selectProblemsByStatus(['active', 'resolved']).map((p) => [p.id, p]));
     const by_title = new Map<string, ProblemRow>([...live.values()].map((p) => [normTitle(p.title), p]));

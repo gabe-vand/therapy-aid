@@ -14,6 +14,9 @@ describe('journal repository', () => {
         expect(repo_journal.selectJournalEntryById(a.id)).toEqual(a);
         expect(repo_journal.selectJournalEntries().map((e) => e.id)).toEqual([b.id, a.id]);
         expect(repo_journal.selectJournalEntries(1).map((e) => e.id)).toEqual([b.id]);
+        // exclude_id drops that entry BEFORE the limit, so the cap still counts only other entries.
+        expect(repo_journal.selectJournalEntries(1, b.id).map((e) => e.id)).toEqual([a.id]);
+        expect(repo_journal.selectJournalEntries(undefined, a.id).map((e) => e.id)).toEqual([b.id]);
         expect(repo_journal.selectAllJournalEntries().map((e) => e.id)).toEqual([a.id, b.id]);
         expect(repo_journal.updateJournalEntry(a.id, { body: 'edited' })!.body).toBe('edited');
         expect(repo_journal.updateJournalEntry(9999, { body: 'x' })).toBeNull();

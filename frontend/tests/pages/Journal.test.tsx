@@ -73,12 +73,17 @@ describe('Journal page: editor and autosave', () => {
         const mock = stub_api({ 'GET /api/journal': [entry({ id: 5 })], 'GET /api/journal/5': entry({ id: 5, body: 'Hi' }), 'GET /api/journal/5/insights': [], 'PATCH /api/journal/5': entry({ id: 5 }) });
         show('/journal/5');
         await screen.findByDisplayValue('Hi');
+        // Load is done: from here the clock is fully manual. With shouldAdvanceTime a slow CI/load
+        // pause let real time leak into the 1499ms step and fire the PATCH early.
+        vi.useRealTimers();
+        vi.useFakeTimers();
         type('Hi there');
         expect(screen.getByRole('status')).toHaveTextContent('Saving…');
         await tick(1499);
         expect(requests(mock)).not.toContain('PATCH /api/journal/5');
         await tick(1);
-        await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'));
+        await tick(0); // let the stubbed fetch and the state updates behind it settle
+        expect(screen.getByRole('status')).toHaveTextContent('Saved');
         expect(sent_body(mock, requests(mock).indexOf('PATCH /api/journal/5'))).toEqual({ body: 'Hi there' });
     });
 

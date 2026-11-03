@@ -111,13 +111,4 @@ describe('applyProblemUpdates', () => {
         expect(repo_problems.selectProblemsByStatus(['active'])).toHaveLength(1);
         expect(repo_updates.selectUpdatesForProblem(existing.id)).toHaveLength(1);
     });
-
-    it('is idempotent for one session: a second run replaces the first run’s notes', () => {
-        const session = seedSession();
-        const problem = seedProblem();
-        const input = extraction({ problem_updates: [{ problem_id: problem.id, progress_note: 'Once.', suggested_status: 'active' }] });
-        applyProblemUpdates(session, input);
-        applyProblemUpdates(session, input);
-        expect(repo_updates.selectUpdatesForProblem(problem.id)).toHaveLength(1);
-    });
 });

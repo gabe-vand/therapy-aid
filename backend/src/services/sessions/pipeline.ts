@@ -59,6 +59,8 @@ const runSteps = async (initial: SessionRow): Promise<void> => {
         reindexSession(session);
     }
 
+    // Clear this session's notes from an earlier run BEFORE mapping (the mapper sees the latest note
+    // per problem, so stale ones would mislead it) — and so applyProblemUpdates only ever adds.
     repo_updates.deleteUpdatesForSession(session.id);
     const extraction = await mapProblems(session.occurred_at, summary);
     const applied = applyProblemUpdates(session, extraction);

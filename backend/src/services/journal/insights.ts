@@ -1,6 +1,8 @@
 // "I have an idea…": on click, saves the draft as the entry body, then asks Claude for a short
 // note that connects it to Gabe's therapy. Never runs on its own. The draft is saved FIRST so a
-// failed AI call (no key, refusal, network) never loses what he typed.
+// failed AI call (no key, refusal, network) never loses what he typed. The context pack is built
+// WITHOUT this entry: the draft is already in the user message, and leaving it in the cached
+// system block would change that block on every click and miss the prompt cache each time.
 import type { JournalInsight } from '@therapy-aid/shared';
 import * as repo_journal from '@/repositories/journal';
 import * as repo_insights from '@/repositories/journal-insights';
@@ -21,14 +23,12 @@ export const generateInsight = async (entry_id: number, draft: string): Promise<
     reindexJournalEntry(saved);
 
     const others = repo_journal
-        .selectJournalEntries(OTHER_ENTRIES + 1)
-        .filter((row) => row.id !== entry_id)
-        .slice(0, OTHER_ENTRIES)
+        .selectJournalEntries(OTHER_ENTRIES, entry_id)
         .map((row) => `- ${formatDay(row.occurred_at)} [entry #${row.id}]: ${journalSearchDocument(row).title}`);
 
     const { body } = await completeStructured({
         task: 'insight',
-        system: systemBlocks([INSIGHT_PERSONA, buildContextPack()]),
+        system: systemBlocks([INSIGHT_PERSONA, buildContextPack({ exclude_entry_id: entry_id })]),
         messages: [{ role: 'user', content: buildInsightMessage({ today: formatDay(new Date().toISOString()), entry_id, entry_day: formatDay(saved.occurred_at), draft, others }) }],
         schema: InsightSchema,
     });

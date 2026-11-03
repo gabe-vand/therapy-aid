@@ -56,6 +56,17 @@ describe('buildContextPack', () => {
         expect(buildContextPack()).toBe(buildContextPack());
     });
 
+    it('leaves out the excluded journal entry and still fills the 8 slots with others; unchanged when not passed', () => {
+        const rows = Array.from({ length: 9 }, (_, i) => seedJournal({ occurred_at: day(i), body: `entry-${i}` }));
+        const newest = rows[8]!;
+        const without = buildContextPack({ exclude_entry_id: newest.id });
+        expect(without).not.toContain('entry-8');
+        expect(without).not.toContain(`[entry #${newest.id}]`);
+        expect(without).toContain('entry-0');
+        expect(buildContextPack()).toContain('entry-8');
+        expect(buildContextPack()).toBe(buildContextPack({}));
+    });
+
     it('degrades the OLDEST sessions to one line when over budget, newest stay full', () => {
         const long = summary({ overview: 'detail '.repeat(400) });
         for (let i = 0; i < 12; i++) seedSession({ occurred_at: day(i), title: `S${i}`, summary: long });

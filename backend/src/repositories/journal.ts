@@ -1,7 +1,7 @@
 // Queries on journal_entries. One narrow function per query: params in, rows out.
 // FOUNDATION wrote the functions below; BE-JOURNAL-CHAT may add more but does not change these.
 // (journal_insights queries belong in repositories/journal-insights.ts.)
-import { asc, desc, eq } from 'drizzle-orm';
+import { asc, desc, eq, ne } from 'drizzle-orm';
 import { journal_entries } from '@/db/schema/journal-entries';
 import { db } from '@/services/common/svc-db';
 
@@ -23,9 +23,14 @@ export const insertJournalEntry = (values: { occurred_at: string; body: string }
 /** One entry, or null. */
 export const selectJournalEntryById = (id: number): JournalEntryRow | null => db.select().from(journal_entries).where(eq(journal_entries.id, id)).get() ?? null;
 
-/** Entries newest occurred_at first (ties: newest id); `limit` caps the count. */
-export const selectJournalEntries = (limit?: number): JournalEntryRow[] => {
-    const query = db.select().from(journal_entries).orderBy(...newest_first);
+/** Entries newest occurred_at first (ties: newest id); `limit` caps the count and `exclude_id`
+    leaves one entry out (applied before the limit, so the cap still counts only other entries). */
+export const selectJournalEntries = (limit?: number, exclude_id?: number): JournalEntryRow[] => {
+    const query = db
+        .select()
+        .from(journal_entries)
+        .where(exclude_id !== undefined ? ne(journal_entries.id, exclude_id) : undefined)
+        .orderBy(...newest_first);
     return limit !== undefined ? query.limit(limit).all() : query.all();
 };
 

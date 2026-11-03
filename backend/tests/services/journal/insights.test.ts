@@ -59,6 +59,21 @@ describe('generateInsight (svc-claude stubbed)', () => {
         expect(call.system.map((b) => b.text).join('')).not.toContain('Today is ');
     });
 
+    it('builds the cached pack without the entry being drafted, so its text is stable across clicks', async () => {
+        seedJournal({ occurred_at: '2026-10-10T12:00:00.000Z', body: 'Rough week.' });
+        const entry = seedJournal({ occurred_at: '2026-10-13T12:00:00.000Z', body: 'first version' });
+
+        await generateInsight(entry.id, 'First draft wording UNIQUE-ONE.');
+        await generateInsight(entry.id, 'Second draft wording UNIQUE-TWO.');
+        const packs = (structured.mock.calls as unknown[][]).map((c) => (c[0] as Parameters<typeof svc_claude.completeStructured>[0]).system[1]!.text);
+
+        expect(packs[0]).toBe(packs[1]);
+        expect(packs[0]).toContain('Rough week.');
+        expect(packs[0]).not.toContain(`[entry #${entry.id}]`);
+        expect(packs[0]).not.toContain('UNIQUE-');
+        expect(getEntry(entry.id)?.body).toBe('Second draft wording UNIQUE-TWO.');
+    });
+
     it('lists at most the 3 most recent OTHER entries as pointers', async () => {
         const rows = [1, 2, 3, 4, 5].map((d) => seedJournal({ occurred_at: `2026-10-0${d}T12:00:00.000Z`, body: `Entry day ${d}` }));
         const target = rows[4]!;
@@ -99,5 +114,18 @@ describe('generateInsight (fake transport)', () => {
         expect(request.output_config?.effort).toBe('high');
         expect((request.system as { cache_control?: unknown }[]).map((b) => !!b.cache_control)).toEqual([true, true]);
         expect(JSON.stringify(request)).not.toContain('"thinking"');
+    });
+
+    it('sends a byte-identical cached system block on two consecutive insight calls for the same entry', async () => {
+        fake = installFakeClaude([message([text(JSON.stringify({ body: 'One.' }))]), message([text(JSON.stringify({ body: 'Two.' }))])]);
+        seedJournal({ occurred_at: '2026-10-10T12:00:00.000Z', body: 'Rough week.' });
+        const entry = seedJournal({ occurred_at: '2026-10-13T12:00:00.000Z' });
+
+        await generateInsight(entry.id, 'Draft one.');
+        await generateInsight(entry.id, 'Draft two, quite different.');
+
+        const [first, second] = fake.requests;
+        expect(JSON.stringify(first!.system)).toBe(JSON.stringify(second!.system));
+        expect(JSON.stringify(first!.messages)).not.toBe(JSON.stringify(second!.messages));
     });
 });
