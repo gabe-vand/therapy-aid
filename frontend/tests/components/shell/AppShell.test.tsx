@@ -37,7 +37,11 @@ describe('AppShell', () => {
         render_app('/');
         expect(screen.getAllByText('therapy-aid').length).toBeGreaterThan(0);
         const main_nav = screen.getByRole('navigation', { name: 'Main' });
-        expect(within(main_nav).getAllByRole('link').map((a) => a.textContent)).toEqual(['Home', 'Sessions', 'Problems', 'Journal', 'Chat', 'Settings']);
+        expect(
+            within(main_nav)
+                .getAllByRole('link')
+                .map((a) => a.textContent),
+        ).toEqual(['Home', 'Sessions', 'Problems', 'Journal', 'Chat', 'Settings']);
         expect(within(screen.getByRole('navigation', { name: 'Tabs' })).getAllByRole('link')).toHaveLength(5);
         expect(screen.getByRole('heading', { name: 'outlet content' })).toBeInTheDocument();
     });

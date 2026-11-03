@@ -1,10 +1,12 @@
 import { useState, type KeyboardEvent } from 'react';
-import { Button } from '@/components/ui/Button';
-import './chat.css';
+import { ArrowUp } from 'lucide-react';
+import { IconButton } from '@/components/ui/Button';
+import './chat-messages.css';
 
-/* The message box. Enter sends, Shift+Enter makes a newline (the Send button covers touch
-   keyboards). The text is cleared the moment it is handed over — the conversation keeps its own
-   copy for Retry — and is kept when `disabled` (an answer is still pending) so nothing is lost. */
+/* The message box: a rounded field with a round accent Send. Enter sends, Shift+Enter makes a
+   newline (the Send button covers touch keyboards). The text is cleared the moment it is handed
+   over — the conversation keeps its own copy for Retry — and is kept when `disabled` (an answer is
+   still pending) so nothing is lost. */
 export const Composer = ({ on_send, disabled = false }: { on_send: (text: string) => void; disabled?: boolean }) => {
     const [text, set_text] = useState('');
 
@@ -31,19 +33,21 @@ export const Composer = ({ on_send, disabled = false }: { on_send: (text: string
                     e.preventDefault();
                     submit();
                 }}>
-                <textarea
-                    aria-label="Message"
-                    className="ta-input ta-composer-field"
-                    rows={1}
-                    enterKeyHint="send"
-                    placeholder="Ask about your sessions, problems or journal…"
-                    value={text}
-                    onChange={(e) => set_text(e.target.value)}
-                    onKeyDown={on_key_down}
-                />
-                <Button type="submit" variant="primary" disabled={disabled || text.trim() === ''}>
-                    Send
-                </Button>
+                <div className="ta-composer__box">
+                    <textarea
+                        aria-label="Message"
+                        className="ta-composer__field"
+                        rows={1}
+                        enterKeyHint="send"
+                        placeholder="Ask about your sessions, problems or journal…"
+                        value={text}
+                        onChange={(e) => set_text(e.target.value)}
+                        onKeyDown={on_key_down}
+                    />
+                    <IconButton type="submit" variant="primary" aria-label="Send" className="ta-composer__send" disabled={disabled || text.trim() === ''}>
+                        <ArrowUp aria-hidden />
+                    </IconButton>
+                </div>
             </form>
         </div>
     );

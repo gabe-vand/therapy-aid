@@ -1,0 +1,112 @@
+/* Form controls: the shared .ta-input (inputs, selects, textareas) and SegmentedControl. Inputs
+   are 32px / 13.5px on desktop; on phones they go to 16px so iOS doesn't zoom on focus, and to a
+   40px touch target. Focus = accent border + a soft 3px ring (not the global outline). */
+
+.ta-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 10px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    font: inherit;
+    font-size: 13.5px;
+    transition:
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+}
+
+textarea.ta-input {
+    height: auto;
+    padding: 8px 10px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.ta-input::placeholder {
+    color: var(--faint);
+}
+
+.ta-input:focus,
+.ta-input:focus-visible {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ta-input:disabled {
+    color: var(--faint);
+    background: var(--surface-2);
+    cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+    .ta-input,
+    textarea.ta-input {
+        font-size: 16px;
+    }
+
+    .ta-input {
+        height: 40px;
+    }
+
+    textarea.ta-input {
+        height: auto;
+    }
+}
+
+/* SegmentedControl: a recessed track with the selected option raised onto a surface. */
+.ta-seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    background: var(--surface-3);
+    border-radius: var(--r-md);
+}
+
+.ta-seg--block {
+    display: flex;
+}
+
+.ta-seg__opt {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 120ms ease,
+        color 120ms ease;
+}
+
+.ta-seg__opt svg {
+    width: 15px;
+    height: 15px;
+}
+
+.ta-seg__opt:hover:not([aria-pressed='true']) {
+    color: var(--ink);
+}
+
+.ta-seg__opt[aria-pressed='true'] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+}
+
+@media (pointer: coarse) {
+    .ta-seg__opt {
+        height: 36px;
+    }
+}

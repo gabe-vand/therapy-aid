@@ -3,6 +3,7 @@ import { LastSession } from '@/components/home/LastSession';
 import { QuickActions } from '@/components/home/QuickActions';
 import { StalePrompts } from '@/components/home/StalePrompts';
 import { PageHeader } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { format_date } from '@/services/dates';
 import { useFocus } from '@/services/hooks/use-focus';
 import { useSessions } from '@/services/hooks/use-sessions';
@@ -17,7 +18,7 @@ export default function Home() {
     const sessions = useSessions();
 
     return (
-        <>
+        <Page width="wide">
             <PageHeader title="Today" subtitle={format_date(new Date().toISOString(), { weekday: true })} />
             <div className="flex flex-col gap-8">
                 <FocusHero
@@ -34,6 +35,6 @@ export default function Home() {
                 <StalePrompts problems={stale.problems} busy_id={stale.busy_id} action_error={stale.action_error} on_keep={(id) => void stale.keep(id)} on_discard={stale.discard} />
                 <LastSession session={sessions.sessions[0]} loading={sessions.loading} error={sessions.error} on_retry={() => void sessions.reload()} />
             </div>
-        </>
+        </Page>
     );
 }

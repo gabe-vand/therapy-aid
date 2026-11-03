@@ -39,6 +39,8 @@ Before starting any task, read the relevant conventions file in `docs/`:
 
 - Backend: [`docs/backend-conventions.html`](docs/backend-conventions.html) — read before any work in `backend/`.
 - Frontend: [`docs/frontend-conventions.html`](docs/frontend-conventions.html) — read before any work in `frontend/`.
+  Also [`docs/frontend-styling.html`](docs/frontend-styling.html) — tokens, theme, `Page` widths, primitives, mobile, the
+  journal editor — before touching styles or layout.
 - Architecture: [`docs/architecture.html`](docs/architecture.html) — the session pipeline, data model, context pack +
   retrieval — and [`docs/architecture-ops.html`](docs/architecture-ops.html) — model routing and cost (the model
   eval), auth, where data lives on the Pi, seeding, failure behaviour. Read both before touching more than one module.

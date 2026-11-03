@@ -1,50 +1,197 @@
-/* Journal-only styles: the idea button's one-off pulse, the editor textarea, the list rows. Tokens only. */
-.ta-idea--pulse {
-    border-color: var(--accent);
-    animation: ta-idea-pulse 1.6s ease-in-out 1;
+/* The journal's split-pane layout and its entry list. Phones (< 768px): one pane at a time,
+   chosen by data-view on .ta-journal, and the WINDOW scrolls (no inner scroll containers — iOS
+   keyboards hate them), so sticky offsets sit under the top bar (--ta-topbar-h). Desktop: two
+   panes filling the shell's main area, each its own scroll container — the 300px list on
+   --surface-2, the editor pane on --paper. Idea button + insight panel: journal-insights.css. */
+
+.ta-journal {
+    min-width: 0;
 }
 
-@keyframes ta-idea-pulse {
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 transparent;
-    }
-    50% {
-        box-shadow: 0 0 0 6px var(--accent-soft);
-    }
+.ta-journal[data-view='editor'] .ta-journal__list,
+.ta-journal[data-view='list'] .ta-journal__pane {
+    display: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .ta-idea--pulse {
-        animation: none;
-        box-shadow: 0 0 0 3px var(--accent-soft);
-    }
+.ta-journal__pane {
+    min-width: 0;
+    background: var(--paper);
 }
 
-/* 16px minimum keeps iOS Safari from zooming the page when the field is focused. */
-.ta-journal-text {
-    min-height: 46vh;
-    font-size: 16px;
-    line-height: 1.65;
-    resize: vertical;
+/* Left pane head: "Journal" + the new-entry button. On a phone that button is a full primary
+   "New entry"; on desktop the same element shrinks to a quiet 28px "+" (the label stays as its
+   accessible name). */
+.ta-jlist__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 20px 16px 12px;
 }
 
-.ta-journal-row {
+.ta-jlist__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.ta-jlist__month {
+    position: sticky;
+    top: var(--ta-topbar-h, 0px);
+    z-index: 1;
+    margin: 0;
+    padding: 12px 16px 6px;
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ta-jrow {
     display: block;
-    padding: 12px 16px;
+    min-height: 40px;
+    margin: 0 8px;
+    padding: 8px 10px;
+    border-radius: var(--r-sm);
     color: inherit;
     text-decoration: none;
-    border-bottom: 1px solid var(--line);
+    transition: background 120ms ease;
 }
 
-.ta-journal-row:last-child {
-    border-bottom: 0;
+.ta-jrow:hover {
+    background: var(--surface-3);
 }
 
-.ta-journal-row:hover {
-    background: var(--surface-2);
+.ta-jrow[aria-current='page'] {
+    background: var(--surface-3);
 }
 
-.ta-journal-row[aria-current='page'] {
-    background: var(--accent-soft);
+.ta-jrow__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ta-jrow__date {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.ta-jrow__ideas {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ta-jrow__ideas svg {
+    width: 12px;
+    height: 12px;
+}
+
+.ta-jrow__preview {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.ta-journal__idle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    .ta-journal {
+        display: flex;
+        height: 100%;
+    }
+
+    /* Both panes always show on desktop, whichever view the phone layout would pick. */
+    .ta-journal[data-view] .ta-journal__list,
+    .ta-journal[data-view] .ta-journal__pane {
+        display: block;
+    }
+
+    .ta-journal__list {
+        flex: 0 0 300px;
+        overflow-y: auto;
+        background: var(--surface-2);
+        border-right: 1px solid var(--line);
+        padding-bottom: 16px;
+    }
+
+    .ta-journal__pane {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .ta-jlist__head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        height: 48px;
+        padding: 0 10px 0 18px;
+        box-sizing: border-box;
+        background: var(--surface-2);
+    }
+
+    .ta-jlist__title {
+        font-size: 13px;
+    }
+
+    .ta-jlist__new.ta-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+        color: var(--muted);
+    }
+
+    .ta-jlist__new.ta-btn:hover {
+        background: var(--surface-3);
+        color: var(--ink);
+    }
+
+    .ta-jlist__new svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .ta-jlist__new-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .ta-jlist__month {
+        top: 48px;
+        padding: 14px 18px 6px;
+        background: var(--surface-2);
+    }
+}
+
+@media (min-width: 768px) and (pointer: coarse) {
+    .ta-jlist__new.ta-btn {
+        width: 40px;
+        height: 40px;
+    }
 }

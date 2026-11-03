@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Collapsible } from '@/components/sessions/Collapsible';
 import { ProblemUpdates } from '@/components/sessions/ProblemUpdates';
 import { ProcessingCard } from '@/components/sessions/ProcessingCard';
@@ -8,7 +8,8 @@ import { SummaryBody } from '@/components/sessions/SummaryBody';
 import { Button } from '@/components/ui/Button';
 import { Loading, Skeleton } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ErrorState } from '@/components/ui/States';
+import { BackLink, ErrorState } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { useSession } from '@/services/hooks/use-session';
 import { paths } from '@/services/paths';
 
@@ -29,37 +30,33 @@ export default function SessionDetail() {
         else set_confirming(false);
     };
 
-    const back = (
-        <Link to={paths.sessions} className="ta-muted mb-4 inline-block text-sm font-medium hover:underline">
-            ← Sessions
-        </Link>
-    );
+    const back = <BackLink to={paths.sessions} label="Sessions" />;
 
     if (loading && !session) {
         return (
-            <>
+            <Page width="reading">
                 {back}
                 <Loading label="Loading session…">
                     <Skeleton height={34} className="mb-3 w-3/4" />
                     <Skeleton height={16} className="mb-8 w-1/3" />
                     <Skeleton height={14} lines={5} />
                 </Loading>
-            </>
+            </Page>
         );
     }
     if (!session) {
         return (
-            <>
+            <Page width="reading">
                 {back}
                 <ErrorState message={error ?? 'This session could not be found.'} on_retry={reload} />
-            </>
+            </Page>
         );
     }
 
     const ready = session.status === 'ready';
     const show_summary = (ready || session.status === 'failed') && !!session.summary;
     return (
-        <>
+        <Page width="reading">
             {back}
             <SessionHeader session={session} saving={busy} on_save={save} />
             {action_error && (
@@ -68,7 +65,7 @@ export default function SessionDetail() {
                 </div>
             )}
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
                 {!ready && <ProcessingCard session={session} busy={busy} on_retry={() => void retry()} on_finish={() => void finish()} />}
                 {show_summary && <SummaryBody summary={session.summary!} />}
                 {ready && !session.summary && <ErrorState message="This session finished without a summary. You can delete it and add it again." />}
@@ -77,7 +74,7 @@ export default function SessionDetail() {
                 {session.notes && <Collapsible title="Notes as written" text={session.notes} />}
             </div>
 
-            <div className="mt-10 flex justify-center">
+            <div className="mt-12">
                 <Button variant="ghost" onClick={() => set_confirming(true)} disabled={busy} style={{ color: 'var(--danger)' }}>
                     Delete session
                 </Button>
@@ -91,6 +88,6 @@ export default function SessionDetail() {
                 on_confirm={() => void delete_session()}
                 on_cancel={() => set_confirming(false)}
             />
-        </>
+        </Page>
     );
 }

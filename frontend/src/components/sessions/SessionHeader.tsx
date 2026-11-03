@@ -59,16 +59,16 @@ export const SessionHeader = ({ session, saving, on_save }: Props) => {
     }
 
     return (
-        <header className="mb-6">
+        <header className="mb-8">
             <div className="flex items-start justify-between gap-3">
-                <h1 className="min-w-0 text-2xl font-semibold tracking-tight md:text-3xl">{shown_title}</h1>
+                <h1 className="min-w-0 text-xl font-semibold tracking-tight">{shown_title}</h1>
                 <Button size="sm" variant="ghost" onClick={begin_edit} aria-label="Edit title and date">
                     Edit
                 </Button>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <span className="ta-muted text-[15px]">{format_date(session.occurred_at, { weekday: true })}</span>
-                <span className="ta-muted text-[15px]">
+                <span className="ta-muted text-[13px]">{format_date(session.occurred_at, { weekday: true })}</span>
+                <span className="ta-muted text-[13px]">
                     {SOURCE_LABEL[session.source]}
                     {session.duration_sec ? ` · ${minutes(session.duration_sec)}` : ''}
                 </span>

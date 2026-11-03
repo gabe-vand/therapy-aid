@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/States';
 import { relative_time } from '@/services/dates';
+import './settings.css';
 
 /* The "About me" editor. The draft is null until the user types, so the textarea shows the saved
    copy and "dirty" is simply draft !== saved — no sync effect to drift out of step. Saving puts
@@ -26,14 +27,12 @@ export const ProfileCard = ({ profile, loading, error, on_reload, on_save, savin
 
     return (
         <Card aria-labelledby="profile-title">
-            <h2 id="profile-title" className="text-lg font-semibold">
+            <h2 id="profile-title" className="ta-set-title">
                 About me
             </h2>
-            <p className="ta-muted mt-1 text-[15px]">
-                Included in every summary, focus, insight and chat answer, so the AI knows who it is talking about. Write it in your own words: what is going on, what you are working on, how you like to be spoken to.
-            </p>
+            <p className="ta-set-desc">What is going on, what you are working on, how you like to be spoken to. Write it in your own words.</p>
 
-            <div className="mt-4">
+            <div className="ta-set-section">
                 {loading ? (
                     <Loading label="Loading profile…">
                         <Skeleton lines={5} height={18} />
@@ -42,17 +41,18 @@ export const ProfileCard = ({ profile, loading, error, on_reload, on_save, savin
                     <ErrorState message={error} on_retry={on_reload} />
                 ) : (
                     <>
-                        <textarea aria-label="About me" className="ta-input" rows={12} value={value} onChange={(e) => set_draft(e.target.value)} style={{ minHeight: 220, resize: 'vertical', lineHeight: 1.55 }} />
+                        <textarea aria-label="About me" className="ta-input ta-set-area" rows={10} value={value} onChange={(e) => set_draft(e.target.value)} />
                         {save_error && (
                             <div className="mt-3">
                                 <ErrorState message={save_error} />
                             </div>
                         )}
+                        <p className="ta-set-hint">Included in every summary, focus, insight and chat answer, so the AI knows who it is talking about.</p>
                         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                            <span role="status" className="ta-muted text-[14px]">
+                            <span role="status" className="ta-muted text-[13px]">
                                 {status}
                             </span>
-                            <Button variant="primary" onClick={save} disabled={!dirty || saving}>
+                            <Button variant="primary" size="sm" onClick={save} disabled={!dirty || saving}>
                                 {saving ? 'Saving…' : 'Save'}
                             </Button>
                         </div>

@@ -1,30 +1,39 @@
 import { Markdown } from '@/components/markdown/Markdown';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/States';
-import './chat.css';
+import { format_time } from '@/services/dates';
+import './chat-messages.css';
 
-/* The three things a conversation shows besides plain history: a user's message (plain text,
-   right-aligned), the assistant's answer (markdown, full width so lists and quotes breathe),
-   and the in-between states of a message that is still being answered or failed. */
+/* The things a conversation shows: the user's message (a soft accent bubble, plain text,
+   right-aligned), the assistant's answer (no bubble — markdown prose under a small "therapy-aid ·
+   time" label, full width so lists and quotes breathe), and the in-between states of a message
+   that is still being answered or failed. */
 
 export const UserBubble = ({ content }: { content: string }) => (
     <div className="ta-bubble-row ta-bubble-row--user">
-        <div className="ta-bubble ta-bubble--user">{content}</div>
+        <div className="ta-bubble--user">{content}</div>
     </div>
 );
 
-export const AssistantBubble = ({ content }: { content: string }) => (
-    <div className="ta-bubble-row">
-        <div className="ta-bubble ta-bubble--assistant">
-            <Markdown text={content} />
-        </div>
+const Label = ({ time }: { time?: string }) => (
+    <div className="ta-msg__label">
+        <strong>therapy-aid</strong>
+        {time && <span>{time}</span>}
+    </div>
+);
+
+export const AssistantBubble = ({ content, created_at }: { content: string; created_at?: string }) => (
+    <div className="ta-msg">
+        <Label time={created_at ? format_time(created_at) : undefined} />
+        <Markdown text={content} />
     </div>
 );
 
 /* The placeholder while the (non-streaming) reply is being written; it can take a minute. */
 export const ThinkingBubble = () => (
-    <div className="ta-bubble-row">
-        <div role="status" className="ta-bubble ta-bubble--assistant ta-bubble--thinking">
+    <div className="ta-msg">
+        <Label />
+        <div role="status" className="ta-bubble--thinking">
             Thinking…
         </div>
     </div>

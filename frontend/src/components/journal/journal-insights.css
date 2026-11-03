@@ -1,0 +1,112 @@
+/* The idea button (its one-off pulse, and its label collapsing to the icon on a narrow phone
+   toolbar) and the insight panel under the document. Tokens only. */
+
+.ta-idea--pulse {
+    border-color: var(--accent);
+    animation: ta-idea-pulse 1.6s ease-in-out 1;
+}
+
+@keyframes ta-idea-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+    50% {
+        box-shadow: 0 0 0 6px var(--accent-soft);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-idea--pulse {
+        animation: none;
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+}
+
+.ta-idea svg {
+    width: 15px;
+    height: 15px;
+    color: var(--accent);
+}
+
+@media (max-width: 479px) {
+    .ta-idea.ta-btn {
+        width: 40px;
+        padding: 0;
+    }
+
+    .ta-idea__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}
+
+.ta-insights {
+    margin-top: 32px;
+    padding: 20px 24px;
+    border-radius: var(--r-lg);
+    background: var(--accent-soft);
+}
+
+.ta-insights__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ta-insights__eyebrow svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ta-insights__wait {
+    margin: 12px 0 0;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.ta-insights__stamp {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-insights__history {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-2);
+}
+
+.ta-insights__history > .ta-btn {
+    margin-left: -10px;
+}
+
+.ta-insights__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-insights__list > li {
+    padding-left: 14px;
+    border-left: 2px solid var(--line-2);
+}
+
+@media (max-width: 767px) {
+    .ta-insights {
+        padding: 16px;
+    }
+}

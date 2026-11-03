@@ -51,11 +51,17 @@ describe('Chat: thread list', () => {
     });
 });
 
+/* A row's Delete lives in its overflow menu: open it, then choose Delete chat. */
+const delete_via_menu = async (title: string) => {
+    fireEvent.click(await screen.findByRole('button', { name: `Chat actions: ${title}` }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete chat' }));
+};
+
 describe('Chat: deleting', () => {
     it('asks first, and does nothing on Cancel', async () => {
         const mock = stub_api({ 'GET /api/chat/threads': [racing, sleep] });
         open('/chat');
-        fireEvent.click(await screen.findByRole('button', { name: 'Delete chat Sleep routine' }));
+        await delete_via_menu('Sleep routine');
         const dialog = screen.getByRole('dialog');
         expect(dialog).toHaveTextContent('Sleep routine');
         fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -66,7 +72,7 @@ describe('Chat: deleting', () => {
     it('deletes after confirmation and removes the row', async () => {
         const mock = stub_api({ 'GET /api/chat/threads': [racing, sleep], 'DELETE /api/chat/threads/2': {} });
         open('/chat');
-        fireEvent.click(await screen.findByRole('button', { name: 'Delete chat Sleep routine' }));
+        await delete_via_menu('Sleep routine');
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete chat' }));
         await waitFor(() => expect(screen.queryByText('Sleep routine')).toBeNull());
         expect(mock.mock.calls.some((c) => c[0] === '/api/chat/threads/2' && (c[1] as RequestInit).method === 'DELETE')).toBe(true);
@@ -77,7 +83,8 @@ describe('Chat: deleting', () => {
         stub_api({ 'GET /api/chat/threads': [racing], 'GET /api/chat/threads/1': { thread: racing, messages: history }, 'DELETE /api/chat/threads/1': {} });
         open('/chat/1');
         await screen.findByText('What helps?');
-        fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Chat actions' }));
+        fireEvent.click(screen.getByRole('menuitem', { name: 'Delete chat' }));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete chat' }));
         expect(await screen.findByText('Pick a chat')).toBeInTheDocument();
         expect(screen.queryByRole('textbox', { name: 'Message' })).toBeNull();
@@ -86,7 +93,7 @@ describe('Chat: deleting', () => {
     it('shows why a delete failed and keeps the row', async () => {
         stub_api({ 'GET /api/chat/threads': [racing], 'DELETE /api/chat/threads/1': envelope(null, 500, 'Could not delete the chat.') });
         open('/chat');
-        fireEvent.click(await screen.findByRole('button', { name: 'Delete chat Racing mind' }));
+        await delete_via_menu('Racing mind');
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete chat' }));
         expect(await screen.findByRole('alert')).toHaveTextContent('Could not delete the chat.');
         expect(screen.getByText('Racing mind')).toBeInTheDocument();

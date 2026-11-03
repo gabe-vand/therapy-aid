@@ -22,11 +22,11 @@ export const ProcessingCard = ({ session, busy, on_retry, on_finish, now = Date.
         <Card as="section" aria-live="polite">
             <ProcessingStepper status={session.status} source={session.source} has_transcript={!!session.transcript} has_summary={has_summary} />
             {failed && (
-                <div className="mt-6">
+                <div className="mt-5">
                     <p className="font-semibold" style={{ color: 'var(--danger)' }}>
                         {has_summary ? 'Your summary is saved, but updating your problems failed' : 'Something went wrong'}
                     </p>
-                    <p className="mt-1 text-[15px]" style={{ color: 'var(--ink-2)' }}>
+                    <p className="mt-1 text-sm" style={{ color: 'var(--ink-2)' }}>
                         {session.error ?? 'The session could not be processed.'}
                         {has_summary && ' Retry finishes that step without summarizing again.'}
                     </p>
@@ -36,8 +36,8 @@ export const ProcessingCard = ({ session, busy, on_retry, on_finish, now = Date.
                 </div>
             )}
             {!failed && session.status === 'recording' && (
-                <div className="mt-6">
-                    <p className="ta-muted text-[15px]">
+                <div className="mt-5">
+                    <p className="ta-muted text-sm">
                         This recording has not been finished yet.
                         {can_finish && ' If it was interrupted (a closed tab or a dead battery), the audio that reached the server is safe: finish it to transcribe what was saved. Don’t do this while it is still recording on another device.'}
                     </p>
@@ -48,9 +48,7 @@ export const ProcessingCard = ({ session, busy, on_retry, on_finish, now = Date.
                     )}
                 </div>
             )}
-            {!failed && session.status !== 'recording' && (
-                <p className="ta-muted mt-6 text-[15px]">This usually takes a minute or two. You can leave this page — it keeps working, and the session will be ready when you come back.</p>
-            )}
+            {!failed && session.status !== 'recording' && <p className="ta-muted mt-5 text-sm">This usually takes a minute or two. You can leave this page — it keeps working, and the session will be ready when you come back.</p>}
         </Card>
     );
 };

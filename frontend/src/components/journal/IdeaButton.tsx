@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { IDEA_PAUSE_MS, idea_visible, idea_wants_pulse } from './idea-rules';
-import './journal.css';
+import './journal-insights.css';
 
-/* The "💡 I have an idea…" button. Hidden until the draft is long enough to say something; then it
+/* The "I have an idea…" button. Hidden until the draft is long enough to say something; then it
    sits quietly, and pulses ONCE (per baseline) after the writer has grown the draft by 200+
    characters and stopped typing for 4 seconds. Only a click ever calls `on_click` — nothing here
-   generates on its own. Typing again restarts the 4s wait, because the effect depends on `draft`. */
+   generates on its own. Typing again restarts the 4s wait, because the effect depends on `draft`.
+   On a narrow phone toolbar the label collapses to the icon (it stays the accessible name). */
 
 type Props = { draft: string; baseline: number; busy: boolean; disabled?: boolean; on_click: () => void };
 
@@ -24,8 +26,9 @@ export function IdeaButton({ draft, baseline, busy, disabled = false, on_click }
 
     if (!idea_visible(draft.length)) return null;
     return (
-        <Button variant="secondary" className={pulsing ? 'ta-idea ta-idea--pulse' : 'ta-idea'} data-pulsing={pulsing} disabled={busy || disabled} onClick={on_click}>
-            <span aria-hidden>💡</span> {busy ? 'Thinking it over…' : 'I have an idea…'}
+        <Button variant="secondary" size="sm" className={pulsing ? 'ta-idea ta-idea--pulse' : 'ta-idea'} data-pulsing={pulsing} disabled={busy || disabled} onClick={on_click}>
+            <Lightbulb aria-hidden />
+            <span className="ta-idea__label">{busy ? 'Thinking it over…' : 'I have an idea…'}</span>
         </Button>
     );
 }

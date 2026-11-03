@@ -1,56 +1,69 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, Trash2 } from 'lucide-react';
 import type { ChatThread } from '@therapy-aid/shared';
-import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/ui/Button';
 import { Loading, Skeleton } from '@/components/ui/Card';
+import { Menu } from '@/components/ui/Menu';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { relative_time } from '@/services/dates';
 import { paths } from '@/services/paths';
 import './chat.css';
 
 /* The list of chats. On mobile it IS the /chat screen (opening a thread navigates to it); on
-   desktop it sits beside the conversation with the open thread highlighted. Deleting only asks
-   the page to confirm — the list never mutates anything itself. */
+   desktop it sits beside the conversation with the open thread highlighted. Each row has an
+   overflow menu (hover-revealed on desktop, always there on touch) whose "Delete chat" only asks
+   the page to confirm — the list never mutates anything itself. `notice` renders under the header
+   (the page's delete-failure alert). */
 
-type Props = { threads: ChatThread[]; loading: boolean; error: string | null; active_id: number | null; on_retry: () => void; on_new: () => void; creating: boolean; on_delete: (thread: ChatThread) => void };
+type Props = { threads: ChatThread[]; loading: boolean; error: string | null; active_id: number | null; on_retry: () => void; on_new: () => void; creating: boolean; on_delete: (thread: ChatThread) => void; notice?: ReactNode };
 
 const meta = (t: ChatThread) => `${t.message_count} ${t.message_count === 1 ? 'message' : 'messages'} · ${relative_time(t.updated_at)}`;
 
-export const ThreadList = ({ threads, loading, error, active_id, on_retry, on_new, creating, on_delete }: Props) => {
+const Body = ({ threads, loading, error, active_id, on_retry, on_delete }: Props) => {
     if (loading) {
         return (
             <Loading label="Loading chats…">
-                <div className="flex flex-col gap-2">
-                    <Skeleton height={58} />
-                    <Skeleton height={58} />
-                    <Skeleton height={58} />
+                <div className="ta-chat-list__body">
+                    <Skeleton height={44} />
+                    <Skeleton height={44} />
+                    <Skeleton height={44} />
                 </div>
             </Loading>
         );
     }
-    if (error !== null) return <ErrorState message={error} on_retry={on_retry} />;
-
+    if (error !== null) {
+        return (
+            <div className="ta-chat-list__notice">
+                <ErrorState message={error} on_retry={on_retry} />
+            </div>
+        );
+    }
+    if (threads.length === 0) return <EmptyState title="No chats yet" body="Start one to ask about what you and David have covered." />;
     return (
-        <nav aria-label="Chats" className="flex flex-col gap-2">
-            <Button variant="primary" onClick={on_new} disabled={creating}>
-                {creating ? 'Starting…' : 'New chat'}
-            </Button>
-            {threads.length === 0 ? (
-                <EmptyState title="No chats yet" body="Start one to ask about what you and David have covered." />
-            ) : (
-                <ul className="mt-1 flex flex-col gap-2">
-                    {threads.map((t) => (
-                        <li key={t.id} className="ta-thread" data-active={t.id === active_id}>
-                            <Link to={paths.chat_thread(t.id)} className="ta-thread-link" aria-current={t.id === active_id ? 'page' : undefined}>
-                                <span className="block truncate font-medium">{t.title}</span>
-                                <span className="ta-muted block text-[13px]">{meta(t)}</span>
-                            </Link>
-                            <Button variant="ghost" size="sm" className="self-center" aria-label={`Delete chat ${t.title}`} onClick={() => on_delete(t)}>
-                                Delete
-                            </Button>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </nav>
+        <ul className="ta-chat-list__body">
+            {threads.map((t) => (
+                <li key={t.id} className="ta-thread" data-active={t.id === active_id}>
+                    <Link to={paths.chat_thread(t.id)} className="ta-thread-link" aria-current={t.id === active_id ? 'page' : undefined}>
+                        <span className="ta-thread-link__title">{t.title}</span>
+                        <span className="ta-thread-link__meta">{meta(t)}</span>
+                    </Link>
+                    <Menu label={`Chat actions: ${t.title}`} size="sm" items={[{ label: 'Delete chat', tone: 'danger', icon: <Trash2 aria-hidden />, on_select: () => on_delete(t) }]} />
+                </li>
+            ))}
+        </ul>
     );
 };
+
+export const ThreadList = (props: Props) => (
+    <nav aria-label="Chats">
+        <div className="ta-chat-list__head">
+            <span>Chat</span>
+            <IconButton aria-label="New chat" onClick={props.on_new} disabled={props.creating}>
+                <Plus aria-hidden />
+            </IconButton>
+        </div>
+        {props.notice && <div className="ta-chat-list__notice">{props.notice}</div>}
+        <Body {...props} />
+    </nav>
+);

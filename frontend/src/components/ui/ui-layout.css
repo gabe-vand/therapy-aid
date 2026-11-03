@@ -1,0 +1,143 @@
+/* Page furniture (Page.tsx, States.tsx): the width wrappers, the header row, the back link, and
+   the empty / error states. Hierarchy comes from weight and colour, separation from whitespace —
+   no borders under headers, no dashed boxes. */
+
+.ta-page {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+    box-sizing: border-box;
+}
+
+.ta-page--reading {
+    max-width: 760px;
+}
+
+.ta-page--wide {
+    max-width: 1120px;
+}
+
+/* Split-pane screens own their whole area: no padding, and on desktop the full main height so
+   each pane can scroll on its own. */
+.ta-page--full {
+    padding: 0;
+}
+
+@media (min-width: 768px) {
+    .ta-page--reading,
+    .ta-page--wide {
+        padding: 32px 40px 64px;
+    }
+
+    .ta-page--full {
+        height: 100%;
+    }
+}
+
+.ta-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ta-page-header__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.ta-page-header__subtitle {
+    margin: 4px 0 0;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.ta-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ta-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 28px;
+    margin: 0 0 8px -8px;
+    padding: 0 8px 0 4px;
+    border-radius: var(--r-sm);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+        background 120ms ease,
+        color 120ms ease;
+}
+
+.ta-back svg {
+    width: 16px;
+    height: 16px;
+}
+
+.ta-back:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+@media (pointer: coarse) {
+    .ta-back {
+        height: 40px;
+    }
+}
+
+.ta-empty {
+    padding: 48px 16px;
+    text-align: center;
+}
+
+.ta-empty__icon {
+    display: inline-flex;
+    margin-bottom: 12px;
+    color: var(--faint);
+}
+
+.ta-empty__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.ta-empty__body {
+    max-width: 420px;
+    margin: 6px auto 0;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.ta-empty__action {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.ta-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px 10px 14px;
+    border-radius: var(--r-md);
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 13.5px;
+    font-weight: 500;
+}

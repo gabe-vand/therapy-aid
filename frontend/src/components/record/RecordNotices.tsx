@@ -1,11 +1,16 @@
 import type { ReactNode } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import './record.css';
 
-/* Pre-flight warnings for the Record screen: an insecure origin (browsers hide the microphone
-   without HTTPS — a warning, not a block, since localhost works) and a browser with no recorder. */
+/* Warning blocks for the Record screen: a --warn-soft panel with an alert icon. Notice is also the
+   block for the live capture warning and the "stopped unexpectedly" notice. RecordNotices holds the
+   pre-flight ones: an insecure origin (browsers hide the microphone without HTTPS — a warning, not
+   a block, since localhost works) and a browser with no recorder. */
 
-const Notice = ({ children }: { children: ReactNode }) => (
-    <div role="note" className="mb-4 rounded-xl px-4 py-3 text-[15px]" style={{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>
-        {children}
+export const Notice = ({ children, role = 'note' }: { children: ReactNode; role?: 'note' | 'alert' | 'status' }) => (
+    <div role={role} className="ta-notice">
+        <AlertTriangle size={16} aria-hidden />
+        <div>{children}</div>
     </div>
 );
 

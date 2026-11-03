@@ -21,18 +21,18 @@ export function StatusActions({ problem, busy, on_status }: Props) {
 
     return (
         <>
-            <div className="flex flex-wrap gap-2">
+            <div className="ta-actions-row">
                 {problem.status === 'active' ? (
                     <>
-                        <Button variant="secondary" disabled={busy} onClick={() => set_asking('resolved')}>
+                        <Button size="sm" variant="secondary" disabled={busy} onClick={() => set_asking('resolved')}>
                             Resolve
                         </Button>
-                        <Button variant="ghost" disabled={busy} onClick={() => set_asking('discarded')}>
+                        <Button size="sm" variant="ghost" className="ta-btn-danger-ghost" disabled={busy} onClick={() => set_asking('discarded')}>
                             Discard
                         </Button>
                     </>
                 ) : (
-                    <Button variant="secondary" disabled={busy} onClick={() => void on_status('active')}>
+                    <Button size="sm" variant="secondary" disabled={busy} onClick={() => void on_status('active')}>
                         Reopen
                     </Button>
                 )}

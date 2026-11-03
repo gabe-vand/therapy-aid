@@ -24,9 +24,9 @@ describe('Home page', () => {
         expect(screen.getByText(/Do it three nights this week/)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /see the related problem/i })).toHaveAttribute('href', '/problems/3');
         expect(await screen.findByRole('link', { name: /Racing mind/ })).toHaveAttribute('href', '/sessions/4');
-        expect(screen.getByRole('link', { name: /Record a session/ })).toHaveAttribute('href', '/sessions/record');
+        expect(screen.getByRole('link', { name: /^Record$/ })).toHaveAttribute('href', '/sessions/record');
         expect(screen.getByRole('link', { name: /Add notes/ })).toHaveAttribute('href', '/sessions/notes');
-        expect(screen.getByRole('link', { name: /Write in journal/ })).toHaveAttribute('href', '/journal');
+        expect(screen.getByRole('link', { name: /^Journal$/ })).toHaveAttribute('href', '/journal');
     });
 
     it('explains the empty focus and the empty session list', async () => {

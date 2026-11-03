@@ -1,0 +1,171 @@
+/* The journal editor pane: the sticky 48px entry bar (EntryToolbar), the sticky 36px formatting
+   bar (EditorToolbar), and the document column — 720px, centred, the same measure for the text,
+   the character count and the insight panel. Desktop: the pane is the scroll container, so the
+   bars stick at 0 / 48px. Phones: the window scrolls, so they stick under the top bar. Prose
+   typography is shared with rendered Markdown in markdown/markdown.css. Tokens only. */
+
+.ta-entry {
+    --ta-bar-top: var(--ta-topbar-h, 0px);
+}
+
+.ta-entry-bar {
+    position: sticky;
+    top: var(--ta-bar-top);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 48px;
+    padding: 0 8px 0 4px;
+    box-sizing: border-box;
+    background: var(--paper);
+}
+
+.ta-entry-bar__status {
+    margin-left: auto;
+    padding: 0 4px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.ta-entry-bar__error {
+    color: var(--danger);
+}
+
+.ta-entry-bar__retry {
+    font-weight: 600;
+    text-decoration: underline;
+    color: inherit;
+}
+
+/* The date is a quiet button-like input: no border until hovered or focused. */
+.ta-date-quiet {
+    height: 40px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background 120ms ease;
+}
+
+.ta-date-quiet:hover {
+    background: var(--surface-3);
+}
+
+.ta-date-quiet:focus-visible {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ta-entry__save-error {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4px 24px 0;
+    box-sizing: border-box;
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.ta-format-bar {
+    position: sticky;
+    top: calc(var(--ta-bar-top) + 48px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 36px;
+    padding: 0 max(12px, calc((100% - 720px) / 2 + 20px));
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+}
+
+/* Small gaps between the groups: marks | headings | blocks. */
+.ta-format-bar > :nth-child(4),
+.ta-format-bar > :nth-child(6) {
+    margin-left: 10px;
+}
+
+.ta-entry__col,
+.ta-rich__content {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.ta-entry__col--pad {
+    padding-top: 24px;
+}
+
+.ta-rich__content {
+    padding-top: 24px;
+}
+
+.ta-doc {
+    min-height: 40vh;
+    outline: none;
+    caret-color: var(--accent);
+    white-space: pre-wrap;
+}
+
+.ta-doc p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--faint);
+    pointer-events: none;
+}
+
+.ta-entry__foot {
+    padding-bottom: 96px;
+}
+
+.ta-entry__count {
+    min-height: 18px;
+    margin: 12px 0 0;
+    text-align: right;
+    font-size: 12px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+    .ta-entry {
+        --ta-bar-top: 0px;
+    }
+
+    .ta-entry-bar {
+        padding: 0 12px 0 max(12px, calc((100% - 720px) / 2 + 16px));
+    }
+
+    .ta-entry-bar .ta-entry-bar__back {
+        display: none;
+    }
+
+    .ta-date-quiet {
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .ta-entry__col,
+    .ta-rich__content {
+        padding: 0 24px;
+    }
+
+    .ta-entry__col--pad,
+    .ta-rich__content {
+        padding-top: 32px;
+    }
+
+    .ta-entry__foot {
+        padding-bottom: 64px;
+    }
+}

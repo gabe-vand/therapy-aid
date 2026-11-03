@@ -1,108 +1,144 @@
-/* The app shell's own styles (imported by AppShell only). Layout breakpoint matches Tailwind's
-   md (768px): sidebar at and above it; top brand bar + bottom tab bar below it. */
+/* The app shell's own styles (imported by AppShell only). Breakpoint = Tailwind's md (768px).
+   Desktop: a fixed-height row — 240px sidebar + a main area that is the scroll container, so
+   `full` pages can fill it exactly. Mobile: normal document flow and the WINDOW scrolls, with a
+   sticky 48px top bar and a fixed bottom tab bar (shell-mobile.css).
+   --ta-topbar-h / --ta-tabbar-h are layout sizes (not colours) that pages use for sticky offsets. */
 
 .ta-shell {
+    --ta-topbar-h: calc(48px + env(safe-area-inset-top));
+    --ta-tabbar-h: calc(56px + env(safe-area-inset-bottom));
     min-height: 100vh;
     min-height: 100dvh;
     background: var(--paper);
 }
 
 .ta-brand {
-    font-weight: 650;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--ink);
     text-decoration: none;
 }
 
 .ta-brand-mark {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
     background: var(--accent);
-    margin-right: 8px;
-    box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 /* Desktop sidebar */
 .ta-sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--line);
+    display: none;
+}
+
+.ta-content {
+    min-width: 0;
+}
+
+.ta-sidebar__brand {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+.ta-sidebar__nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-height: 0;
+}
+
+.ta-sidebar__foot {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+}
+
+.ta-sidebar__theme {
+    padding: 0 2px;
 }
 
 .ta-side-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 9px 12px;
-    border-radius: 10px;
+    gap: 10px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--r-sm);
     color: var(--ink-2);
-    text-decoration: none;
+    font-size: 13px;
     font-weight: 500;
-    transition: background 120ms ease, color 120ms ease;
+    text-decoration: none;
+    transition:
+        background 120ms ease,
+        color 120ms ease;
 }
 
-.ta-side-link:hover {
-    background: var(--surface-2);
+.ta-side-link svg {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.ta-side-link:hover,
+.ta-side-link[aria-current='page'] {
+    background: var(--surface-3);
     color: var(--ink);
 }
 
-.ta-side-link[aria-current='page'] {
-    background: var(--accent-soft);
-    color: var(--accent);
+.ta-side-link[aria-current='page'] svg {
+    color: var(--ink);
 }
 
-/* Mobile top bar */
-.ta-topbar {
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: saturate(1.4) blur(12px);
-    border-bottom: 1px solid var(--line);
-    padding-top: env(safe-area-inset-top);
-}
-
-.ta-icon-link {
-    display: inline-flex;
-    padding: 8px;
-    border-radius: 10px;
-    color: var(--ink-2);
-}
-
-.ta-icon-link[aria-current='page'] {
-    color: var(--accent);
-    background: var(--accent-soft);
-}
-
-/* Mobile bottom tab bar */
-.ta-tabs {
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: saturate(1.4) blur(12px);
-    border-top: 1px solid var(--line);
-    padding-bottom: env(safe-area-inset-bottom);
-}
-
-.ta-tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 8px 0 6px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--muted);
-    text-decoration: none;
-}
-
-.ta-tab[aria-current='page'] {
-    color: var(--accent);
-}
-
-/* Room for the fixed tab bar (plus the iPhone home indicator) under the content. */
+/* Room for the fixed tab bar under the content. */
 .ta-main {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    padding-bottom: var(--ta-tabbar-h);
 }
 
 @media (min-width: 768px) {
+    .ta-shell {
+        display: flex;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .ta-sidebar {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        width: 240px;
+        padding: 14px 12px 12px;
+        box-sizing: border-box;
+        background: var(--surface-2);
+        border-right: 1px solid var(--line);
+        overflow-y: auto;
+    }
+
+    .ta-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .ta-topbar,
+    .ta-tabs {
+        display: none;
+    }
+
     .ta-main {
-        padding-bottom: 64px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: 0;
     }
 }

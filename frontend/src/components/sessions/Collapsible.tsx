@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import './sessions.css';
 
 /* A closed-by-default card for long raw text (the transcript, the notes as typed). Native
@@ -11,6 +12,7 @@ export const Collapsible = ({ title, hint, text, children }: { title: string; hi
                 {title}
                 {hint && <span className="ta-muted ml-2 text-sm font-normal">{hint}</span>}
             </span>
+            <ChevronDown size={16} aria-hidden />
         </summary>
         {text !== undefined ? <div className="ta-transcript">{text}</div> : children}
     </details>

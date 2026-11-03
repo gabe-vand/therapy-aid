@@ -83,6 +83,7 @@
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Entries by date, with an editor that autosaves as you type and says when it has saved. It also saves the moment the phone is backgrounded or the tab is closed, and a save that fails after you left the entry is retried until it lands. Changing the date right after the first keystroke is kept.</li>
         <li><span class="box">&#10003;</span> <strong>&ldquo;I have an idea&hellip;&rdquo;</strong>: on request, an insight on the draft that connects it to recent therapy sessions and entries, with David's advice taking priority. Never generated on its own; past insights stay with the entry.</li>
+        <li><span class="box">&#10003;</span> <strong>Rich-text editor</strong> (TipTap): bold, italic, strike, headings, lists and quotes. Entries are still stored as Markdown, so search and the AI pipeline are unchanged.</li>
         <li><span class="box">&#10003;</span> Seedable with your history through the import script.</li>
         <li class="todo"><span class="box"></span> Photos or attachments in entries.</li>
         <li class="todo"><span class="box"></span> Reminders or streaks. Deliberately absent.</li>
@@ -109,6 +110,7 @@
     <div class="rule-body">
       <ul class="ledger">
         <li><span class="box">&#10003;</span> &ldquo;About me&rdquo; profile that every prompt includes, editable in the app.</li>
+        <li><span class="box">&#10003;</span> <strong>Appearance</strong>: light (the default), dark or follow-the-device, in Settings and at the foot of the sidebar; remembered per browser, applied before first paint.</li>
         <li><span class="box">&#10003;</span> Shows who you are signed in as.</li>
         <li><span class="box">&#10003;</span> <strong>AI usage</strong>: per task, the model, calls, tokens and estimated dollars since the API last started.</li>
         <li><span class="box">&#10003;</span> Per-task model routing (cheaper models where quality holds), prompt caching, and env overrides for any task's model and effort.</li>
@@ -144,8 +146,19 @@
     </div>
   </section>
 
+  <section class="rule" id="ui">
+    <div class="rule-head"><span class="num">8</span><h3>Look &amp; mobile</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> <strong>UI refresh</strong>: a Linear-style shell (sidebar on desktop, top bar and tab bar on phones), Inter, hairline cards, one shared set of primitives and colour tokens. See <a href="docs/frontend-styling.html">Frontend Styling</a>.</li>
+        <li><span class="box">&#10003;</span> <strong>Mobile layout</strong>: designed at 390px first, one pane at a time for Journal and Chat, 40px touch targets, 16px inputs, safe-area insets, dialogs as bottom sheets.</li>
+        <li class="todo"><span class="box"></span> A custom theme beyond light, dark and system.</li>
+      </ul>
+    </div>
+  </section>
+
   <section class="rule" id="open">
-    <div class="rule-head"><span class="num">8</span><h3>Open items (from review)</h3></div>
+    <div class="rule-head"><span class="num">9</span><h3>Open items (from review)</h3></div>
     <div class="rule-body">
       <p>Real findings deliberately left for a product decision or a later change, so nobody assumes they were handled.</p>
       <ul class="ledger">
@@ -159,7 +172,7 @@
 </div>
 
 <footer>
-  See <a href="docs/architecture.html">Architecture</a>, <a href="docs/architecture-ops.html">Architecture &mdash; Operations</a>, <a href="docs/backend-conventions.html">Backend Conventions</a>, <a href="docs/frontend-conventions.html">Frontend Conventions</a>, and the root <code>CLAUDE.md</code>.
+  See <a href="docs/architecture.html">Architecture</a>, <a href="docs/architecture-ops.html">Architecture &mdash; Operations</a>, <a href="docs/backend-conventions.html">Backend Conventions</a>, <a href="docs/frontend-conventions.html">Frontend Conventions</a>, <a href="docs/frontend-styling.html">Frontend Styling</a>, and the root <code>CLAUDE.md</code>.
 </footer>
 
 </body>

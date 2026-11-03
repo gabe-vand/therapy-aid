@@ -44,7 +44,10 @@ describe('api', () => {
     it('never throws: network failure and non-JSON bodies become envelopes', async () => {
         stub_unreachable();
         expect(await getAPI('x')).toEqual({ data: null, status_code: 0, message: UNREACHABLE });
-        vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>502</html>', { status: 502 })));
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => new Response('<html>502</html>', { status: 502 })),
+        );
         expect(await postAPI('x')).toEqual({ data: null, status_code: 502, message: 'The server is unavailable (HTTP 502).' });
     });
 

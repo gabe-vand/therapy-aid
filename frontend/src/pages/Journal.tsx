@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { NotebookPen, Plus } from 'lucide-react';
 import type { JournalEntry } from '@therapy-aid/shared';
 import { EntryEditor } from '@/components/journal/EntryEditor';
 import { EntryList } from '@/components/journal/EntryList';
 import { Button } from '@/components/ui/Button';
-import { PageHeader } from '@/components/ui/States';
+import { EmptyState } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { useJournal } from '@/services/hooks/use-journal';
 import { paths } from '@/services/paths';
+import '@/components/journal/journal.css';
 
-/* The journal: entries on the left (stacked above the editor on a phone), the autosaving editor on
-   the right. On a phone only one of the two shows at a time — the list, or the editor with a "←
-   Entries" way back. `session` re-keys the editor whenever the writer picks an entry or starts a new
-   one (or the URL moves to another entry); creating a draft does NOT change the key, so typing is
+/* The journal, as a split-pane document editor (journal.css): on desktop the entry list is a 300px
+   pane on the left and the open entry fills the rest, each pane scrolling on its own. On a phone
+   only one shows at a time — the list, or the editor with a back control — and the window
+   scrolls. `session` re-keys the editor whenever the writer picks an entry or starts a new one
+   (or the URL moves to another entry); creating a draft does NOT change the key, so typing is
    never interrupted by the URL moving to the new entry. */
 export default function Journal() {
     const { id } = useParams();
@@ -49,21 +53,16 @@ export default function Journal() {
     };
 
     return (
-        <>
-            <div className={show_editor ? 'hidden md:block' : undefined}>
-                <PageHeader
-                    title="Journal"
-                    subtitle="Write freely. Ask for an idea when you want one."
-                    actions={
-                        <Button variant="primary" onClick={start_new}>
-                            + New entry
+        <Page width="full">
+            <div className="ta-journal" data-view={show_editor ? 'editor' : 'list'}>
+                <aside className="ta-journal__list">
+                    <header className="ta-jlist__head">
+                        <h1 className="ta-jlist__title">Journal</h1>
+                        <Button variant="primary" className="ta-jlist__new" title="New entry" onClick={start_new}>
+                            <Plus aria-hidden />
+                            <span className="ta-jlist__new-label">New entry</span>
                         </Button>
-                    }
-                />
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-[250px_minmax(0,1fr)]">
-                <div className={show_editor ? 'hidden md:block' : undefined}>
+                    </header>
                     <EntryList
                         entries={entries}
                         loading={loading}
@@ -75,16 +74,27 @@ export default function Journal() {
                             set_composing(false);
                         }}
                     />
-                </div>
+                </aside>
 
-                <div className={show_editor ? undefined : 'hidden md:block'} data-testid="journal-editor-pane">
+                <section className="ta-journal__pane" aria-label="Entry" data-testid="journal-editor-pane">
                     {show_editor ? (
                         <EntryEditor key={editor_key} entry_id={selected_id} on_change={apply_entry} on_created={created} on_deleted={deleted} on_back={back} />
                     ) : (
-                        <div className="ta-card ta-muted px-6 py-12 text-center text-[15px]">Pick an entry to read or edit, or start a new one.</div>
+                        <div className="ta-journal__idle">
+                            <EmptyState
+                                icon={<NotebookPen size={20} />}
+                                title="Nothing open"
+                                body="Pick an entry to read or edit, or start a new one."
+                                action={
+                                    <Button size="sm" onClick={start_new}>
+                                        Start writing
+                                    </Button>
+                                }
+                            />
+                        </div>
                     )}
-                </div>
+                </section>
             </div>
-        </>
+        </Page>
     );
 }

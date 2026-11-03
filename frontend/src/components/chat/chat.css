@@ -1,128 +1,141 @@
-/* Chat styles (imported by each chat component, so none depends on another's import). Tokens only.
-   The composer is sticky so it stays reachable while the page scrolls; on mobile it is lifted
-   above the fixed tab bar (~56px + the iPhone home indicator). */
+/* Chat layout + thread list (imported by the components that use it). Tokens only.
+   Desktop (>= 768px): .ta-chat is a flex row filling the main area — a 300px list and a
+   conversation column whose message area scrolls on its own, composer pinned at the bottom.
+   Phones: one pane at a time (data-open picks it) and the window scrolls; the sticky header and
+   composer sit under the top bar and above the tab bar. */
 
-.ta-chat-body {
-    min-height: calc(100dvh - 320px);
+.ta-chat {
+    display: flex;
+    min-height: 100%;
+}
+
+.ta-chat-list {
+    width: 100%;
+    background: var(--surface-2);
+}
+
+.ta-chat-pane {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 14px;
 }
 
-.ta-bubble-row {
-    display: flex;
-}
+@media (max-width: 767px) {
+    .ta-chat[data-open='true'] .ta-chat-list,
+    .ta-chat[data-open='false'] .ta-chat-pane {
+        display: none;
+    }
 
-.ta-bubble-row--user {
-    justify-content: flex-end;
-}
-
-.ta-bubble {
-    max-width: min(100%, 640px);
-    border-radius: 18px;
-    padding: 10px 14px;
-    overflow-wrap: anywhere;
-}
-
-.ta-bubble--user {
-    background: var(--accent);
-    color: var(--on-accent);
-    border-bottom-right-radius: 6px;
-    white-space: pre-wrap;
-    line-height: 1.55;
-}
-
-.ta-bubble--assistant {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-bottom-left-radius: 6px;
-    width: 100%;
-    max-width: 100%;
-}
-
-.ta-bubble--thinking {
-    color: var(--muted);
-    font-style: italic;
-    animation: ta-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes ta-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .ta-bubble--thinking { animation: none; }
-}
-
-.ta-composer-wrap {
-    position: sticky;
-    bottom: calc(56px + env(safe-area-inset-bottom));
-    z-index: 10;
-    margin-top: 16px;
-    padding: 12px 0 8px;
-    background: var(--paper);
-}
-
-@media (min-width: 768px) {
-    .ta-composer-wrap {
-        bottom: 0;
-        padding-bottom: 0;
+    /* The list pane is the whole screen; keep its background down to the tab bar. */
+    .ta-chat-list {
+        min-height: calc(100dvh - var(--ta-topbar-h) - var(--ta-tabbar-h));
     }
 }
 
-.ta-composer {
+@media (min-width: 768px) {
+    .ta-chat {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .ta-chat-list {
+        width: 300px;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        border-right: 1px solid var(--line);
+        overflow-y: auto;
+    }
+
+    .ta-chat-pane {
+        height: 100%;
+        min-height: 0;
+    }
+}
+
+.ta-chat-list__head {
     display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 8px;
-    background: var(--surface);
-    border: 1px solid var(--line-2);
-    border-radius: 18px;
-    box-shadow: var(--shadow);
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 8px 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
 }
 
-.ta-composer-field {
-    flex: 1;
-    min-width: 0;
-    resize: none;
-    border: 0;
-    background: transparent;
-    padding: 8px 8px;
-    max-height: 40dvh;
-    field-sizing: content;
+.ta-chat-list__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 8px 16px;
+    margin: 0;
+    list-style: none;
 }
 
-.ta-composer-field:focus {
-    outline: none;
-}
-
-.ta-composer:focus-within {
-    border-color: var(--accent);
+.ta-chat-list__notice {
+    padding: 0 8px 8px;
 }
 
 .ta-thread {
+    position: relative;
     display: flex;
-    align-items: stretch;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: var(--surface);
-    transition: border-color 120ms ease, background 120ms ease;
+    align-items: center;
+    border-radius: var(--r-sm);
+    transition: background 120ms ease;
 }
 
-.ta-thread:hover {
-    border-color: var(--line-2);
+.ta-thread:hover,
+.ta-thread:focus-within {
+    background: var(--surface-3);
 }
 
 .ta-thread[data-active='true'] {
-    border-color: var(--accent);
-    background: var(--accent-soft);
+    background: var(--surface-3);
 }
 
 .ta-thread-link {
     flex: 1;
     min-width: 0;
-    padding: 12px 14px;
+    padding: 7px 10px;
+    font-size: 13px;
     color: var(--ink);
     text-decoration: none;
+}
+
+.ta-thread-link__title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.ta-thread-link__meta {
+    display: block;
+    color: var(--muted);
+}
+
+@media (pointer: coarse) {
+    .ta-thread-link {
+        min-height: 40px;
+        box-sizing: border-box;
+    }
+}
+
+/* The row menu appears on hover/focus on desktop; always shown on touch. */
+.ta-thread .ta-menu {
+    margin-right: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ta-thread .ta-menu {
+        opacity: 0;
+        transition: opacity 120ms ease;
+    }
+
+    .ta-thread:hover .ta-menu,
+    .ta-thread:focus-within .ta-menu {
+        opacity: 1;
+    }
 }

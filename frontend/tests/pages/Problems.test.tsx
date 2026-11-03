@@ -10,7 +10,7 @@ const requests = (mock: ReturnType<typeof stub_api>) => mock.mock.calls.map((c) 
 const show = () => render_at(<Problems />, { path: '/problems' });
 
 describe('Problems page', () => {
-    it('shows a loading state, then active problems as cards', async () => {
+    it('shows a loading state, then active problems as rows', async () => {
         stub_api({ 'GET /api/problems': [problem({ id: 1, title: 'Racing mind', last_discussed_at: days_ago(21), update_count: 3 })] });
         show();
         expect(screen.getByRole('status', { name: 'Loading problems' })).toBeInTheDocument();
@@ -20,11 +20,11 @@ describe('Problems page', () => {
         expect(card).toHaveTextContent('3 updates');
     });
 
-    it('clamps the description to two lines and singularises "1 update"', async () => {
+    it('truncates the description to one line and singularises "1 update"', async () => {
         stub_api({ 'GET /api/problems': [problem({ description: 'A long description. '.repeat(30), update_count: 1 })] });
         show();
         const card = await screen.findByRole('link', { name: /Racing mind/ });
-        expect(card.querySelector('p')).toHaveClass('line-clamp-2');
+        expect(card.querySelector('.ta-prow__desc')).toHaveClass('ta-prow__desc');
         expect(card).toHaveTextContent('1 update');
         expect(card).not.toHaveTextContent('1 updates');
     });
@@ -39,7 +39,7 @@ describe('Problems page', () => {
         stub_api({ 'GET /api/problems': [] });
         show();
         expect(await screen.findByText('No active problems')).toBeInTheDocument();
-        expect(screen.getAllByRole('button', { name: '+ New problem' }).length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('button', { name: 'New problem' }).length).toBeGreaterThan(0);
     });
 
     it('shows the error with Retry that recovers', async () => {
@@ -68,7 +68,7 @@ describe('Problems page', () => {
         stub_api({ 'GET /api/problems': [problem({ id: 1, title: 'Fresh' }), problem({ id: 2, title: 'Dusty', is_stale: true })] });
         show();
         await screen.findByRole('link', { name: /Dusty/ });
-        expect(screen.getAllByText('Still relevant?')).toHaveLength(1);
+        expect(screen.getAllByText('Stale')).toHaveLength(1);
         expect(screen.getAllByRole('button', { name: 'Keep' })).toHaveLength(1);
         expect(screen.getAllByRole('button', { name: 'Discard' })).toHaveLength(1);
     });
@@ -123,7 +123,7 @@ describe('Problems page', () => {
         });
         show();
         await screen.findByText('No active problems');
-        fireEvent.click(screen.getAllByRole('button', { name: '+ New problem' })[0]!);
+        fireEvent.click(screen.getAllByRole('button', { name: 'New problem' })[0]!);
         const form = screen.getByRole('form', { name: 'New problem' });
         const submit = within(form).getByRole('button', { name: 'Add problem' });
         expect(submit).toBeDisabled();
@@ -139,7 +139,7 @@ describe('Problems page', () => {
         stub_api({ 'GET /api/problems': [], 'POST /api/problems': envelope(null, 400, 'title: Give it a title.') });
         show();
         await screen.findByText('No active problems');
-        fireEvent.click(screen.getAllByRole('button', { name: '+ New problem' })[0]!);
+        fireEvent.click(screen.getAllByRole('button', { name: 'New problem' })[0]!);
         fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'x' } });
         fireEvent.click(screen.getByRole('button', { name: 'Add problem' }));
         expect(await screen.findByText('title: Give it a title.')).toBeInTheDocument();

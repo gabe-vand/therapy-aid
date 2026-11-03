@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { MessageSquare } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ChatThread } from '@therapy-aid/shared';
 import { Conversation } from '@/components/chat/Conversation';
 import { ThreadList } from '@/components/chat/ThreadList';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { EmptyState, ErrorState, PageHeader } from '@/components/ui/States';
+import { EmptyState, ErrorState } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { useChat } from '@/services/hooks/use-chat';
 import { useChatThreads } from '@/services/hooks/use-chat-threads';
 import { paths } from '@/services/paths';
+import '@/components/chat/chat.css';
 
 /* Chat with the therapy material. /chat is the thread list; /chat/:id opens a conversation.
    Desktop shows both side by side; mobile shows one at a time (the conversation has a back
@@ -51,23 +54,23 @@ export default function Chat() {
     const title = listed?.title ?? chat.thread?.title ?? 'Chat';
 
     return (
-        <>
-            <div className={open ? 'hidden md:block' : undefined}>
-                <PageHeader title="Chat" subtitle="Ask about your sessions, problems and journal." />
-            </div>
-
-            {threads.action_error && (
-                <div className="mb-4">
-                    <ErrorState message={threads.action_error} />
-                </div>
-            )}
-
-            <div className="md:grid md:grid-cols-[17rem_minmax(0,1fr)] md:items-start md:gap-8">
-                <aside className={open ? 'hidden md:block' : undefined}>
-                    <ThreadList threads={threads.threads} loading={threads.loading} error={threads.error} active_id={thread_id} on_retry={threads.reload} on_new={start_new} creating={threads.creating} on_delete={set_to_delete} />
+        <Page width="full">
+            <div className="ta-chat" data-open={open}>
+                <aside className="ta-chat-list">
+                    <ThreadList
+                        threads={threads.threads}
+                        loading={threads.loading}
+                        error={threads.error}
+                        active_id={thread_id}
+                        on_retry={threads.reload}
+                        on_new={start_new}
+                        creating={threads.creating}
+                        on_delete={set_to_delete}
+                        notice={threads.action_error && <ErrorState message={threads.action_error} />}
+                    />
                 </aside>
 
-                <section aria-label="Conversation" className={open ? undefined : 'hidden md:block'}>
+                <section aria-label="Conversation" className="ta-chat-pane">
                     {open ? (
                         <Conversation
                             title={title}
@@ -82,7 +85,7 @@ export default function Chat() {
                             on_delete={() => set_to_delete(listed ?? chat.thread)}
                         />
                     ) : (
-                        <EmptyState title="Pick a chat" body="Choose one from the list, or start a new chat." />
+                        <EmptyState icon={<MessageSquare size={24} />} title="Pick a chat" body="Choose one from the list, or start a new chat." />
                     )}
                 </section>
             </div>
@@ -96,6 +99,6 @@ export default function Chat() {
                 on_confirm={confirm_delete}
                 on_cancel={() => set_to_delete(null)}
             />
-        </>
+        </Page>
     );
 }

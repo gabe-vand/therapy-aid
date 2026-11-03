@@ -1,0 +1,83 @@
+/* Surfaces and labels (Card.tsx): the one Card, status Chips, and shimmering Skeletons.
+   Flat things get hairlines, not shadows — shadows are for what floats (ui-overlays.css). */
+
+.ta-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+}
+
+.ta-card--padded {
+    padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .ta-card--padded {
+        padding: 24px;
+    }
+}
+
+.ta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: var(--r-sm);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ta-chip svg {
+    width: 12px;
+    height: 12px;
+}
+
+.ta-chip--neutral {
+    background: var(--surface-3);
+    color: var(--ink-2);
+}
+
+.ta-chip--accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ta-chip--ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+}
+
+.ta-chip--warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+
+.ta-chip--danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.ta-skeleton {
+    border-radius: var(--r-sm);
+    background: linear-gradient(90deg, var(--skeleton) 0%, var(--skeleton-shine) 50%, var(--skeleton) 100%);
+    background-size: 200% 100%;
+    animation: ta-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes ta-shimmer {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: -100% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-skeleton {
+        animation: none;
+    }
+}
