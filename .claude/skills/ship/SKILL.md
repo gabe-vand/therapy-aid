@@ -68,8 +68,8 @@ Env overrides: `DEPLOY_HOST` (default `pi@raspberrypi`), `DEPLOY_DIR`, `DEPLOY_U
 
 | Container | Role |
 |---|---|
-| `api` | Bun + Hono on :3010; SQLite at `/data/therapy-aid.sqlite` (volume `db-data`) |
-| `web` | nginx: the built SPA + `/api/*` → `api:3010` (prefix stripped). Host port `127.0.0.1:8080` only |
+| `api` | Bun + Hono on :3010; SQLite at `/data/therapy-aid.sqlite` and session audio in `/data/recordings` (volume `db-data`) |
+| `web` | nginx: the built SPA + `/api/*` → `api:3010` (prefix stripped; 50 MB bodies, 600 s timeouts). Host port `127.0.0.1:8080` only |
 | `ts` | Tailscale sidecar — tailnet node `therapy-aid`, `tailscale serve` HTTPS :443 → `web:80`. Identity in volume `ts-state` |
 
 ### Troubleshooting
@@ -97,6 +97,65 @@ $P pi@raspberrypi 'curl -s http://127.0.0.1:8080/api/health'
 - **Data:** SQLite lives in the `db-data` volume and survives redeploys and `docker compose down`.
   **Never run `docker compose down -v`** — it deletes the live database (the backups survive).
 
+### Secrets on the Pi
+
+Everything secret or tunable lives in **`~/therapy-aid.env`** on the Pi, outside the deploy dir
+(which every deploy replaces). `scripts/deploy.sh` passes it to compose with `--env-file`, and
+`docker-compose.yml` forwards the keys below into the `api` container. Every key is optional as far
+as `docker compose up` is concerned (unset = empty), but the app needs the first three to be useful.
+
+| Key | What it does |
+|---|---|
+| `ALLOWED_TAILSCALE_LOGIN` | The one tailnet login allowed in (e.g. `you@gmail.com`). **Unset = the API rejects every request** (fail closed), so a fresh Pi shows 401s until this is set. |
+| `ANTHROPIC_API_KEY` | Claude. Without it sessions fail at "summarizing" with a clear message; Retry works once it is set. |
+| `DEEPGRAM_API_KEY` | Transcription of recordings. Pasted notes never need it. Without it a recording fails at "transcribing" and the audio stays on disk. |
+| `APP_TIMEZONE` | IANA zone for dates the AI sees. Default `America/New_York`. |
+| `CLAUDE_MODEL` | Optional: force ONE model for every task. Leave empty to use the per-task routing in `svc-models.ts`. |
+| `CLAUDE_MODEL_<TASK>` / `CLAUDE_EFFORT_<TASK>` | Optional per-task overrides. Tasks: `SUMMARIZE`, `MAP_PROBLEMS`, `FOCUS`, `INSIGHT`, `CHAT`, `TITLE`. Effort: `low`, `medium`, `high`, `xhigh`, `max`. Settings > AI usage shows what each task really costs. |
+| `TS_AUTHKEY` | Optional non-interactive Tailscale login (see Troubleshooting). |
+
+```bash
+# create / edit it (chmod 600: it holds API keys). Plain KEY=value lines, no quotes, no `export`.
+$P -t pi@raspberrypi 'touch ~/therapy-aid.env && chmod 600 ~/therapy-aid.env && nano ~/therapy-aid.env'
+# apply a change without a full deploy (compose re-reads the env file, recreates only `api`):
+$P pi@raspberrypi 'cd therapy-aid && docker compose --env-file ~/therapy-aid.env up -d api'
+# confirm what the api booted with: a warning per missing key, never a value
+$P pi@raspberrypi 'cd therapy-aid && docker compose logs api | grep -E "\[(auth|ai|deepgram)\]" | tail -12'
+```
+
+Never paste a key into chat or a commit. The api's boot log warns about each missing key and prints
+the model routing table, never a key's value.
+
+### Seeding history
+
+`scripts/import-seed.ts` loads Gabe's profile, journal and past therapy notes from the local,
+gitignored `seed-data/` folder (`profile.md`, `journal.md`, `therapy-notes.md`; each journal/notes
+entry starts with a `## YYYY-MM-DD` heading). It runs **on a dev machine over HTTP, never on the
+Pi**, and `seed-data/` never ships (it is not in git, so not in `git archive`).
+
+```bash
+# 0. The stack must be deployed, ANTHROPIC_API_KEY set (see above), and this machine on the tailnet.
+bun scripts/import-seed.ts --dry-run        # parses the files, prints counts and dates, sends nothing
+bun scripts/import-seed.ts --url https://therapy-aid.elephant-trench.ts.net --dir seed-data
+```
+
+- Order: profile (PUT), then journal entries (POST, skipping any date already present), then therapy
+  notes **oldest first**: each note is POSTed to `/sessions/notes`, then the CLI polls the session until
+  it is `ready` before sending the next, because problem mapping must see the earlier sessions'
+  problems. Expect 1-3 minutes per note (summarize, map problems, refocus); six notes is ~10-15 min.
+- `occurred_at` is the heading date at 12:00 local time. Re-running is safe: days that already have a
+  journal entry or a `ready` session are skipped, a `failed` session is retried, one still processing is
+  waited on.
+- The profile is only written when the app has none; if it was edited in Settings the CLI leaves it
+  alone (`--overwrite-profile` replaces it).
+- `--url` rules: `localhost`/`127.0.0.1` get bare paths (the API directly, `bun run dev:api`); any other
+  host gets `/api` appended (nginx strips it). `--prefix` overrides the guess. `--only profile,journal,notes`
+  runs a subset; `--timeout <min>` changes the per-session wait (default 15).
+- A `failed` session stops the run and prints the session's error. Fix the cause (usually a missing
+  `ANTHROPIC_API_KEY`), run the same command again. A 401 means this machine is not on the tailnet as
+  `ALLOWED_TAILSCALE_LOGIN`.
+- Do not paste seed content into chat or a PR: the repo is public and the files are personal.
+
 ### Backups and restore
 
 The API snapshots the database once per UTC day into `~/therapy-aid-backups/therapy-aid-YYYY-MM-DD.sqlite`
@@ -116,4 +175,5 @@ docker compose start api
 ```
 
 Restoring is destructive to everything written since that snapshot — confirm with the user first.
+- **Recordings are not in the daily snapshots** (they cover the database only). Audio lives in the `db-data` volume under `/data/recordings`; it survives redeploys but not `down -v`.
 - **Out of disk:** `docker system df`; `docker builder prune -f` clears build cache.

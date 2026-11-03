@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Architecture: Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Architecture &mdash; Operations</h1>
+    <p>Part 2 of the <strong>therapy-aid</strong> architecture: which model each AI task runs on and what it costs, who is allowed in, where everything lives on the Pi, how history is seeded and backed up, and what happens when something fails. Sections 1&ndash;5 (pipelines, data model, grounding) are on the <a href="architecture.html">main architecture page</a>.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>AI:</strong> per-task models via <code>svc-models.ts</code> &nbsp;&middot;&nbsp; <strong>Auth:</strong> Tailscale login header &nbsp;&middot;&nbsp; <strong>State:</strong> <code>db-data</code> volume + <code>~/therapy-aid-backups/</code> &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
+  </div>
+
+  <nav class="toc">
+    <h2>Sections</h2>
+    <ol>
+      <li><a href="architecture.html"><span class="n">1&ndash;5</span>Pipelines, data model, grounding <em>(main page)</em></a></li>
+      <li><a href="#r6"><span class="n">6</span>Model routing and cost</a></li>
+      <li><a href="#r7"><span class="n">7</span>Auth</a></li>
+      <li><a href="#r8"><span class="n">8</span>Where data lives on the Pi</a></li>
+      <li><a href="#r9"><span class="n">9</span>Seeding and backups</a></li>
+      <li><a href="#r10"><span class="n">10</span>Failure behaviour</a></li>
+    </ol>
+  </nav>
+
+  <section class="rule" id="r6">
+    <div class="rule-head"><span class="num">6</span><h3>Model routing and cost</h3></div>
+    <div class="rule-body">
+      <p>No call site names a model. Each AI call names a <strong>task</strong> and <code>svc-models.ts</code> resolves its model and reasoning effort, so cost is tuned in one table (and per task through <code>CLAUDE_MODEL_&lt;TASK&gt;</code> / <code>CLAUDE_EFFORT_&lt;TASK&gt;</code>, or everything at once with <code>CLAUDE_MODEL</code>).</p>
+      <table>
+        <tr><th>Task</th><th>Does</th><th>Why this tier</th></tr>
+        <tr><td><code>summarize</code></td><td>transcript or notes to title, overview, key points, advice</td><td>Faithfulness to the source matters most; one narrow job.</td></tr>
+        <tr><td><code>map_problems</code></td><td>summary + problem list to progress notes and new problems</td><td>Sees a ~1k-token summary, not the transcript.</td></tr>
+        <tr><td><code>focus</code></td><td>whole picture to headline + 1&ndash;3 actions</td><td>The one judgment call over everything; runs once per session.</td></tr>
+        <tr><td><code>insight</code></td><td>journal draft x therapy advice to an observation</td><td>Only on a button press.</td></tr>
+        <tr><td><code>chat</code></td><td>grounded answers with tools</td><td>Evidence is pre-retrieved, so a mid-tier model suffices.</td></tr>
+        <tr><td><code>title</code></td><td>mechanical naming</td><td>Cheapest tier.</td></tr>
+      </table>
+      <p>The shipped defaults are in <code>TASK_MODELS</code>; the model eval is how they are changed, by running the real prompts on real notes across tiers and comparing outputs, not by guessing. <code>bun run eval</code> (<code>scripts/eval-models.ts</code>, key from <code>backend/.env</code>) imports the prompt builders and <code>svc-claude</code> directly, with no server and no database file: the rows a run would write live in memory (<code>scripts/lib/eval-world.ts</code>) and are rendered by the same pack-section functions. For each <code>--models</code> entry it summarizes the six seed notes in order, maps each onto the problems the earlier ones produced, then writes one focus, one insight on the 2026-10-13 journal entry and three chat answers, into <code>eval-out/&lt;model&gt;/</code>, with <code>eval-out/costs.md</code> from the usage log. <code>--judge</code> has Opus grade every cheaper model against Opus (faithfulness, problem mapping, usefulness, tone; 1&ndash;5 with a reason) into <code>eval-out/judge.md</code>. The judge is an aid; read the raw outputs before moving a task to a cheaper tier.</p>
+      <ul>
+        <li><strong>Prompt caching.</strong> The system prompt is the persona plus the context pack, both marked cacheable and byte-stable; today's date, the draft and the question go in the user message. Repeated chat turns and insights read the large block at a fraction of the input price. The log line shows <code>cached=</code> so it can be verified.</li>
+        <li><strong>See the bill.</strong> Every call logs one line (task, model, input / cached / output tokens, estimated dollars) and adds to in-memory per-task totals, served at <code>GET /ai/usage</code> and shown under Settings. Totals reset when the API restarts.</li>
+        <li><strong>Structured output</strong> uses the SDK's zod parse with schemas that carry no hard length limits; limits are written into the prompt and clamped in code, because a violated schema discards the whole (paid-for) reply.</li>
+        <li><strong>Never automatic where it costs.</strong> Insights and regenerate-focus happen on a click; the only automatic AI work is processing a session the user just added.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r7">
+    <div class="rule-head"><span class="num">7</span><h3>Auth</h3></div>
+    <div class="rule-body">
+      <p>There are no passwords or sessions. <code>tailscale serve</code> authenticates each request against the tailnet and adds a <code>Tailscale-User-Login</code> header; <code>md-auth.ts</code> allows a request only when that header equals <code>ALLOWED_TAILSCALE_LOGIN</code> (case-insensitive). Everything except <code>/health</code> is behind it, 404s included. <code>GET /me</code> returns the login.</p>
+      <ul>
+        <li><strong>Fails closed.</strong> With the variable empty, development allows everything as <code>dev@local</code>; any other environment rejects every request with 401 and logs it once at boot. Forgetting the setting locks the app; it never opens it.</li>
+        <li><strong>Funnel is off,</strong> so no public request can reach the sidecar; the header cannot be forged from outside the tailnet. The one host port is <code>127.0.0.1:8080</code> on the Pi, where a local shell could send its own header, which is an accepted risk on a single-user box.</li>
+        <li>Another tailnet member (shared device, shared node) is rejected too: being on the tailnet is not enough, the login has to match.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r8">
+    <div class="rule-head"><span class="num">8</span><h3>Where data lives on the Pi</h3></div>
+    <div class="rule-body">
+      <table>
+        <tr><th>What</th><th>Where</th><th>Survives</th></tr>
+        <tr><td>SQLite database</td><td>volume <code>db-data</code>, <code>/data/therapy-aid.sqlite</code></td><td>redeploys, <code>compose down</code>; <strong>not</strong> <code>down -v</code></td></tr>
+        <tr><td>Session audio</td><td>same volume, <code>/data/recordings/&lt;session id&gt;/</code> (chunks, then one <code>audio.&lt;ext&gt;</code>)</td><td>same as above; deleting a session deletes its folder</td></tr>
+        <tr><td>Daily snapshots</td><td>host folder <code>~/therapy-aid-backups/</code> (mounted at <code>/backups</code>)</td><td>everything, including <code>down -v</code>; <strong>database only, no audio</strong></td></tr>
+        <tr><td>Tailscale identity</td><td>volume <code>ts-state</code></td><td>redeploys</td></tr>
+        <tr><td>API keys, login, tuning</td><td><code>~/therapy-aid.env</code> (mode 600), outside the deploy dir</td><td>everything; read by compose at deploy time</td></tr>
+        <tr><td>The code</td><td><code>~/therapy-aid</code>, replaced wholesale on every deploy</td><td>nothing: keep no state here</td></tr>
+      </table>
+      <div class="note warn"><strong>Never run <code>docker compose down -v</code> on the Pi.</strong> It deletes the database and the recordings together. Snapshots survive it, but the audio does not.</div>
+      <p>Data sent off the Pi: session text and journal text go to Anthropic with each AI call; recordings go to Deepgram. Both are API calls on the owner's keys. Nothing else leaves.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r9">
+    <div class="rule-head"><span class="num">9</span><h3>Seeding and backups</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li><strong>History is imported over HTTP, from a dev machine.</strong> <code>scripts/import-seed.ts</code> reads the local, gitignored <code>seed-data/</code> and calls the same API the app uses: profile, journal, then therapy notes oldest first, waiting for each to be <code>ready</code> before sending the next (<a href="architecture.html#r2">&sect;2</a>). Re-running skips what exists and retries what failed. Runbook: the <code>/ship</code> skill, &ldquo;Seeding history&rdquo;.</li>
+        <li><strong>Personal data never enters the repo.</strong> It is public. <code>seed-data/</code> and <code>eval-out/</code> are gitignored, so they are also absent from <code>git archive</code>, which is all that ships.</li>
+        <li><strong>Backups:</strong> one <code>VACUUM INTO</code> snapshot per UTC day, integrity-checked, 30 kept, reported by <code>/health</code> as <code>backup_ok</code>. They share the Pi's SD card; copying them off the Pi and backing up the audio are open items on <a href="../features.html">features.html</a>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r10">
+    <div class="rule-head"><span class="num">10</span><h3>Failure behaviour</h3></div>
+    <div class="rule-body">
+      <table>
+        <tr><th>When</th><th>What happens</th></tr>
+        <tr><td>No <code>ANTHROPIC_API_KEY</code></td><td>The app runs. Reading and writing journal, problems and settings work; every AI feature fails with a message that says what to set. A session fails at summarizing and can be retried.</td></tr>
+        <tr><td>No <code>DEEPGRAM_API_KEY</code></td><td>Notes work. A recording fails at transcribing with a clear message; the audio is kept for Retry.</td></tr>
+        <tr><td>Model refuses, or the reply is cut off or fails its schema</td><td>A readable error on the session or chat turn, never a stack trace. Rate limits and 5xx are retried by the SDK first.</td></tr>
+        <tr><td>API restarts mid-pipeline</td><td>Boot re-queues interrupted sessions; a stale half-recording is failed after 6 hours.</td></tr>
+        <tr><td>Phone loses signal while recording</td><td>Unacked chunks stay in the browser and retry; the server enforces order, so nothing is silently dropped or duplicated.</td></tr>
+        <tr><td>Search index lost or empty</td><td>Rebuilt from the tables at boot.</td></tr>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Architecture of <code>therapy-aid</code>, part 2 of 2. Start at <a href="architecture.html">Architecture</a>. See also <a href="backend-conventions.html">Backend Conventions</a>, <a href="frontend-conventions.html">Frontend Conventions</a>, <a href="../features.html">Features</a>, and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

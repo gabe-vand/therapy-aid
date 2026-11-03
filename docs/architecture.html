@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Architecture</h1>
+    <p>How <strong>therapy-aid</strong> turns a weekly therapy session into something Gabe still has next week: the intake pipelines, the data model, and how the AI is grounded. Sections 6&ndash;10 (model routing and cost, auth, where data lives on the Pi, seeding and backups, failure behaviour) are on the <a href="architecture-ops.html">operations page</a>. Read both before changing a pipeline, a prompt, or the deploy.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>Shape:</strong> one SPA &middot; one API process &middot; one SQLite file &nbsp;&middot;&nbsp; <strong>AI:</strong> Claude (per-task models) + Deepgram &nbsp;&middot;&nbsp; <strong>Reach:</strong> tailnet only &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
+  </div>
+
+  <div class="note warn"><strong>Occam's razor is the design rule.</strong> No queue, no vector database, no streaming, no background worker process. Each of those would be a second moving part for a corpus of a few dozen documents and a single user. If something here looks under-built, it is because the simpler thing is correct (&sect;4 and &sect;5 say why).</div>
+
+  <nav class="toc">
+    <h2>Sections</h2>
+    <ol>
+      <li><a href="#r1"><span class="n">1</span>The big picture</a></li>
+      <li><a href="#r2"><span class="n">2</span>Session pipelines</a></li>
+      <li><a href="#r3"><span class="n">3</span>Data model</a></li>
+      <li><a href="#r4"><span class="n">4</span>Grounding: context pack + retrieval</a></li>
+      <li><a href="#r5"><span class="n">5</span>Why not embeddings</a></li>
+      <li><a href="architecture-ops.html#r6"><span class="n">6</span>Model routing and cost <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r7"><span class="n">7</span>Auth <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r8"><span class="n">8</span>Where data lives on the Pi <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r9"><span class="n">9</span>Seeding and backups <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r10"><span class="n">10</span>Failure behaviour <em>(operations page)</em></a></li>
+    </ol>
+  </nav>
+
+  <section class="rule" id="r1">
+    <div class="rule-head"><span class="num crit">1</span><h3>The big picture</h3></div>
+    <div class="rule-body">
+      <p>The problem: by next week the session is forgotten, trends are invisible, and advice evaporates. The app keeps three things alive between sessions: <strong>what was said</strong> (sessions), <strong>what it adds up to</strong> (problems, and the focus banner derived from them), and <strong>what Gabe wrote himself</strong> (journal). Chat and the &ldquo;I have an idea&hellip;&rdquo; button are two ways to ask questions of all of it.</p>
+      <pre class="flow">phone / laptop on the tailnet
+   |  https://therapy-aid.elephant-trench.ts.net
+   v
+ts   (Tailscale sidecar: TLS, adds Tailscale-User-Login)
+   v
+web  (nginx: SPA, and /api/* with the prefix stripped; 50 MB bodies, 600 s timeouts)
+   v
+api  (Bun + Hono, port 3010)
+   routes  -&gt;  services  -&gt;  repositories  -&gt;  SQLite  (/data/therapy-aid.sqlite)
+                 |
+                 +-&gt; Anthropic API   (summaries, problem mapping, focus, insight, chat)
+                 +-&gt; Deepgram API    (diarized transcription of recordings)</pre>
+      <p>The layering rules (routes never see the database, queries live only in repositories, components never fetch) are in the <a href="backend-conventions.html">backend</a> and <a href="frontend-conventions.html">frontend</a> conventions. This page is about what the pieces do together.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r2">
+    <div class="rule-head"><span class="num">2</span><h3>Session pipelines &mdash; two doors, one record</h3></div>
+    <div class="rule-body">
+      <p>A session arrives either as a <strong>recording</strong> (made in the browser during the live session) or as <strong>notes</strong> (pasted afterwards, also how history is seeded). Both end up as the same row, with the same summary, and the same effect on problems.</p>
+      <pre class="flow">RECORDING                                     NOTES
+ browser MediaRecorder, a chunk every 30 s     POST /sessions/notes
+ POST /sessions/:id/chunks?seq=N (in order)         |
+ POST /sessions/:id/finalize {chunk_count}          |
+        |                                           |
+   status: uploaded  &lt;-------------------------------+
+        |
+   transcribing   Deepgram nova-3, diarized -&gt; "[mm:ss] Speaker N: ..."   (recordings only)
+        |
+   summarizing    call 1 (summarize):     transcript/notes -&gt; title, overview, key points, therapist advice
+        |         call 2 (map_problems):  that SUMMARY + the problem list -&gt; progress notes, new problems
+        |         apply: problem_updates rows, last_discussed_at, new problems, resolved suggestions
+        |         regenerate focus (whole-picture call), reindex search
+        v
+   ready          (or failed, with a readable error; Retry resumes at the failing step)</pre>
+      <ul>
+        <li><strong>Chunked upload, in order.</strong> Chunks are appended strictly by sequence number; an out-of-order chunk is a <code>409</code> carrying the expected number, and <code>finalize</code> verifies the count. A phone that loses signal mid-session loses nothing it already sent, and the browser keeps unacked chunks in memory and retries them.</li>
+        <li><strong>Two narrow calls instead of one big one.</strong> The second call sees a ~1k-token summary rather than a 10k-token transcript, and each call has one job. That is what makes cheaper models viable (<a href="architecture-ops.html#r6">&sect;6</a>).</li>
+        <li><strong>One session at a time.</strong> Processing runs through an in-memory promise chain, so a session's problem mapping always sees the previous session's problems. This is what makes seeding six notes in order correct, and it is why there is no queue: the chain is the queue.</li>
+        <li><strong>Never throws, always resumable.</strong> The pipeline catches everything, stores a human-readable <code>error</code> and sets <code>failed</code>. A transcript is kept, so Retry after a missing API key redoes only the failed step. At boot, anything left in <code>uploaded</code>, <code>transcribing</code> or <code>summarizing</code> by a restart is re-queued, and a <code>recording</code> older than 6 hours is marked failed.</li>
+        <li><strong>The audio stays on disk</strong> whatever happens to the AI steps, so a missing Deepgram key costs a Retry, not a lost session.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r3">
+    <div class="rule-head"><span class="num">3</span><h3>Data model</h3></div>
+    <div class="rule-body">
+      <p>Plain SQLite tables, one DDL file each in <code>backend/db-schemas/</code>, mirrored by Drizzle entities. Timestamps are ISO-8601 UTC text; <code>occurred_at</code> is when the thing happened (editable), <code>created_at</code> is when the row was made.</p>
+      <table>
+        <tr><th>Table</th><th>Holds</th></tr>
+        <tr><td><code>sessions</code></td><td>One per therapy session: <code>source</code> (recording | notes), <code>status</code> (recording, uploaded, transcribing, summarizing, ready, failed), notes, transcript, <code>summary_json</code>, error, audio path and mime, duration.</td></tr>
+        <tr><td><code>problems</code></td><td>Durable threads (&ldquo;racing mind&rdquo;, &ldquo;Nicole&rdquo;): status active | resolved | discarded, <code>last_discussed_at</code>, <code>last_reviewed_at</code>, <code>origin_session_id</code>.</td></tr>
+        <tr><td><code>problem_updates</code></td><td>The timeline of each problem: one progress note per session that touched it (source <code>ai</code>) or by hand (<code>manual</code>). Deleting a session keeps its notes and nulls the link.</td></tr>
+        <tr><td><code>focus_snapshots</code></td><td>Every regenerated &ldquo;what to focus on now&rdquo; (headline + 1&ndash;3 items). The newest is the banner; older ones are history.</td></tr>
+        <tr><td><code>journal_entries</code>, <code>journal_insights</code></td><td>Journal text, and the insights generated on request for an entry.</td></tr>
+        <tr><td><code>chat_threads</code>, <code>chat_messages</code></td><td>Conversations with the grounded chatbot.</td></tr>
+        <tr><td><code>app_settings</code></td><td>Key/value; today just <code>profile</code>, the &ldquo;About me&rdquo; text every prompt opens with.</td></tr>
+        <tr><td><code>search_index</code></td><td>An FTS5 virtual table (<code>porter unicode61</code>), one row per session or journal entry, rewritten on every write and rebuilt at boot if empty.</td></tr>
+      </table>
+      <p><strong>Problems are the memory.</strong> Sessions are events; a problem is the thing that persists across them. Each session is mapped onto existing problems wherever the topic matches, even loosely, and only opens a new one for a durable theme. A problem not discussed or reviewed for 30 days is flagged <em>stale</em> and the Home page asks whether it is still relevant (Keep bumps <code>last_reviewed_at</code>; Discard hides it).</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r4">
+    <div class="rule-head"><span class="num crit">4</span><h3>Grounding &mdash; the context pack, then retrieval</h3></div>
+    <div class="rule-body">
+      <p>Chat, focus and insights all answer from the same grounding text, built by <code>services/context/context-pack.ts</code>:</p>
+      <ol>
+        <li><code>About Gabe</code> &mdash; the profile.</li>
+        <li><code>Current focus</code> &mdash; the latest snapshot.</li>
+        <li><code>Problems</code> &mdash; active ones with description, last discussed and the two newest notes; resolved ones by title.</li>
+        <li><code>Therapy sessions (newest first)</code> &mdash; each ready session's overview, key points, and what David suggested.</li>
+        <li><code>Recent journal entries</code> &mdash; the last eight, each capped at 700 words.</li>
+      </ol>
+      <ul>
+        <li><strong>Budget about 30k tokens.</strong> When over, the oldest sessions degrade to one line (date, title, key points), then the oldest one-liners drop with a pointer to search. Recent sessions keep their full depth; old ones stay findable.</li>
+        <li><strong>Deterministic.</strong> No clock, no randomness: the same rows produce a byte-identical pack. That is not tidiness, it is what lets prompt caching work (<a href="architecture-ops.html#r6">&sect;6</a>). Every item carries an id handle (<code>[session #4]</code>, <code>[problem #3]</code>, <code>[entry #12]</code>) the model can cite and pass back to a tool.</li>
+        <li><strong>Therapy outranks journal.</strong> The pack lists sessions first and the prompts say so: when David's advice and Gabe's own journal self-advice conflict, David's wins.</li>
+      </ul>
+      <p><strong>Retrieval on top.</strong> For each chat message the server runs a deterministic FTS5 search on the message itself (stopwords dropped, terms quoted so a stray <code>"</code> cannot break the query, 4+ character terms prefix-matched) and puts the top hits in the user turn as &ldquo;Possibly relevant excerpts&rdquo;. The model also has three tools &mdash; <code>search_notes</code>, <code>read_session</code>, <code>read_journal_entry</code> &mdash; for following up. Cheaper models are far better when handed evidence than when asked to go and find it.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r5">
+    <div class="rule-head"><span class="num">5</span><h3>Why not embeddings</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li><strong>The corpus fits.</strong> Years of weekly sessions, summarized, are tens of thousands of tokens. The recent, high-value part sits in the prompt whole; the rest is one line each. Nothing needs to be &ldquo;retrieved&rdquo; to be seen.</li>
+        <li><strong>Keyword search is the right tool for this text.</strong> Gabe's questions name things (&ldquo;Nicole&rdquo;, &ldquo;panic&rdquo;, &ldquo;racing mind&rdquo;). BM25 over stemmed words with prefix matching finds them exactly, and shows why it matched (the snippet), which a similarity score cannot.</li>
+        <li><strong>No second system.</strong> Embeddings mean a model dependency, a vector store, a re-embedding job on every edit, and a Pi that has to run or call all of it. FTS5 ships inside SQLite and is rewritten in the same transaction as the document.</li>
+        <li><strong>The model is the semantic layer.</strong> It reads the pack, so it already connects &ldquo;can't switch off at night&rdquo; to a session about a racing mind. It only needs help <em>finding</em> a specific passage, and search plus tools does that.</li>
+        <li><strong>Revisit when</strong> the pack can no longer hold the recent sessions at useful depth, or a question keeps missing because the words differ from the notes. Neither is true at dozens of documents.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Architecture of <code>therapy-aid</code>, part 1 of 2. Continued in <a href="architecture-ops.html">Architecture &mdash; Operations</a>. See also <a href="backend-conventions.html">Backend Conventions</a>, <a href="frontend-conventions.html">Frontend Conventions</a>, <a href="../features.html">Features</a>, and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

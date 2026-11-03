@@ -26,7 +26,7 @@ interface EnvKey {
     allowed_login: string;
     // Session recordings, one folder per session. On the Pi: /data/recordings (the db volume).
     recordings_dir: string;
-    // IANA zone the context pack renders dates in, so "Sep 11" means Gabe's Sep 11, not UTC's.
+    // IANA zone the context pack renders dates in, so "Sep 11" means Gabe's Sep 11, not UTC's (default: University of Delaware).
     timezone: string;
 }
 
@@ -48,7 +48,7 @@ export const app_env: EnvKey = {
     deepgram_api_key: process.env.DEEPGRAM_API_KEY || '',
     allowed_login: (process.env.ALLOWED_TAILSCALE_LOGIN || '').trim(),
     recordings_dir: process.env.RECORDINGS_DIR || './data/recordings',
-    timezone: process.env.APP_TIMEZONE || 'America/Toronto',
+    timezone: process.env.APP_TIMEZONE || 'America/New_York',
 };
 
 /** Vars the API cannot boot without. Everything else has a safe default above. */

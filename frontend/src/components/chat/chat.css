@@ -1,0 +1,128 @@
+/* Chat styles (imported by each chat component, so none depends on another's import). Tokens only.
+   The composer is sticky so it stays reachable while the page scrolls; on mobile it is lifted
+   above the fixed tab bar (~56px + the iPhone home indicator). */
+
+.ta-chat-body {
+    min-height: calc(100dvh - 320px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ta-bubble-row {
+    display: flex;
+}
+
+.ta-bubble-row--user {
+    justify-content: flex-end;
+}
+
+.ta-bubble {
+    max-width: min(100%, 640px);
+    border-radius: 18px;
+    padding: 10px 14px;
+    overflow-wrap: anywhere;
+}
+
+.ta-bubble--user {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-bottom-right-radius: 6px;
+    white-space: pre-wrap;
+    line-height: 1.55;
+}
+
+.ta-bubble--assistant {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.ta-bubble--thinking {
+    color: var(--muted);
+    font-style: italic;
+    animation: ta-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ta-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-bubble--thinking { animation: none; }
+}
+
+.ta-composer-wrap {
+    position: sticky;
+    bottom: calc(56px + env(safe-area-inset-bottom));
+    z-index: 10;
+    margin-top: 16px;
+    padding: 12px 0 8px;
+    background: var(--paper);
+}
+
+@media (min-width: 768px) {
+    .ta-composer-wrap {
+        bottom: 0;
+        padding-bottom: 0;
+    }
+}
+
+.ta-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.ta-composer-field {
+    flex: 1;
+    min-width: 0;
+    resize: none;
+    border: 0;
+    background: transparent;
+    padding: 8px 8px;
+    max-height: 40dvh;
+    field-sizing: content;
+}
+
+.ta-composer-field:focus {
+    outline: none;
+}
+
+.ta-composer:focus-within {
+    border-color: var(--accent);
+}
+
+.ta-thread {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.ta-thread:hover {
+    border-color: var(--line-2);
+}
+
+.ta-thread[data-active='true'] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.ta-thread-link {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    color: var(--ink);
+    text-decoration: none;
+}

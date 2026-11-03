@@ -20,8 +20,8 @@ COPY backend/tsconfig.json ./
 COPY backend/db-schemas ./db-schemas
 COPY backend/src ./src
 
-# The SQLite file lives in the /data volume and its daily snapshots in /backups (see
-# docker-compose.yml) — never in the image.
-ENV PORT=3010 DB_PATH=/data/therapy-aid.sqlite BACKUP_DIR=/backups APP_ENV=production
+# The SQLite file and the session recordings live in the /data volume and the daily snapshots in
+# /backups (see docker-compose.yml) — never in the image.
+ENV PORT=3010 DB_PATH=/data/therapy-aid.sqlite BACKUP_DIR=/backups RECORDINGS_DIR=/data/recordings APP_ENV=production
 EXPOSE 3010
 CMD ["bun", "src/index.ts"]

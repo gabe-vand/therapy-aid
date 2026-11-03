@@ -1,0 +1,86 @@
+/* Styles for the Record screen (imported by the components in this folder). Tokens only. */
+
+.ta-rec-btn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 112px;
+    height: 112px;
+    border-radius: 999px;
+    border: 0;
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        transform 120ms ease,
+        background 120ms ease;
+}
+
+.ta-rec-btn:active:not(:disabled) {
+    transform: scale(0.96);
+}
+.ta-rec-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.ta-rec-btn:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
+}
+
+/* While recording the button turns into the stop control and a soft ring pulses around it. */
+.ta-rec-btn[data-live='true'] {
+    background: var(--danger);
+    color: var(--on-danger);
+}
+
+.ta-rec-btn[data-live='true']::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+    border: 2px solid var(--danger);
+    opacity: 0.5;
+    animation: ta-rec-ring 1.8s ease-out infinite;
+}
+
+@keyframes ta-rec-ring {
+    from {
+        transform: scale(0.92);
+        opacity: 0.6;
+    }
+    to {
+        transform: scale(1.18);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-rec-btn[data-live='true']::after {
+        animation: none;
+    }
+}
+
+.ta-rec-time {
+    font-variant-numeric: tabular-nums;
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.ta-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+}
+
+.ta-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width 300ms ease;
+}

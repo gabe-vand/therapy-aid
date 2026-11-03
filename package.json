@@ -12,6 +12,7 @@
         "dev:api": "bun run --cwd backend dev",
         "build": "bun run --cwd frontend build",
         "test": "bun run --cwd backend test && bun run --cwd frontend test",
-        "deploy": "bash scripts/deploy.sh"
+        "deploy": "bash scripts/deploy.sh",
+        "eval": "bun --env-file=backend/.env scripts/eval-models.ts"
     }
 }

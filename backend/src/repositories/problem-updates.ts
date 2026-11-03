@@ -1,6 +1,6 @@
 // Queries on problem_updates (progress notes). One narrow function per query.
 // FOUNDATION wrote the functions below; BE-PROBLEMS-FOCUS may add more but does not change these.
-import { count, desc, eq, max } from 'drizzle-orm';
+import { count, desc, eq, max, sql } from 'drizzle-orm';
 import { problem_updates } from '@/db/schema/problem-updates';
 import { problems } from '@/db/schema/problems';
 import { sessions } from '@/db/schema/sessions';
@@ -68,3 +68,13 @@ export const selectUpdateStats = (): { problem_id: number; update_count: number;
 export const deleteUpdatesForSession = (session_id: number): void => {
     db.delete(problem_updates).where(eq(problem_updates.session_id, session_id)).run();
 };
+
+/** Per problem: the body of its newest note (same ordering as selectUpdatesForProblem). */
+export const selectLatestUpdateBodies = (): { problem_id: number; body: string }[] =>
+    db
+        .select({ problem_id: problem_updates.problem_id, body: problem_updates.body })
+        .from(problem_updates)
+        .where(
+            sql`${problem_updates.id} = (select u.id from problem_updates u where u.problem_id = ${problem_updates.problem_id} order by u.created_at desc, u.id desc limit 1)`,
+        )
+        .all();

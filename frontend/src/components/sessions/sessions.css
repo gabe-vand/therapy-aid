@@ -1,0 +1,166 @@
+/* Styles for the session screens (imported by the components in this folder). Tokens only. */
+
+.ta-session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    min-height: 64px;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 120ms ease;
+}
+
+.ta-session-row:hover {
+    background: var(--surface-2);
+}
+
+.ta-session-row + .ta-session-row {
+    border-top: 1px solid var(--line);
+}
+
+/* Processing stepper: numbered dots joined by a line; done = accent, current = ringed, failed = danger. */
+.ta-steps {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ta-step {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+}
+
+.ta-step::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--line-2);
+}
+
+.ta-step:first-child::before {
+    display: none;
+}
+
+.ta-step-dot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 2px solid var(--line-2);
+    font-size: 12px;
+}
+
+.ta-step[data-state='done'] {
+    color: var(--ink-2);
+}
+.ta-step[data-state='done']::before {
+    background: var(--accent);
+}
+.ta-step[data-state='done'] .ta-step-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+.ta-step[data-state='current'] {
+    color: var(--ink);
+}
+.ta-step[data-state='current']::before {
+    background: var(--accent);
+}
+.ta-step[data-state='current'] .ta-step-dot {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+    animation: ta-pulse 1.6s ease-in-out infinite;
+}
+.ta-step[data-state='failed'] {
+    color: var(--danger);
+}
+.ta-step[data-state='failed']::before {
+    background: var(--accent);
+}
+.ta-step[data-state='failed'] .ta-step-dot {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+@keyframes ta-pulse {
+    50% {
+        box-shadow: 0 0 0 7px var(--accent-soft);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-step[data-state='current'] .ta-step-dot {
+        animation: none;
+    }
+}
+
+/* Native <details> disclosure: keeps keyboard + screen-reader behaviour for free. */
+.ta-details > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    min-height: 56px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.ta-details > summary::-webkit-details-marker {
+    display: none;
+}
+.ta-details > summary::after {
+    content: '+';
+    font-size: 20px;
+    color: var(--muted);
+}
+.ta-details[open] > summary::after {
+    content: '−';
+}
+
+.ta-transcript {
+    border-top: 1px solid var(--line);
+    padding: 16px 20px 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ta-bullets {
+    margin: 0;
+    padding-left: 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    line-height: 1.55;
+}
+
+.ta-bullets li::marker {
+    color: var(--accent);
+}

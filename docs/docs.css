@@ -112,5 +112,11 @@ ul.ledger .box {
 }
 ul.ledger li.todo .box { background: var(--surface-2); color: var(--muted); border-color: var(--line-2); }
 
+/* ── Flow diagrams and tables (architecture pages) ──────────── */
+pre.flow { font: 12.5px/1.55 "JetBrains Mono", ui-monospace, Consolas, monospace; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; margin: 10px 0; color: var(--ink-2); }
+.rule-body table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 10px 0; display: block; overflow-x: auto; }
+.rule-body th, .rule-body td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rule-body th { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+
 footer { color: var(--muted); font-size: 13px; padding: 30px 32px 60px; text-align: center; }
 footer code { color: #a2361f; }

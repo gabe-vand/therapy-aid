@@ -15,50 +15,127 @@
 <header class="hero">
   <div class="wrap">
     <h1>Features</h1>
-    <p>The living ledger of what <strong>therapy-aid</strong> does and doesn't do yet. Updated in the same commit as every change (CLAUDE.md hard rule 3). Live at <a href="https://therapy-aid.elephant-trench.ts.net">therapy-aid.elephant-trench.ts.net</a> &mdash; tailnet only.</p>
+    <p>The living ledger of what <strong>therapy-aid</strong> does and doesn't do yet. A weekly-therapy memory for one person: record or paste each session, keep the problems it surfaces, and ask questions of the whole history. Updated in the same commit as every change (CLAUDE.md hard rule 3). Live at <a href="https://therapy-aid.elephant-trench.ts.net">therapy-aid.elephant-trench.ts.net</a> &mdash; tailnet only.</p>
   </div>
 </header>
 
 <div class="wrap">
 
   <div class="stackline">
-    <strong>Status:</strong> hosting shell &mdash; no product features yet &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
+    <strong>Status:</strong> v1 &mdash; sessions, problems, focus, journal, chat, settings &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
   </div>
 
+  <div class="note ok"><strong>How to read this page.</strong> A green tick is built, tested, and part of the product. A grey box is not there yet, listed so nobody assumes otherwise. The AI features need <code>ANTHROPIC_API_KEY</code> (and recordings need <code>DEEPGRAM_API_KEY</code>) in <code>~/therapy-aid.env</code> on the Pi; without them the app runs and says exactly what to set.</div>
+
+  <section class="rule" id="sessions">
+    <div class="rule-head"><span class="num">1</span><h3>Sessions</h3></div>
+    <div class="rule-body">
+      <p>Two ways in, one record out: a title, an overview, key points, what David suggested, and the effect on your problems.</p>
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> <strong>Record</strong> a session in the browser (phone or laptop). Audio uploads in 30-second chunks as you talk, in order, with retries; a progress count shows what has landed. Needs the HTTPS tailnet address (browsers only allow the microphone on a secure page). Leaving the Record screen mid-session stops and saves what was captured rather than discarding it; closing the tab asks first.</li>
+        <li><span class="box">&#10003;</span> Transcription with speaker separation (Deepgram); the summary works out which speaker is the therapist from what is said.</li>
+        <li><span class="box">&#10003;</span> <strong>Add notes</strong> instead: paste or type notes or a summary for any past date.</li>
+        <li><span class="box">&#10003;</span> Summary: title, overview, key points, therapist advice. Written for you to read next week.</li>
+        <li><span class="box">&#10003;</span> Live progress on the session page (uploaded, transcribing, summarizing, ready); a failure shows the reason and a <strong>Retry</strong> that resumes at the step that failed.</li>
+        <li><span class="box">&#10003;</span> Sessions list grouped by month; edit a session's date or title; delete with confirmation (removes its audio).</li>
+        <li><span class="box">&#10003;</span> Interrupted work survives an API restart: stuck sessions are re-queued at boot.</li>
+        <li class="todo"><span class="box"></span> Playing the audio back in the app (the file is kept on the Pi, but there is no player).</li>
+        <li class="todo"><span class="box"></span> Resuming a recording after the browser tab is closed or reloaded. Chunks already uploaded are kept, but there is no screen to finish that session.</li>
+        <li class="todo"><span class="box"></span> Hand-editing a generated summary.</li>
+        <li class="todo"><span class="box"></span> Uploading an existing audio file instead of recording live.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="problems">
+    <div class="rule-head"><span class="num">2</span><h3>Problems</h3></div>
+    <div class="rule-body">
+      <p>The big-picture threads that persist across sessions.</p>
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> Every session is mapped onto your existing problems (progress notes) or opens a new one for a durable theme; a note says what changed this session.</li>
+        <li><span class="box">&#10003;</span> Problem page with a dated timeline of notes, each linked to the session it came from.</li>
+        <li><span class="box">&#10003;</span> Create, edit, add your own notes, <strong>resolve</strong>, reopen, <strong>discard</strong> (destructive actions ask first).</li>
+        <li><span class="box">&#10003;</span> Stale check: a problem not discussed or reviewed for 30 days asks &ldquo;still relevant?&rdquo; on Home, with Keep or Discard.</li>
+        <li class="todo"><span class="box"></span> Merging two problems that turned out to be the same one.</li>
+        <li class="todo"><span class="box"></span> Charts or trends over time per problem (the timeline is text for now).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="focus">
+    <div class="rule-head"><span class="num">3</span><h3>Focus</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> Home banner: &ldquo;what to focus on right now&rdquo; &mdash; a headline and up to three items, each with why and one concrete action for this week.</li>
+        <li><span class="box">&#10003;</span> Regenerated automatically after every session, and on demand with Refresh.</li>
+        <li><span class="box">&#10003;</span> Home also shows the latest session and one-tap actions: record, add notes, write in the journal.</li>
+        <li class="todo"><span class="box"></span> Focus history view (older snapshots are stored but not browsable).</li>
+        <li class="todo"><span class="box"></span> Reminders or notifications before a session.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="journal">
+    <div class="rule-head"><span class="num">4</span><h3>Journal</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> Entries by date, with an editor that autosaves as you type and says when it has saved.</li>
+        <li><span class="box">&#10003;</span> <strong>&ldquo;I have an idea&hellip;&rdquo;</strong>: on request, an insight on the draft that connects it to recent therapy sessions and entries, with David's advice taking priority. Never generated on its own; past insights stay with the entry.</li>
+        <li><span class="box">&#10003;</span> Seedable with your history through the import script.</li>
+        <li class="todo"><span class="box"></span> Photos or attachments in entries.</li>
+        <li class="todo"><span class="box"></span> Reminders or streaks. Deliberately absent.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="chat">
+    <div class="rule-head"><span class="num">5</span><h3>Chat</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> A chatbot that knows your sessions, problems, focus and journal, weighs therapy over journal, cites which session or entry it is drawing on, and says so when the material does not cover something.</li>
+        <li><span class="box">&#10003;</span> Looks things up first (full-text search on your question) and can search and open sessions and entries to follow up.</li>
+        <li><span class="box">&#10003;</span> Multiple threads; create, switch, delete; Enter sends, Shift+Enter adds a line; errors show inline with a retry.</li>
+        <li class="todo"><span class="box"></span> <strong>Streaming</strong> replies. The answer arrives whole after a thinking indicator.</li>
+        <li class="todo"><span class="box"></span> Voice input or spoken replies.</li>
+        <li class="todo"><span class="box"></span> A standalone search page (chat is the way to search today).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="settings">
+    <div class="rule-head"><span class="num">6</span><h3>Settings &amp; cost</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> &ldquo;About me&rdquo; profile that every prompt includes, editable in the app.</li>
+        <li><span class="box">&#10003;</span> Shows who you are signed in as.</li>
+        <li><span class="box">&#10003;</span> <strong>AI usage</strong>: per task, the model, calls, tokens and estimated dollars since the API last started.</li>
+        <li><span class="box">&#10003;</span> Per-task model routing (cheaper models where quality holds), prompt caching, and env overrides for any task's model and effort.</li>
+        <li class="todo"><span class="box"></span> Usage that survives a restart or shows month-to-date (totals are in memory).</li>
+        <li class="todo"><span class="box"></span> Exporting your data (sessions, journal, problems) as files.</li>
+      </ul>
+    </div>
+  </section>
+
   <section class="rule" id="platform">
-    <div class="rule-head"><span class="num">1</span><h3>Platform &amp; hosting</h3></div>
+    <div class="rule-head"><span class="num">7</span><h3>Platform, hosting &amp; safety</h3></div>
     <div class="rule-body">
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Bun workspace: <code>backend</code> (Hono), <code>frontend</code> (Vite + React 18), <code>packages/shared</code> types.</li>
-        <li><span class="box">&#10003;</span> SQLite database (<code>bun:sqlite</code> + Drizzle), idempotent DDL applied at boot from <code>backend/db-schemas/</code>.</li>
-        <li><span class="box">&#10003;</span> Docker Compose stack on the Raspberry Pi: <code>api</code>, <code>web</code> (nginx, SPA + <code>/api</code> proxy), <code>ts</code> (Tailscale sidecar).</li>
-        <li><span class="box">&#10003;</span> Served over HTTPS at <code>therapy-aid.elephant-trench.ts.net</code>, reachable only from the tailnet (Funnel off, no public ports).</li>
-        <li><span class="box">&#10003;</span> <code>/ship</code> skill: commit &rarr; PR &rarr; redeploy to the Pi, verified by the live revision on <code>/api/health</code>.</li>
-        <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap.</li>
-        <li class="todo"><span class="box"></span> CI (GitHub Actions running <code>bun run test</code> on PRs).</li>
-        <li><span class="box">&#10003;</span> Daily SQLite snapshots on the Pi (<code>VACUUM INTO</code>, integrity-checked, 30 kept) in <code>~/therapy-aid-backups/</code>; <code>/api/health</code> reports <code>backup_ok</code>.</li>
+        <li><span class="box">&#10003;</span> SQLite (<code>bun:sqlite</code> + Drizzle), idempotent DDL applied at boot from <code>backend/db-schemas/</code>; full-text search with FTS5.</li>
+        <li><span class="box">&#10003;</span> Docker Compose on the Raspberry Pi: <code>api</code>, <code>web</code> (nginx: SPA, <code>/api</code> proxy, 50 MB bodies, 10-minute timeouts), <code>ts</code> (Tailscale sidecar).</li>
+        <li><span class="box">&#10003;</span> Served over HTTPS at <code>therapy-aid.elephant-trench.ts.net</code>, tailnet only (Funnel off, no public ports).</li>
+        <li><span class="box">&#10003;</span> <strong>Sign-in</strong>: only the one allowed Tailscale login gets in; unset means everything is rejected, not allowed. <code>/health</code> stays public.</li>
+        <li><span class="box">&#10003;</span> Secrets in <code>~/therapy-aid.env</code> on the Pi, passed through compose; recordings on the same volume as the database.</li>
+        <li><span class="box">&#10003;</span> Daily SQLite snapshots (<code>VACUUM INTO</code>, integrity-checked, 30 kept) in <code>~/therapy-aid-backups/</code>; <code>/api/health</code> reports <code>backup_ok</code>.</li>
+        <li><span class="box">&#10003;</span> <code>scripts/import-seed.ts</code>: imports profile, journal and past therapy notes over HTTP, in order, resumable and idempotent.</li>
+        <li><span class="box">&#10003;</span> Model eval harness, <code>bun run eval</code> (<code>scripts/eval-models.ts</code>): the real prompts on the seed notes per model, outputs and <code>costs.md</code> in the gitignored <code>eval-out/</code>; <code>--judge</code> has Opus grade the cheaper models.</li>
+        <li class="todo"><span class="box"></span> Run the eval and settle <code>TASK_MODELS</code>: the per-task models are still the initial defaults, not yet confirmed by an eval.</li>
+        <li><span class="box">&#10003;</span> <code>/ship</code> skill: commit &rarr; PR &rarr; redeploy, verified by the live revision on <code>/api/health</code>; the Pi's secrets and seeding runbooks live there.</li>
+        <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap (code, <code>docs/</code>, <code>scripts/</code> and this page). See <a href="docs/architecture.html">Architecture</a> and <a href="docs/architecture-ops.html">Operations</a>.</li>
+        <li class="todo"><span class="box"></span> Backing up the recordings (snapshots cover the database only).</li>
         <li class="todo"><span class="box"></span> Copying snapshots off the Pi (they share its SD card today).</li>
-        <li class="todo"><span class="box"></span> Authentication &mdash; today anyone on the tailnet can use the app.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="rule" id="hello">
-    <div class="rule-head"><span class="num">2</span><h3>Hello-world smoke test</h3></div>
-    <div class="rule-body">
-      <p>The home page proves each layer answers: the SPA renders, <code>GET /api/hello</code> returns the greeting and build revision, and the visit counter (<code>POST /api/hello/visits</code>) writes to SQLite and persists across redeploys. Throwaway once real features land.</p>
-      <ul class="ledger">
-        <li><span class="box">&#10003;</span> <code>GET /health</code>, <code>GET /hello</code>, <code>POST /hello/visits</code>.</li>
-        <li><span class="box">&#10003;</span> Home page with per-layer status and a "Record a visit" button.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="rule" id="product">
-    <div class="rule-head"><span class="num">3</span><h3>Product features</h3></div>
-    <div class="rule-body">
-      <ul class="ledger">
-        <li class="todo"><span class="box"></span> None yet.</li>
+        <li class="todo"><span class="box"></span> CI (GitHub Actions running <code>bun run test</code> on PRs).</li>
+        <li class="todo"><span class="box"></span> Installable PWA and offline use.</li>
       </ul>
     </div>
   </section>
@@ -66,7 +143,7 @@
 </div>
 
 <footer>
-  See <a href="docs/backend-conventions.html">Backend Conventions</a>, <a href="docs/frontend-conventions.html">Frontend Conventions</a>, and the root <code>CLAUDE.md</code>.
+  See <a href="docs/architecture.html">Architecture</a>, <a href="docs/architecture-ops.html">Architecture &mdash; Operations</a>, <a href="docs/backend-conventions.html">Backend Conventions</a>, <a href="docs/frontend-conventions.html">Frontend Conventions</a>, and the root <code>CLAUDE.md</code>.
 </footer>
 
 </body>
