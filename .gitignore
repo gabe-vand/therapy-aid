@@ -37,4 +37,4 @@ coverage/
 
 # Personal data and model-eval output — never committed (the repo is public)
 seed-data/
-eval-out/
+eval-out*/
