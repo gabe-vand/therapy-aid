@@ -1,0 +1,36 @@
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Env — never commit real values; .env.example is the committed template
+.env
+.env.local
+.env.*.local
+.env.bak*
+*.env.bak*
+
+# Local SQLite databases (the Pi's lives in a Docker volume, not the repo)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+backend/data/
+
+# Build output
+dist/
+backend/dist/
+frontend/dist/
+
+# Test / tool caches
+coverage/
+.vite/
+*.tsbuildinfo
+
+.claude/worktrees/
+.claude/settings.local.json
