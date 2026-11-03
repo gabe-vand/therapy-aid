@@ -96,6 +96,10 @@ Formatting: one root `.prettierrc` — 4-space, 250 width, single quotes, traili
   every redeploy. **Never `docker compose down -v` on the Pi** — that deletes it.
 - `dbMigrate()` applies `backend/db-schemas/*.sql` in filename order at boot, before the server
   binds. Each file runs in a transaction.
+- **Daily backups** (`services/backups/`): the API takes one `VACUUM INTO` snapshot per UTC day
+  (checked on boot and hourly), verifies it with `integrity_check`, and keeps the newest
+  `BACKUP_RETENTION_DAYS` (30). On the Pi they land in `~/therapy-aid-backups/` on the host.
+  `/health` reports `backup_ok`. Restore steps are in the `/ship` skill.
 - Every var has a working local default — `bun run dev:api` needs no env file. New env vars go in
   `EnvKey` + `app_env` (+ `MANDATORY` if required) in `svc-env.ts` **and** `.env.example` in the
   same commit. Read env only through `app_env` / `services/env.ts` — never `process.env.X` or
@@ -136,7 +140,8 @@ Entry: `frontend/src/main.tsx` → `App.tsx` (flat `<Routes>`). Path alias `@` �
   + `/api` proxy), `ts` (Tailscale sidecar, node name `therapy-aid`, `tailscale serve` HTTPS on
   :443, Funnel off). Only the tailnet can reach it; the one host port is `127.0.0.1:8080`.
 - The deploy dir is replaced wholesale on every deploy (`git archive HEAD`) — never keep state
-  there. State lives in the `db-data` and `ts-state` volumes; optional secrets in `~/therapy-aid.env`.
+  there. State lives in the `db-data` and `ts-state` volumes, backups in `~/therapy-aid-backups/`,
+  optional secrets in `~/therapy-aid.env`.
 - Full runbook: `.claude/skills/ship/SKILL.md`.
 
 ## When adding a new API endpoint

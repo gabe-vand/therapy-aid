@@ -1,6 +1,7 @@
 // API entry: validate env, apply the schema, then serve. Migration runs BEFORE the server binds
 // (SQLite is local and fast), so no request can ever see a half-migrated database.
 import { app } from '@/app';
+import { startBackupSchedule } from '@/services/backups/schedule';
 import { app_env, getEnvStatus } from '@/services/common/svc-env';
 import { dbMigrate } from '@/services/common/svc-migrate';
 
@@ -12,6 +13,9 @@ if (!env_status.ok) {
 
 const applied = dbMigrate();
 console.log(`[boot] schema applied (${applied.length} files) to ${app_env.db_path}`);
+
+// Daily snapshots into app_env.backup_dir — first pass now, then hourly checks.
+startBackupSchedule();
 console.log(`[boot] therapy-aid api ${app_env.revision} listening on :${app_env.port}`);
 
 export default { port: app_env.port, fetch: app.fetch };

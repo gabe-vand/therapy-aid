@@ -18,6 +18,10 @@ services:
             APP_REVISION: ${APP_REVISION:-unknown}
         volumes:
             - db-data:/data
+            # Daily verified snapshots (services/backups). A host folder, not a volume: it sits
+            # beside the deploy dir (which every deploy replaces), is plain files you can scp
+            # off the Pi, and survives even `docker compose down -v`.
+            - ../therapy-aid-backups:/backups
         restart: unless-stopped
         healthcheck:
             test: ['CMD', 'bun', '-e', "fetch('http://localhost:3010/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
