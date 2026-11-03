@@ -1,24 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { JournalEntry } from '@therapy-aid/shared';
-import { deleteAPI, getAPI, isOk, patchAPI, postAPI } from '@/services/api';
-import { from_date_input, to_date_input, today_input } from '@/services/dates';
+import { deleteAPI, getAPI, isOk } from '@/services/api';
+import { to_date_input, today_input } from '@/services/dates';
+import { type Doc, new_doc, park, parked_count, send_doc, unpark } from '@/services/hooks/journal-autosave';
+import { usePageExit } from '@/services/hooks/use-page-exit';
 
 /* One journal entry in the editor, with autosave. The draft lives in a mutable `Doc` (a ref) so a
    save always works on the entry it was started for, even if the user has since switched entries:
    - a NEW draft (id null) is created with POST on the first non-blank keystroke;
    - after that every edit schedules a PATCH 1.5s after the last keystroke (debounce);
-   - leaving the entry or unmounting flushes any unsaved text immediately, so nothing typed is lost;
-   - a failed save keeps the text, shows the error, and retries on the next edit or `save_now`.
+   - leaving the entry or unmounting flushes any unsaved text immediately, and so does the page being
+     hidden or closed (phone backgrounded, tab closed or refreshed — use-page-exit, sent with
+     keepalive so the request outlives the page);
+   - a failed save on screen keeps the text, shows the error, and retries on the next edit or
+     `save_now`; one that fails after the entry left the screen is parked in the outbox
+     (journal-autosave) and retried until it lands, so a flaky connection at the moment of leaving
+     does not lose the text either.
    The page learns about saves through `on_change` (keep the list fresh) and `on_created` (move the
    URL to the new entry — the hook then skips re-fetching the entry it just made). */
 
 export const AUTOSAVE_MS = 1500;
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
-
-type Doc = { id: number | null; body: string; date: string; date_dirty: boolean; dirty: boolean; in_flight: boolean };
-
-const new_doc = (id: number | null): Doc => ({ id, body: '', date: today_input(), date_dirty: false, dirty: false, in_flight: false });
 
 type Options = { on_change?: (entry: JournalEntry) => void; on_created?: (entry: JournalEntry) => void };
 
@@ -46,34 +49,23 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
         timer_ref.current = null;
     };
 
-    const save = useCallback(async (doc: Doc): Promise<void> => {
+    const save = useCallback(async (doc: Doc, keepalive = false): Promise<void> => {
         clear_timer();
         if (doc.in_flight || !doc.dirty) return; // an in-flight save reschedules itself if more text arrived
         if (doc.id === null && !doc.body.trim()) return; // nothing worth creating yet
-        doc.in_flight = true;
-        doc.dirty = false;
         const live = () => doc_ref.current === doc;
         if (live()) set_save_state('saving');
 
-        const sent_date = doc.date;
-        const occurred_at = from_date_input(doc.date);
-        const res =
-            doc.id === null
-                ? await postAPI<JournalEntry>('journal', { body: doc.body, ...(occurred_at ? { occurred_at } : {}) })
-                : await patchAPI<JournalEntry>(`journal/${doc.id}`, { body: doc.body, ...(doc.date_dirty && occurred_at ? { occurred_at } : {}) });
-        doc.in_flight = false;
-
+        const { res, was_new } = await send_doc(doc, keepalive);
         if (!isOk(res)) {
-            doc.dirty = true;
-            if (live()) {
+            if (live() && mounted_ref.current) {
                 set_save_state('error');
                 set_save_error(res.message);
+            } else {
+                park(doc); // off screen: nobody would see the error, so keep retrying it
             }
             return;
         }
-        if (doc.date === sent_date) doc.date_dirty = false;
-        const was_new = doc.id === null;
-        doc.id = res.data.id;
         options_ref.current.on_change?.(res.data);
         if (was_new && live()) {
             created_ref.current = res.data.id;
@@ -94,7 +86,8 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
     useEffect(() => {
         if (id !== null && id === created_ref.current) return; // we just created it: state is already current
         void save(doc_ref.current); // flush the entry we are leaving
-        const doc = new_doc(id);
+        const parked = id === null ? null : unpark(id); // its last save failed off screen: that text is newer
+        const doc = parked ?? new_doc(id);
         doc_ref.current = doc;
         created_ref.current = null;
         const signal = { cancelled: false };
@@ -105,8 +98,12 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
         set_save_state('idle');
         set_save_error(null);
         set_error(null);
-        if (id === null) {
+        if (id === null || parked) {
+            set_body_state(doc.body);
+            set_date_state(doc.date);
+            set_loaded_length(doc.body.length);
             set_loading(false);
+            if (parked) void save(doc);
             return;
         }
         set_loading(true);
@@ -138,6 +135,13 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
         };
     }, [save]);
 
+    // The page being hidden or closed never unmounts anything: flush with keepalive right then.
+    const unsaved = () => {
+        const doc = doc_ref.current;
+        return parked_count() > 0 || (doc.dirty && (doc.id !== null || !!doc.body.trim()));
+    };
+    usePageExit(() => void save(doc_ref.current, true), unsaved);
+
     const schedule = (doc: Doc) => {
         clear_timer();
         timer_ref.current = setTimeout(() => void save(doc), AUTOSAVE_MS);
@@ -163,7 +167,7 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
         const doc = doc_ref.current;
         doc.date = value;
         set_date_state(value);
-        if (doc.id === null) return; // a blank draft has nothing to patch yet; the date rides along on create
+        if (doc.id === null) return; // rides along on create (send_doc re-sends it if it changed mid-create)
         doc.date_dirty = true;
         doc.dirty = true;
         set_save_state('saving');

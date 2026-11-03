@@ -32,15 +32,17 @@
     <div class="rule-body">
       <p>Two ways in, one record out: a title, an overview, key points, what David suggested, and the effect on your problems.</p>
       <ul class="ledger">
-        <li><span class="box">&#10003;</span> <strong>Record</strong> a session in the browser (phone or laptop). Audio uploads in 30-second chunks as you talk, in order, with retries; a progress count shows what has landed. Needs the HTTPS tailnet address (browsers only allow the microphone on a secure page). Leaving the Record screen mid-session stops and saves what was captured rather than discarding it; closing the tab asks first.</li>
+        <li><span class="box">&#10003;</span> <strong>Record</strong> a session in the browser (phone or laptop). Audio uploads in 30-second chunks as you talk, in order, with retries; the page shows how many minutes of audio have reached the server, and a stalled upload has a plain-words warning and <strong>Retry now</strong>. Needs the HTTPS tailnet address (browsers only allow the microphone on a secure page). Leaving the Record screen mid-session stops and saves what was captured rather than discarding it; closing the tab asks first.</li>
+        <li><span class="box">&#10003;</span> <strong>Silent-failure guard</strong> while recording: a muted mic (a call, Siri) or no audio arriving for over a minute shows a warning; a recorder or mic that dies stops the recording, saves what was captured and says at what time it stopped. A recording that never got audio is deleted instead of left behind.</li>
         <li><span class="box">&#10003;</span> Transcription with speaker separation (Deepgram); the summary works out which speaker is the therapist from what is said.</li>
         <li><span class="box">&#10003;</span> <strong>Add notes</strong> instead: paste or type notes or a summary for any past date.</li>
         <li><span class="box">&#10003;</span> Summary: title, overview, key points, therapist advice. Written for you to read next week.</li>
-        <li><span class="box">&#10003;</span> Live progress on the session page (uploaded, transcribing, summarizing, ready); a failure shows the reason and a <strong>Retry</strong> that resumes at the step that failed.</li>
+        <li><span class="box">&#10003;</span> Live progress on the session page (uploaded, transcribing, summarizing, ready); a failure shows the reason and a <strong>Retry</strong> that resumes at the step that failed. A failure after the summary was written keeps the summary on screen. Renaming or re-dating a session while it processes is kept.</li>
         <li><span class="box">&#10003;</span> Sessions list grouped by month; edit a session's date or title; delete with confirmation (removes its audio).</li>
         <li><span class="box">&#10003;</span> Interrupted work survives an API restart: stuck sessions are re-queued at boot.</li>
         <li class="todo"><span class="box"></span> Playing the audio back in the app (the file is kept on the Pi, but there is no player).</li>
-        <li class="todo"><span class="box"></span> Resuming a recording after the browser tab is closed or reloaded. Chunks already uploaded are kept, but there is no screen to finish that session.</li>
+        <li><span class="box">&#10003;</span> <strong>Finish this recording</strong>: a recording whose tab closed or phone died can be finished from its session page, processing the audio that reached the server. One nobody finishes is failed after 30 minutes without audio (checked every 5 minutes, not only at boot), with the audio kept for Retry.</li>
+        <li class="todo"><span class="box"></span> Continuing to record <em>into the same session</em> after the tab was closed (finishing processes what was saved; a new recording is a new session).</li>
         <li class="todo"><span class="box"></span> Hand-editing a generated summary.</li>
         <li class="todo"><span class="box"></span> Uploading an existing audio file instead of recording live.</li>
       </ul>
@@ -67,7 +69,7 @@
     <div class="rule-body">
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Home banner: &ldquo;what to focus on right now&rdquo; &mdash; a headline and up to three items, each with why and one concrete action for this week.</li>
-        <li><span class="box">&#10003;</span> Regenerated automatically after every session, and on demand with Refresh.</li>
+        <li><span class="box">&#10003;</span> Regenerated automatically after every session, and on demand with Refresh. If that automatic run failed, Home offers <strong>Generate my focus</strong> instead of an empty state.</li>
         <li><span class="box">&#10003;</span> Home also shows the latest session and one-tap actions: record, add notes, write in the journal.</li>
         <li class="todo"><span class="box"></span> Focus history view (older snapshots are stored but not browsable).</li>
         <li class="todo"><span class="box"></span> Reminders or notifications before a session.</li>
@@ -79,7 +81,7 @@
     <div class="rule-head"><span class="num">4</span><h3>Journal</h3></div>
     <div class="rule-body">
       <ul class="ledger">
-        <li><span class="box">&#10003;</span> Entries by date, with an editor that autosaves as you type and says when it has saved.</li>
+        <li><span class="box">&#10003;</span> Entries by date, with an editor that autosaves as you type and says when it has saved. It also saves the moment the phone is backgrounded or the tab is closed, and a save that fails after you left the entry is retried until it lands. Changing the date right after the first keystroke is kept.</li>
         <li><span class="box">&#10003;</span> <strong>&ldquo;I have an idea&hellip;&rdquo;</strong>: on request, an insight on the draft that connects it to recent therapy sessions and entries, with David's advice taking priority. Never generated on its own; past insights stay with the entry.</li>
         <li><span class="box">&#10003;</span> Seedable with your history through the import script.</li>
         <li class="todo"><span class="box"></span> Photos or attachments in entries.</li>
@@ -94,7 +96,7 @@
       <ul class="ledger">
         <li><span class="box">&#10003;</span> A chatbot that knows your sessions, problems, focus and journal, weighs therapy over journal, cites which session or entry it is drawing on, and says so when the material does not cover something.</li>
         <li><span class="box">&#10003;</span> Looks things up first (full-text search on your question) and can search and open sessions and entries to follow up.</li>
-        <li><span class="box">&#10003;</span> Multiple threads; create, switch, delete; Enter sends, Shift+Enter adds a line; errors show inline with a retry.</li>
+        <li><span class="box">&#10003;</span> Multiple threads; create (an untouched empty chat is reused, not duplicated), switch, delete; Enter sends, Shift+Enter adds a line; errors show inline with a retry.</li>
         <li class="todo"><span class="box"></span> <strong>Streaming</strong> replies. The answer arrives whole after a thinking indicator.</li>
         <li class="todo"><span class="box"></span> Voice input or spoken replies.</li>
         <li class="todo"><span class="box"></span> A standalone search page (chat is the way to search today).</li>
@@ -125,17 +127,31 @@
         <li><span class="box">&#10003;</span> Docker Compose on the Raspberry Pi: <code>api</code>, <code>web</code> (nginx: SPA, <code>/api</code> proxy, 50 MB bodies, 10-minute timeouts), <code>ts</code> (Tailscale sidecar).</li>
         <li><span class="box">&#10003;</span> Served over HTTPS at <code>therapy-aid.elephant-trench.ts.net</code>, tailnet only (Funnel off, no public ports).</li>
         <li><span class="box">&#10003;</span> <strong>Sign-in</strong>: only the one allowed Tailscale login gets in; unset means everything is rejected, not allowed. <code>/health</code> stays public.</li>
+        <li><span class="box">&#10003;</span> <strong>Hardening</strong>: cross-site writes are refused (CSRF guard on <code>Sec-Fetch-Site</code>/<code>Origin</code>); a same-origin Content-Security-Policy and image-free markdown keep model output from sending text elsewhere; the dev API listens on 127.0.0.1 only; recordings are capped in length and size; a bad <code>APP_TIMEZONE</code> stops boot; processing errors never show internal paths.</li>
         <li><span class="box">&#10003;</span> Secrets in <code>~/therapy-aid.env</code> on the Pi, passed through compose; recordings on the same volume as the database.</li>
         <li><span class="box">&#10003;</span> Daily SQLite snapshots (<code>VACUUM INTO</code>, integrity-checked, 30 kept) in <code>~/therapy-aid-backups/</code>; <code>/api/health</code> reports <code>backup_ok</code>.</li>
         <li><span class="box">&#10003;</span> <code>scripts/import-seed.ts</code>: imports profile, journal and past therapy notes over HTTP, in order, resumable and idempotent.</li>
         <li><span class="box">&#10003;</span> Model eval harness, <code>bun run eval</code> (<code>scripts/eval-models.ts</code>): the real prompts on the seed notes per model, outputs and <code>costs.md</code> in the gitignored <code>eval-out/</code>; <code>--judge</code> has Opus grade the cheaper models.</li>
-        <li class="todo"><span class="box"></span> Run the eval and settle <code>TASK_MODELS</code>: the per-task models are still the initial defaults, not yet confirmed by an eval.</li>
+        <li><span class="box">&#10003;</span> Eval run and <code>TASK_MODELS</code> settled on it: problem mapping moved to Opus (Sonnet opened practices such as meditation as problems), and the prompts it exposed were tightened. The eval's default candidates come from <code>MODEL_IDS</code>.</li>
+        <li class="todo"><span class="box"></span> The <code>title</code> task's cheapest-tier routing is not covered by the eval, and the eval should be re-run after prompt changes.</li>
         <li><span class="box">&#10003;</span> <code>/ship</code> skill: commit &rarr; PR &rarr; redeploy, verified by the live revision on <code>/api/health</code>; the Pi's secrets and seeding runbooks live there.</li>
-        <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap (code, <code>docs/</code>, <code>scripts/</code> and this page). See <a href="docs/architecture.html">Architecture</a> and <a href="docs/architecture-ops.html">Operations</a>.</li>
+        <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap (code, tests, DDL, shell and TypeScript scripts, <code>docs/</code>, deploy config, skills, <code>CLAUDE.md</code> and this page). See <a href="docs/architecture.html">Architecture</a> and <a href="docs/architecture-ops.html">Operations</a>.</li>
         <li class="todo"><span class="box"></span> Backing up the recordings (snapshots cover the database only).</li>
         <li class="todo"><span class="box"></span> Copying snapshots off the Pi (they share its SD card today).</li>
         <li class="todo"><span class="box"></span> CI (GitHub Actions running <code>bun run test</code> on PRs).</li>
         <li class="todo"><span class="box"></span> Installable PWA and offline use.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="open">
+    <div class="rule-head"><span class="num">8</span><h3>Open items (from review)</h3></div>
+    <div class="rule-body">
+      <p>Real findings deliberately left for a product decision or a later change, so nobody assumes they were handled.</p>
+      <ul class="ledger">
+        <li class="todo"><span class="box"></span> <strong>Personal details in the public repo.</strong> The tailnet hostname, the therapist's and partner's first names and personal themes appear in prompts, test fixtures, eval questions and docs. Owner's call whether to swap them for generic ones and move the hostname behind an env value (seed data and eval output are already gitignored).</li>
+        <li class="todo"><span class="box"></span> A cap on how many recordings can be open at once (each one is now capped in length and size, and abandoned ones are failed, but their audio is kept until deleted).</li>
+        <li class="todo"><span class="box"></span> A notice on the Record screen when the screen wake lock is unavailable or refused (battery saver), since a locked screen can suspend recording.</li>
       </ul>
     </div>
   </section>

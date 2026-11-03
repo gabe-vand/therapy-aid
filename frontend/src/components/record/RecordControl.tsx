@@ -1,16 +1,9 @@
 import type { RecorderPhase } from '@/services/hooks/use-recorder';
+import { format_elapsed } from '@/services/recorder-media';
 import './record.css';
 
 /* The big round button and the clock. One control, three meanings: start (idle), stop (recording),
    and a disabled "working" state while the mic is opening or the last audio is being sent. */
-
-export const format_elapsed = (total_sec: number): string => {
-    const h = Math.floor(total_sec / 3600);
-    const m = Math.floor((total_sec % 3600) / 60);
-    const s = total_sec % 60;
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-};
 
 const MicIcon = () => (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

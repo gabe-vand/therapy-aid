@@ -97,7 +97,7 @@ describe('describeFailure', () => {
         expect(describeFailure(new svc_claude.AiNotConfiguredError())).toContain('ANTHROPIC_API_KEY');
         expect(describeFailure(Object.assign(new Error('529 {"type":"error"}'), { status: 529 }))).toBe('The AI service is busy or unavailable right now (HTTP 529). Press Retry in a minute.');
         expect(describeFailure(Object.assign(new Error('400 bad'), { status: 400 }))).toBe('The AI service rejected the request (HTTP 400).');
-        expect(describeFailure(new TypeError('boom'))).toBe('Processing failed: boom');
-        expect(describeFailure('weird')).toBe('Processing failed for an unknown reason.');
+        expect(describeFailure(new Error("ENOENT: no such file '/data/recordings/4/audio.webm'"))).toBe('Processing failed unexpectedly. Press Retry; if it keeps failing, check the API logs.');
+        expect(describeFailure('weird')).toBe('Processing failed unexpectedly. Press Retry; if it keeps failing, check the API logs.');
     });
 });

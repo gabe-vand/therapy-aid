@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import * as repo_updates from '@/repositories/problem-updates';
 import * as repo_problems from '@/repositories/problems';
 import * as repo_sessions from '@/repositories/sessions';
-import { pipelineIdle, processSession, recoverStuckSessions } from '@/services/sessions/pipeline';
+import { pipelineIdle, processSession } from '@/services/sessions/pipeline';
+import { recoverStuckSessions } from '@/services/sessions/recovery';
 import { clearRecordings, stubClaude, stubFocus, uploadedNotes, uploadedRecording, tracker } from './fixtures';
 import { resetDatabase } from '../../helpers/hlp-db';
 

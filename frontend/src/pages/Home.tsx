@@ -22,6 +22,7 @@ export default function Home() {
             <div className="flex flex-col gap-8">
                 <FocusHero
                     focus={focus.focus}
+                    has_sessions={sessions.sessions.length > 0}
                     loading={focus.loading}
                     error={focus.error}
                     on_reload={() => void focus.reload()}

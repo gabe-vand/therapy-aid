@@ -40,6 +40,15 @@ describe('Chat: thread list', () => {
         expect(mock.mock.calls.some((c) => c[0] === '/api/chat/threads/9')).toBe(true);
         expect(textbox()).toBeInTheDocument();
     });
+
+    it('New chat reopens an untouched empty thread instead of creating another', async () => {
+        const empty = thread({ id: 5, title: 'New chat', message_count: 0 });
+        const mock = stub_api({ 'GET /api/chat/threads': [racing, empty], 'GET /api/chat/threads/5': { thread: empty, messages: [] } });
+        open('/chat');
+        fireEvent.click(await screen.findByRole('button', { name: 'New chat' }));
+        expect(await screen.findByText('Ask anything about your therapy')).toBeInTheDocument();
+        expect(mock.mock.calls.some((c) => (c[1] as RequestInit | undefined)?.method === 'POST')).toBe(false);
+    });
 });
 
 describe('Chat: deleting', () => {

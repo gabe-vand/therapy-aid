@@ -54,8 +54,21 @@ export const app_env: EnvKey = {
 /** Vars the API cannot boot without. Everything else has a safe default above. */
 const MANDATORY: (keyof EnvKey)[] = ['db_path'];
 
-/** Checked once at boot by index.ts, which exits on any missing mandatory var. */
-export const getEnvStatus = (): { ok: boolean; missing: string[] } => {
-    const missing = MANDATORY.filter((key) => !app_env[key]);
-    return { ok: missing.length === 0, missing };
+/** True when `zone` is an IANA time zone this runtime knows ('America/New_York' yes, 'America/NewYork' no). */
+export const isValidTimeZone = (zone: string): boolean => {
+    try {
+        new Intl.DateTimeFormat('en-US', { timeZone: zone });
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+/** Checked once at boot by index.ts, which exits on any missing mandatory var or invalid value.
+    APP_TIMEZONE is checked here because the context pack only builds its formatter on first use —
+    a typo would otherwise boot healthy and then fail every AI call. */
+export const getEnvStatus = (env: EnvKey = app_env): { ok: boolean; missing: string[]; invalid: string[] } => {
+    const missing = MANDATORY.filter((key) => !env[key]);
+    const invalid = isValidTimeZone(env.timezone) ? [] : [`APP_TIMEZONE (${env.timezone} is not an IANA time zone, e.g. America/New_York)`];
+    return { ok: missing.length === 0 && invalid.length === 0, missing, invalid };
 };

@@ -95,7 +95,8 @@ export const completeStructured = async <T>(opts: CallOptions & { schema: z.ZodT
     } catch (e) {
         // The SDK throws a plain AnthropicError (not an APIError) when the reply fails the schema.
         if (e instanceof Anthropic.AnthropicError && !(e instanceof Anthropic.APIError)) {
-            console.error(`[ai] task=${opts.task} structured output rejected`, e.message);
+            // Only the error's class: its message can quote the model's output (session content).
+            console.error(`[ai] task=${opts.task} structured output rejected (${e.constructor.name})`);
             throw new AiOutputError('The AI reply did not have the expected structure (it may have declined or been cut off). Try again.');
         }
         throw e;

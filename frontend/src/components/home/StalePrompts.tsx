@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ErrorState } from '@/components/ui/States';
-import { relative_time } from '@/services/dates';
+import { elapsed_phrase } from '@/services/dates';
 import { paths } from '@/services/paths';
 
 /* "Still relevant?" cards for problems that have gone 30 days untouched. Keep resets the clock;
@@ -44,7 +44,7 @@ export const StalePrompts = ({ problems, busy_id, action_error, on_keep, on_disc
                             <Link to={paths.problem(p.id)} className="font-semibold underline underline-offset-2">
                                 {p.title}
                             </Link>{' '}
-                            since {relative_time(last_touched(p))}. Still relevant?
+                            in {elapsed_phrase(last_touched(p))}. Still relevant?
                         </p>
                         <div className="flex gap-2">
                             <Button size="sm" variant="primary" onClick={() => on_keep(p.id)} disabled={busy}>

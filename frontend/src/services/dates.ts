@@ -57,6 +57,16 @@ export const relative_time = (iso: string | null | undefined, now: Date = new Da
     return 'just now';
 };
 
+/* How long ago, as a duration for "in N weeks" sentences: "12 days", "5 weeks", "4 months".
+   relative_time's "2 months ago" does not read after "in", and its month unit swallows weeks. */
+export const elapsed_phrase = (iso: string | null | undefined, now: Date = new Date()): string => {
+    const date = parse(iso);
+    if (!date) return DASH;
+    const days = Math.max(0, Math.floor((now.getTime() - date.getTime()) / (24 * 3600 * 1000)));
+    const [n, unit] = days < 14 ? [days, 'day'] : days < 120 ? [Math.floor(days / 7), 'week'] : [Math.floor(days / 30), 'month'];
+    return `${n} ${unit}${n === 1 ? '' : 's'}`;
+};
+
 const pad = (n: number): string => String(n).padStart(2, '0');
 
 /* ISO → "YYYY-MM-DD" for <input type="date"> (local day). '' for null/invalid. */

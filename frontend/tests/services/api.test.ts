@@ -16,6 +16,14 @@ describe('api', () => {
         expect((mock.mock.calls[0]![1] as RequestInit).body).toBeUndefined();
     });
 
+    it('sets keepalive only when asked (a save that must outlive the page)', async () => {
+        const mock = stub_api({ '/api/x': {} });
+        await patchAPI('x', { a: 1 }, { keepalive: true });
+        await postAPI('x', { a: 1 });
+        expect((mock.mock.calls[0]![1] as RequestInit).keepalive).toBe(true);
+        expect((mock.mock.calls[1]![1] as RequestInit).keepalive).toBeUndefined();
+    });
+
     it('uploads a blob as the raw body with its own content type', async () => {
         const mock = stub_api({ 'POST /api/sessions/4/chunks': { ok: true } });
         const blob = new Blob(['audio-bytes'], { type: 'audio/webm' });

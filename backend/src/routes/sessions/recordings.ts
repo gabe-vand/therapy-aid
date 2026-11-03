@@ -1,5 +1,8 @@
 // The recording intake routes, composed into router_sessions: start a recording, stream audio
 // chunks in strict order, finalise (which starts transcription). Mounted under /sessions.
+// The mime is anchored and length-capped: it is stored and later sent to Deepgram as Content-Type.
+// chunk_count is optional on finalize — omitted, the server takes the chunks on disk (the salvage
+// path for a recording whose browser died).
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { err, rsp, stc } from '@/services/common/svc-response';
@@ -10,8 +13,9 @@ import { answer, IsoTimestamp, parseId } from './http';
 
 export const router_recordings = new Hono();
 
-const StartBody = z.object({ occurred_at: IsoTimestamp.optional(), mime: z.string('Expected the recording mime type.').regex(/^(audio|video)\/[\w.+-]+/, 'Expected an audio mime type, e.g. audio/webm.') });
-const FinalizeBody = z.object({ chunk_count: z.number('Expected the number of chunks sent.').int('Expected a whole number.').min(1, 'At least one chunk is needed.') });
+const MIME = /^(audio|video)\/[\w.+-]+(\s*;[^\r\n;]+)*$/;
+const StartBody = z.object({ occurred_at: IsoTimestamp.optional(), mime: z.string('Expected the recording mime type.').max(100, 'Expected an audio mime type, e.g. audio/webm.').regex(MIME, 'Expected an audio mime type, e.g. audio/webm.') });
+const FinalizeBody = z.object({ chunk_count: z.number('Expected the number of chunks sent.').int('Expected a whole number.').min(1, 'At least one chunk is needed.').optional() });
 
 router_recordings.post('/recordings', async (c) => {
     const body = validate(StartBody, await c.req.json().catch(() => null));

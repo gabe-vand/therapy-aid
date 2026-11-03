@@ -11,6 +11,7 @@ import { buildContextPack } from '@/services/context/context-pack';
 import { formatDay } from '@/services/context/format';
 import { parseFocusContent } from '@/services/context/pack-sections';
 import { listProblems } from '@/services/problems/problems';
+import { lastTouchedMs } from '@/services/problems/staleness';
 import { buildFocusRequest, FOCUS_PERSONA, FocusSchema, MAX_FOCUS_ITEMS, type FocusReply } from './prompts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -54,7 +55,8 @@ export const regenerateFocus = async (session_id?: number | null): Promise<Focus
         stale_problems: stale.map((p) => ({
             id: p.id,
             title: p.title,
-            days: Math.floor((now - Date.parse(p.last_discussed_at ?? p.last_reviewed_at ?? p.created_at)) / DAY_MS),
+            // The same "last touched" as the staleness rule (and Home's prompt): the newest of the three.
+            days: Math.floor((now - lastTouchedMs(p)) / DAY_MS),
         })),
     });
 

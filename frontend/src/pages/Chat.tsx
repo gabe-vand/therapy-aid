@@ -23,7 +23,10 @@ export default function Chat() {
     const chat = useChat(thread_id);
     const [to_delete, set_to_delete] = useState<ChatThread | null>(null);
 
+    // An untouched "New chat" is reused rather than piling up another empty thread.
     const start_new = async () => {
+        const empty = threads.threads.find((t) => t.message_count === 0);
+        if (empty) return navigate(paths.chat_thread(empty.id));
         const created = await threads.create();
         if (created) navigate(paths.chat_thread(created.id));
     };

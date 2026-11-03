@@ -84,6 +84,15 @@ describe('regenerateFocus', () => {
         expect(user).not.toContain('Fresh one');
     });
 
+    it('counts stale days from the newest touch, so a recent Keep counts (as the staleness rule does)', async () => {
+        const ago = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+        const kept = seedProblem({ title: 'Kept a while back', last_discussed_at: ago(100), last_reviewed_at: ago(40) });
+        sqlite.run('update problems set created_at = ? where id = ?', [ago(200), kept.id]);
+        await regenerateFocus();
+        const user = (claude.mock.calls[0]![0] as Parameters<typeof svc_claude.completeStructured>[0]).messages[0]!.content as string;
+        expect(user).toContain(`Kept a while back [problem #${kept.id}] - untouched for 40 days`);
+    });
+
     it('passes a real problem_id through, nulls an unknown or non-active one', async () => {
         const active = seedProblem({ title: 'Active' });
         const resolved = seedProblem({ title: 'Done', status: 'resolved' });

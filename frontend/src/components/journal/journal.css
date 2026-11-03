@@ -1,7 +1,7 @@
 /* Journal-only styles: the idea button's one-off pulse, the editor textarea, the list rows. Tokens only. */
 .ta-idea--pulse {
     border-color: var(--accent);
-    animation: ta-idea-pulse 1.6s ease-in-out 3;
+    animation: ta-idea-pulse 1.6s ease-in-out 1;
 }
 
 @keyframes ta-idea-pulse {

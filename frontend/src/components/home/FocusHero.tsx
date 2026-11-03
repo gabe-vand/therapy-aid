@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { FocusSnapshot } from '@therapy-aid/shared';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { relative_time } from '@/services/dates';
@@ -8,11 +8,22 @@ import { paths } from '@/services/paths';
 
 /* The banner at the top of Home: what to focus on right now. A one-line headline and up to three
    cards (what, why, and the one thing to do this week). Refresh regenerates it from the whole
-   picture; before the first session there is nothing to show, and the empty state says why. */
+   picture. With no focus there are two empty states: before the first session (nothing to draw
+   from — point at Record / Add notes), and after one whose best-effort focus run failed (sessions
+   exist, so offer "Generate my focus" — otherwise that state would be a dead end). */
 
-type Props = { focus: FocusSnapshot | null; loading: boolean; error: string | null; on_reload: () => void; on_regenerate: () => void; regenerating: boolean; regenerate_error: string | null };
+type Props = {
+    focus: FocusSnapshot | null;
+    has_sessions: boolean;
+    loading: boolean;
+    error: string | null;
+    on_reload: () => void;
+    on_regenerate: () => void;
+    regenerating: boolean;
+    regenerate_error: string | null;
+};
 
-export const FocusHero = ({ focus, loading, error, on_reload, on_regenerate, regenerating, regenerate_error }: Props) => {
+export const FocusHero = ({ focus, has_sessions, loading, error, on_reload, on_regenerate, regenerating, regenerate_error }: Props) => {
     if (loading && !focus) {
         return (
             <Loading label="Loading your focus…">
@@ -23,8 +34,37 @@ export const FocusHero = ({ focus, loading, error, on_reload, on_regenerate, reg
         );
     }
     if (error && !focus) return <ErrorState message={error} on_retry={on_reload} />;
+    if (!focus && has_sessions) {
+        return (
+            <div className="flex flex-col gap-3">
+                <EmptyState
+                    title="No focus yet"
+                    body="Your sessions are in, but the focus has not been generated. Generate it now to see what to concentrate on."
+                    action={
+                        <Button variant="primary" onClick={on_regenerate} disabled={regenerating}>
+                            {regenerating ? 'Generating…' : 'Generate my focus'}
+                        </Button>
+                    }
+                />
+                {regenerate_error && <ErrorState message={regenerate_error} />}
+            </div>
+        );
+    }
     if (!focus) {
-        return <EmptyState title="Your focus will appear here" body="After your first session, this shows what to concentrate on right now, drawn from everything you and David have covered. Add a session to get started." />;
+        return (
+            <EmptyState
+                title="Your focus will appear here"
+                body="After your first session, this shows what to concentrate on right now, drawn from everything you and David have covered. Add a session to get started."
+                action={
+                    <div className="flex flex-wrap justify-center gap-2">
+                        <ButtonLink to={paths.record} variant="primary">
+                            Record a session
+                        </ButtonLink>
+                        <ButtonLink to={paths.upload_notes}>Add notes</ButtonLink>
+                    </div>
+                }
+            />
+        );
     }
 
     return (

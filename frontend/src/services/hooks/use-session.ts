@@ -5,7 +5,8 @@ import { deleteAPI, getAPI, isOk, patchAPI, postAPI } from '@/services/api';
 /* One session (GET /sessions/:id) plus everything you can do to it. While the pipeline is still
    working (anything but ready|failed) it polls every 3s — a network blip or 5xx mid-poll keeps
    the last good data on screen and tries again; a 4xx stops the polling and shows the error.
-   Mutations are explicit triggers: save (PATCH date/title), retry, remove. */
+   Mutations are explicit triggers: save (PATCH date/title), retry, finish (finalize a recording
+   whose browser died — no chunk count, so the server takes the audio it has), remove. */
 
 export const POLL_MS = 3000;
 const is_settled = (s: Session) => s.status === 'ready' || s.status === 'failed';
@@ -87,7 +88,13 @@ export const useSession = (id: number | null) => {
         return ok;
     }, [act, id]);
 
+    const finish = useCallback(async () => {
+        const ok = await act(() => postAPI(`sessions/${id}/finalize`));
+        if (ok) set_epoch((n) => n + 1);
+        return ok;
+    }, [act, id]);
+
     const remove = useCallback(() => act(() => deleteAPI(`sessions/${id}`)), [act, id]);
 
-    return { session, loading, error, reload, busy, action_error, save, retry, remove };
+    return { session, loading, error, reload, busy, action_error, save, retry, finish, remove };
 };

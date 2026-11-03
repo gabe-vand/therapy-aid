@@ -16,13 +16,13 @@ import { splitDated } from './lib/seed-parse';
 
 // Before ANY backend module loads: svc-db opens its database at import time, and the eval must
 // never touch a real one. Everything from the backend is imported dynamically below, after this.
+// This WRITE is the one sanctioned process.env use outside svc-env.ts (the "read env only through
+// app_env" rule): it has to happen before app_env exists. The test preload does the same.
 process.env.DB_PATH = ':memory:';
-
-const DEFAULT_MODELS = 'claude-opus-5-5,claude-sonnet-5-5,claude-haiku-5-5';
 
 const USAGE = `Usage: bun run eval -- [options]     (the root script loads backend/.env for ANTHROPIC_API_KEY)
 
-  --models <list>   comma list of model ids to run (default ${DEFAULT_MODELS})
+  --models <list>   comma list of model ids to run (default: every id in MODEL_IDS, svc-models.ts)
   --effort <level>  force one effort (low|medium|high|xhigh|max) for every task;
                     default: each task's own effort from TASK_MODELS
   --judge           afterwards, have Opus grade every non-Opus model in eval-out/ against Opus
@@ -34,7 +34,7 @@ const USAGE = `Usage: bun run eval -- [options]     (the root script loads backe
 
 const { values } = parseArgs({
     options: {
-        models: { type: 'string', default: DEFAULT_MODELS },
+        models: { type: 'string' },
         effort: { type: 'string' },
         judge: { type: 'boolean', default: false },
         'judge-only': { type: 'boolean', default: false },
@@ -65,8 +65,9 @@ type ModelUsage = import('./lib/eval-report').ModelUsage;
 
 if (!app_env.anthropic_api_key) fail('ANTHROPIC_API_KEY is not set (put it in backend/.env, or export it)');
 const effort = values.effort ? (EFFORTS.find((e) => e === values.effort) ?? fail(`--effort must be one of ${EFFORTS.join('|')}`)) : undefined;
-const models = values
-    .models!.split(',')
+// The default candidates come from MODEL_IDS, so a model bump in svc-models.ts reaches the eval too.
+const models = (values.models ?? Object.values(MODEL_IDS).join(','))
+    .split(',')
     .map((m) => m.trim())
     .filter(Boolean);
 if (models.length === 0) fail('--models is empty');

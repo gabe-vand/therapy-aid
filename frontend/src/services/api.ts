@@ -7,6 +7,8 @@ import { env } from '@/services/env';
    `res.status_code === 200 && res.data !== null`; on failure `message` is safe to show. */
 
 type Payload = Record<string, unknown>;
+/* keepalive lets a save outlive the page (pagehide, tab close); browsers cap its body at 64 KB. */
+type Options = { keepalive?: boolean };
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export const UNREACHABLE = 'Cannot reach the server. Check your connection, or try again shortly.';
@@ -16,10 +18,10 @@ const url = (path: string): string => `${env.api_base_url}/${path.replace(/^\/+/
 
 /* One request, normalised: a network failure or a non-JSON body (a proxy's 502 page) becomes an
    envelope with data null and a human message instead of an exception. */
-const send = async <T>(method: Method, path: string, body?: BodyInit, content_type = 'application/json'): Promise<ApiEnvelope<T | null>> => {
+const send = async <T>(method: Method, path: string, body?: BodyInit, content_type = 'application/json', options: Options = {}): Promise<ApiEnvelope<T | null>> => {
     let response: Response;
     try {
-        response = await fetch(url(path), { method, body, headers: { 'Content-Type': content_type } });
+        response = await fetch(url(path), { method, body, headers: { 'Content-Type': content_type }, ...(options.keepalive ? { keepalive: true } : {}) });
     } catch {
         return { data: null, status_code: 0, message: UNREACHABLE };
     }
@@ -35,11 +37,11 @@ const json = (payload: Payload | undefined): string | undefined => (payload === 
 
 export const getAPI = <T>(path: string) => send<T>('GET', path);
 
-export const postAPI = <T>(path: string, payload: Payload = {}) => send<T>('POST', path, json(payload));
+export const postAPI = <T>(path: string, payload: Payload = {}, options?: Options) => send<T>('POST', path, json(payload), undefined, options);
 
 export const putAPI = <T>(path: string, payload: Payload = {}) => send<T>('PUT', path, json(payload));
 
-export const patchAPI = <T>(path: string, payload: Payload = {}) => send<T>('PATCH', path, json(payload));
+export const patchAPI = <T>(path: string, payload: Payload = {}, options?: Options) => send<T>('PATCH', path, json(payload), undefined, options);
 
 export const deleteAPI = <T>(path: string) => send<T>('DELETE', path);
 

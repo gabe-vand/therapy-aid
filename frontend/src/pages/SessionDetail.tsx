@@ -13,13 +13,15 @@ import { useSession } from '@/services/hooks/use-session';
 import { paths } from '@/services/paths';
 
 /* One session. While it is processing it shows the stepper (the hook polls every 3s); failed shows
-   the reason and Retry; ready shows the summary, problem updates and the collapsible source text.
-   Title and date are editable; Delete asks first and returns to the list. */
+   the reason and Retry — plus the summary when it was already saved (a failure in the problem
+   step must not hide a summary that was paid for); ready shows the summary, problem updates and
+   the collapsible source text. An unfinished recording can be finished from here. Title and date
+   are editable; Delete asks first and returns to the list. */
 export default function SessionDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const session_id = Number(id);
-    const { session, loading, error, reload, busy, action_error, save, retry, remove } = useSession(Number.isInteger(session_id) ? session_id : null);
+    const { session, loading, error, reload, busy, action_error, save, retry, finish, remove } = useSession(Number.isInteger(session_id) ? session_id : null);
     const [confirming, set_confirming] = useState(false);
 
     const delete_session = async () => {
@@ -55,6 +57,7 @@ export default function SessionDetail() {
     }
 
     const ready = session.status === 'ready';
+    const show_summary = (ready || session.status === 'failed') && !!session.summary;
     return (
         <>
             {back}
@@ -66,8 +69,8 @@ export default function SessionDetail() {
             )}
 
             <div className="flex flex-col gap-4">
-                {!ready && <ProcessingCard session={session} busy={busy} on_retry={() => void retry()} />}
-                {ready && session.summary && <SummaryBody summary={session.summary} />}
+                {!ready && <ProcessingCard session={session} busy={busy} on_retry={() => void retry()} on_finish={() => void finish()} />}
+                {show_summary && <SummaryBody summary={session.summary!} />}
                 {ready && !session.summary && <ErrorState message="This session finished without a summary. You can delete it and add it again." />}
                 <ProblemUpdates updates={session.problem_updates} />
                 {session.transcript && <Collapsible title="Transcript" text={session.transcript} />}

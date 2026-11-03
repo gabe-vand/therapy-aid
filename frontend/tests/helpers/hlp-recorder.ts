@@ -16,6 +16,7 @@ export class FakeRecorder {
     mimeType: string;
     ondataavailable: ((e: { data: Blob }) => void) | null = null;
     onstop: (() => void) | null = null;
+    onerror: (() => void) | null = null;
     timeslice: number | undefined;
     final_chunk: Blob | null = new Blob(['tail']);
 
@@ -41,13 +42,24 @@ export class FakeRecorder {
         if (this.final_chunk) this.ondataavailable?.({ data: this.final_chunk });
         this.onstop?.();
     }
+
+    // The recorder dying on its own, in the spec's order: error, the last chunk, then stop.
+    fail() {
+        this.state = 'inactive';
+        this.onerror?.();
+        if (this.final_chunk) this.ondataavailable?.({ data: this.final_chunk });
+        this.onstop?.();
+    }
 }
+
+type Handler = (() => void) | null;
+export type FakeTrack = { stop: ReturnType<typeof vi.fn>; onended: Handler; onmute: Handler; onunmute: Handler };
 
 /* Installs the fakes; returns the getUserMedia mock and the track it hands out. */
 export const install_fake_media = (opts: { deny?: string } = {}) => {
     FakeRecorder.instances = [];
     FakeRecorder.supported = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
-    const track = { stop: vi.fn() };
+    const track: FakeTrack = { stop: vi.fn(), onended: null, onmute: null, onunmute: null };
     const stream = { getTracks: () => [track] };
     const get_user_media = vi.fn(async () => {
         if (opts.deny) throw Object.assign(new Error('denied'), { name: opts.deny });
@@ -90,9 +102,11 @@ export const server = (chunk_reply: (seq: number, attempt: number) => unknown = 
             return chunk_reply(seq, attempt);
         },
         'POST /api/sessions/7/finalize': { id: 7, status: 'uploaded' },
+        'DELETE /api/sessions/7': {},
     });
     const finalized = () => mock.mock.calls.some((c) => String(c[0]).endsWith('/finalize'));
-    return { mock, attempts, max_in_flight: () => max_in_flight, finalized };
+    const deleted = () => mock.mock.calls.some((c) => (c[1] as RequestInit | undefined)?.method === 'DELETE');
+    return { mock, attempts, max_in_flight: () => max_in_flight, finalized, deleted };
 };
 
 /* Renders the hook and taps Start. */

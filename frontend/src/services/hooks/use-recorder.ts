@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isOk, postAPI } from '@/services/api';
+import { deleteAPI, isOk, postAPI } from '@/services/api';
+import { useCaptureGuard } from '@/services/hooks/use-capture-guard';
 import { useChunkUpload } from '@/services/hooks/use-chunk-upload';
 import { useWakeLock } from '@/services/hooks/use-wake-lock';
+import { format_elapsed, halt, mic_message, pick_mime, TIMESLICE_MS } from '@/services/recorder-media';
 
 /* Records the therapy session in the browser and ships it to the server as it goes, so a dead
    battery or a crashed tab loses at most the last 30 seconds instead of the whole hour.
@@ -10,37 +12,22 @@ import { useWakeLock } from '@/services/hooks/use-wake-lock';
    every dataavailable blob is numbered and handed to the upload queue (use-chunk-upload).
    stop() ends the recorder, waits for the queue to empty, then POST /sessions/:id/finalize with the
    chunk count — the server verifies none went missing and starts transcription. Leaving the page
-   mid-recording stops and finalizes what exists rather than discarding it. */
+   mid-recording stops and finalizes what exists rather than discarding it, and so does a recorder
+   or mic that dies under us (use-capture-guard) — with a `notice` saying when it stopped. A server
+   row that never got any audio (the page was left while starting, or nothing was captured) is
+   deleted again, so no empty "Recording" session is left behind. */
 
 export type RecorderPhase = 'idle' | 'starting' | 'recording' | 'finishing' | 'done';
-
-export const TIMESLICE_MS = 30_000;
-// Safari only does mp4; Chrome/Firefox prefer webm/opus. The first the browser supports wins.
-export const MIME_PREFERENCE = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
-
-const pick_mime = (): string => MIME_PREFERENCE.find((m) => MediaRecorder.isTypeSupported(m)) ?? '';
-
-const mic_message = (e: unknown): string => {
-    const name = e instanceof Error ? e.name : '';
-    if (name === 'NotAllowedError' || name === 'SecurityError') return 'Microphone access is blocked. Allow it in your browser’s site settings, then try again.';
-    if (name === 'NotFoundError') return 'No microphone was found on this device.';
-    return 'Could not start the microphone. Check that no other app is using it.';
-};
-
-// Resolves once the recorder has flushed its last chunk and stopped.
-const halt = (recorder: MediaRecorder) =>
-    new Promise<void>((resolve) => {
-        if (recorder.state === 'inactive') return resolve();
-        recorder.onstop = () => resolve();
-        recorder.stop();
-    });
+export { MIME_PREFERENCE, TIMESLICE_MS } from '@/services/recorder-media';
 
 export const useRecorder = () => {
     const [phase, set_phase_state] = useState<RecorderPhase>('idle');
     const [elapsed_sec, set_elapsed_sec] = useState(0);
     const [error, set_error] = useState<string | null>(null);
     const [session_id, set_session_id] = useState<number | null>(null);
+    const [notice, set_notice] = useState<string | null>(null);
     const { uploaded, total, stalled, begin, enqueue, drain, pending } = useChunkUpload();
+    const guard = useCaptureGuard(phase === 'recording');
 
     // phase_ref is the synchronous truth (guards double taps and async continuations); the state mirrors it for render.
     const phase_ref = useRef<RecorderPhase>('idle');
@@ -50,6 +37,8 @@ export const useRecorder = () => {
     const chunk_count = useRef(0);
     const started_at = useRef(0);
     const mounted = useRef(true);
+    // Set below, once stop() exists: what the capture guard calls when the mic dies mid-recording.
+    const on_lost = useRef<() => void>(() => undefined);
 
     const set_phase = useCallback((next: RecorderPhase) => {
         phase_ref.current = next;
@@ -73,6 +62,7 @@ export const useRecorder = () => {
         }
         set_phase('starting');
         set_error(null);
+        set_notice(null);
 
         // Mic first: a refused permission must not leave an empty session behind on the server.
         let media: MediaStream;
@@ -102,21 +92,26 @@ export const useRecorder = () => {
 
         const res = await postAPI<{ id: number }>('sessions/recordings', { mime });
         if (!isOk(res)) return abort(res.message);
-        if (!mounted.current) return abort(null);
+        if (!mounted.current) {
+            void deleteAPI(`sessions/${res.data.id}`); // left while starting: no audio, no session
+            return abort(null);
+        }
 
         id.current = res.data.id;
         chunk_count.current = 0;
         begin(res.data.id, mime);
         rec.ondataavailable = (e: BlobEvent) => {
+            guard.mark_chunk();
             if (e.data.size > 0) enqueue(chunk_count.current++, e.data);
         };
+        guard.watch(rec, media, () => on_lost.current());
         stream.current = media;
         recorder.current = rec;
         rec.start(TIMESLICE_MS);
         started_at.current = Date.now();
         set_elapsed_sec(0);
         set_phase('recording');
-    }, [begin, enqueue, set_phase, supported]);
+    }, [begin, enqueue, guard.mark_chunk, guard.watch, set_phase, supported]);
 
     // Empties the queue, then tells the server how many chunks to expect. Safe to call again after a failure.
     const finish = useCallback(async (): Promise<number | null> => {
@@ -127,6 +122,7 @@ export const useRecorder = () => {
             return null;
         }
         if (chunk_count.current === 0) {
+            void deleteAPI(`sessions/${id.current}`); // an empty row would sit as "Recording" forever
             set_error('Nothing was recorded.');
             set_phase('idle');
             return null;
@@ -150,8 +146,22 @@ export const useRecorder = () => {
         return finish();
     }, [finish, release_mic, set_phase]);
 
-    // After a failed finish: upload what is left and finalize.
-    const retry = useCallback(async (): Promise<number | null> => (phase_ref.current === 'finishing' ? finish() : null), [finish]);
+    // After a failed finish: upload what is left and finalize. While recording: resend a stalled upload now.
+    const retry = useCallback(async (): Promise<number | null> => {
+        if (phase_ref.current === 'finishing') return finish();
+        if (phase_ref.current === 'recording') await drain();
+        return null;
+    }, [drain, finish]);
+
+    // The mic or recorder died mid-recording: keep what was captured, and say when it stopped.
+    useEffect(() => {
+        on_lost.current = () => {
+            if (phase_ref.current !== 'recording') return;
+            const at = format_elapsed(Math.floor((Date.now() - started_at.current) / 1000));
+            set_notice(`Recording stopped unexpectedly at ${at}: the microphone was cut off (a call, Siri or a locked screen can do this). What was captured up to then is saved.`);
+            void stop();
+        };
+    }, [stop]);
 
     // Elapsed clock, derived from the wall clock so a throttled background tab cannot drift it.
     useEffect(() => {
@@ -182,5 +192,5 @@ export const useRecorder = () => {
         };
     }, [stop]);
 
-    return { phase, elapsed_sec, uploaded, total, stalled, error, session_id, supported, secure, start, stop, retry };
+    return { phase, elapsed_sec, uploaded, total, stalled, error, notice, capture_warning: guard.warning, session_id, supported, secure, start, stop, retry };
 };

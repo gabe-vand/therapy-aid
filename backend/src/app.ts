@@ -1,7 +1,8 @@
 // The Hono app and its mount table, separate from index.ts so tests can drive it with
 // app.request() without binding a port. Routers mount at bare paths — the SPA's /api prefix is
 // stripped by nginx (prod) and the Vite proxy (dev) before a request gets here.
-// Everything except /health sits behind md-auth (the Tailscale login check).
+// Every state-changing request must come from the SPA's own origin (md-same-origin, the CSRF guard),
+// and everything except /health sits behind md-auth (the Tailscale login check).
 import { Hono } from 'hono';
 import { except } from 'hono/combine';
 import { logger } from 'hono/logger';
@@ -17,10 +18,13 @@ import { router_sessions } from '@/routes/sessions/sessions';
 import { router_settings } from '@/routes/settings/settings';
 import { err, rsp, stc } from '@/services/common/svc-response';
 import { md_auth } from '@/services/middleware/md-auth';
+import { md_same_origin } from '@/services/middleware/md-same-origin';
 
 export const app = new Hono();
 
 app.use(logger());
+
+app.use('*', md_same_origin);
 
 // /health stays public: compose healthchecks and scripts/deploy.sh poll it without a login.
 app.use('*', except(['/health', '/health/*'], md_auth));

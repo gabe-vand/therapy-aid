@@ -71,6 +71,8 @@ api  (Bun + Hono, port 3010)
  browser MediaRecorder, a chunk every 30 s     POST /sessions/notes
  POST /sessions/:id/chunks?seq=N (in order)         |
  POST /sessions/:id/finalize {chunk_count}          |
+   (no count = take the chunks on disk: the
+    "Finish this recording" salvage)                 |
         |                                           |
    status: uploaded  &lt;-------------------------------+
         |
@@ -79,14 +81,17 @@ api  (Bun + Hono, port 3010)
    summarizing    call 1 (summarize):     transcript/notes -&gt; title, overview, key points, therapist advice
         |         call 2 (map_problems):  that SUMMARY + the problem list -&gt; progress notes, new problems
         |         apply: problem_updates rows, last_discussed_at, new problems, resolved suggestions
-        |         regenerate focus (whole-picture call), reindex search
+        |         reindex search
         v
-   ready          (or failed, with a readable error; Retry resumes at the failing step)</pre>
+   ready          (or failed, with a readable error; Retry resumes at the failing step)
+        |
+   then, best-effort: regenerate focus (whole-picture call). It runs AFTER ready and a failure is
+   only logged: the session stays ready, and Home offers "Generate my focus" / Refresh.</pre>
       <ul>
         <li><strong>Chunked upload, in order.</strong> Chunks are appended strictly by sequence number; an out-of-order chunk is a <code>409</code> carrying the expected number, and <code>finalize</code> verifies the count. A phone that loses signal mid-session loses nothing it already sent, and the browser keeps unacked chunks in memory and retries them.</li>
         <li><strong>Two narrow calls instead of one big one.</strong> The second call sees a ~1k-token summary rather than a 10k-token transcript, and each call has one job. That is what makes cheaper models viable (<a href="architecture-ops.html#r6">&sect;6</a>).</li>
         <li><strong>One session at a time.</strong> Processing runs through an in-memory promise chain, so a session's problem mapping always sees the previous session's problems. This is what makes seeding six notes in order correct, and it is why there is no queue: the chain is the queue.</li>
-        <li><strong>Never throws, always resumable.</strong> The pipeline catches everything, stores a human-readable <code>error</code> and sets <code>failed</code>. A transcript is kept, so Retry after a missing API key redoes only the failed step. At boot, anything left in <code>uploaded</code>, <code>transcribing</code> or <code>summarizing</code> by a restart is re-queued, and a <code>recording</code> older than 6 hours is marked failed.</li>
+        <li><strong>Never throws, always resumable.</strong> The pipeline catches everything, stores a human-readable <code>error</code> and sets <code>failed</code>. A transcript is kept, so Retry after a missing API key redoes only the failed step. At boot, anything left in <code>uploaded</code>, <code>transcribing</code> or <code>summarizing</code> by a restart is re-queued. A <code>recording</code> that no audio has reached for 30 minutes (a dead phone, a closed tab) is marked failed with its audio kept for Retry; that sweep runs at boot <em>and</em> every 5 minutes (<code>services/sessions/recovery.ts</code>), because the Pi runs for weeks between restarts. Sooner than that, the session page offers <em>Finish this recording</em>. A failure after the summary was saved keeps the summary visible under the error. Edits to the title or date made while a call is in flight win: the pipeline re-reads the row after each await.</li>
         <li><strong>The audio stays on disk</strong> whatever happens to the AI steps, so a missing Deepgram key costs a Retry, not a lost session.</li>
       </ul>
     </div>

@@ -51,3 +51,12 @@ export const partialAudioPath = (session: SessionRow): string | null => {
     const file = audioFile(session);
     return existsSync(file) && statSync(file).size > 0 ? file : null;
 };
+
+/** When audio last landed for a session: the newest file's mtime in its folder (ms), or null when
+    the folder is missing or empty. The abandon sweep measures inactivity from this. */
+export const lastAudioActivityMs = (session_id: number): number | null => {
+    const dir = recordingDir(session_id);
+    if (!existsSync(dir)) return null;
+    const times = readdirSync(dir).map((name) => statSync(join(dir, name)).mtimeMs);
+    return times.length ? Math.max(...times) : null;
+};

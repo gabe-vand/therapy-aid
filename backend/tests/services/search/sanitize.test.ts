@@ -22,6 +22,12 @@ describe('toMatchQuery', () => {
         expect(toMatchQuery(many)!.split(' OR ')).toHaveLength(12);
     });
 
+    it('keeps a contraction whole, so its head is not searched on its own', () => {
+        expect(toMatchQuery("I don't feel safe at work")).toBe('"feel"* OR "safe"* OR "work"*');
+        expect(toMatchQuery('isn’t it')).toBeNull();
+        expect(toMatchQuery("Nicole's mornings")).toBe('"nicoles"* OR "mornings"*');
+    });
+
     it('keeps non-ASCII letters and digits', () => {
         expect(toMatchQuery('café 2026')).toBe('"café"* OR "2026"*');
     });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { format_date, format_month, format_time, from_date_input, relative_time, to_date_input, today_input } from '@/services/dates';
+import { elapsed_phrase, format_date, format_month, format_time, from_date_input, relative_time, to_date_input, today_input } from '@/services/dates';
 
 // Local-time helpers: assertions build their inputs in local time so they hold in any zone.
 const local = (y: number, m: number, d: number, h = 12, min = 0) => new Date(y, m - 1, d, h, min).toISOString();
@@ -12,6 +12,20 @@ describe('format_*', () => {
         expect(format_time(local(2026, 9, 11, 15, 5))).toBe('3:05 PM');
         expect(format_month(local(2026, 9, 11))).toBe('September 2026');
         for (const bad of [null, undefined, '', 'nope']) expect(format_date(bad)).toBe('—');
+    });
+});
+
+describe('elapsed_phrase', () => {
+    const now = new Date('2026-10-20T12:00:00.000Z');
+    const days = (n: number) => new Date(now.getTime() - n * 24 * 3600 * 1000).toISOString();
+
+    it('reads as a duration: days, then weeks (the stale range), then months', () => {
+        expect(elapsed_phrase(days(1), now)).toBe('1 day');
+        expect(elapsed_phrase(days(10), now)).toBe('10 days');
+        expect(elapsed_phrase(days(35), now)).toBe('5 weeks');
+        expect(elapsed_phrase(days(65), now)).toBe('9 weeks');
+        expect(elapsed_phrase(days(200), now)).toBe('6 months');
+        expect(elapsed_phrase(null, now)).toBe('—');
     });
 });
 

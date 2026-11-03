@@ -18,7 +18,7 @@ describe('Record page', () => {
         mount();
         expect(screen.getByRole('button', { name: 'Start recording' })).toBeEnabled();
         expect(screen.getByRole('timer')).toHaveTextContent('00:00');
-        expect(screen.queryByText(/uploaded/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/saved to the server/i)).not.toBeInTheDocument();
     });
 
     it('records, shows the timer and upload progress, and Stop opens the session', async () => {
@@ -34,7 +34,7 @@ describe('Record page', () => {
 
         act(() => media.recorder().emit('a'));
         await flush();
-        expect(screen.getByText('Uploaded 1 of 1 chunk')).toBeInTheDocument();
+        expect(screen.getByText('Saved to the server: 00:30 of 00:30')).toBeInTheDocument();
 
         await tap('Stop recording');
         await flush();
@@ -71,7 +71,23 @@ describe('Record page', () => {
         await tap('Start recording');
         act(() => media.recorder().emit('a'));
         await flush(10_000);
-        expect(screen.getByText(/Upload paused: Offline\./)).toBeInTheDocument();
+        expect(screen.getByText(/Upload paused\. Your audio is safe on this device/)).toBeInTheDocument();
+        expect(screen.queryByText(/Offline/)).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Retry now' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Stop recording' })).toBeInTheDocument();
+    });
+
+    it('when the mic dies, stays on the page to say when it stopped and links to the session', async () => {
+        const media = install_fake_media();
+        server();
+        mount();
+        await tap('Start recording');
+        await flush(5_000);
+        act(() => media.recorder().emit('a'));
+        act(() => media.recorder().fail());
+        await flush(1000);
+        expect(screen.getByRole('alert')).toHaveTextContent(/stopped unexpectedly at 00:05/);
+        expect(screen.queryByText('at /sessions/7')).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Open the session' })).toHaveAttribute('href', '/sessions/7');
     });
 });

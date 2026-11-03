@@ -15,7 +15,7 @@ import { apiBase, splitDated } from './lib/seed-parse';
 
 const USAGE = `Usage: bun scripts/import-seed.ts [options]
 
-  --url <url>          server to import into (default http://localhost:3010).
+  --url <url>          server to import into (default http://127.0.0.1:3010).
                        localhost uses bare paths; any other host gets /api appended.
   --dir <dir>          folder with profile.md, journal.md, therapy-notes.md (default seed-data)
   --only <list>        comma list of: profile, journal, notes (default all)
@@ -27,7 +27,7 @@ const USAGE = `Usage: bun scripts/import-seed.ts [options]
 
 const { values } = parseArgs({
     options: {
-        url: { type: 'string', default: 'http://localhost:3010' },
+        url: { type: 'string', default: 'http://127.0.0.1:3010' },
         dir: { type: 'string', default: 'seed-data' },
         only: { type: 'string' },
         prefix: { type: 'string' },

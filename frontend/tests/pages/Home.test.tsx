@@ -35,6 +35,24 @@ describe('Home page', () => {
         expect(await screen.findByText('Your focus will appear here')).toBeInTheDocument();
         expect(await screen.findByText(/no sessions yet/i)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Generate my focus' })).not.toBeInTheDocument();
+        expect(screen.getAllByRole('link', { name: /Record a session/ })[0]).toHaveAttribute('href', '/sessions/record');
+    });
+
+    it('with sessions but no focus (a failed focus run), offers Generate my focus', async () => {
+        const mock = stub_api(routes({ 'GET /api/focus': envelope(null, 200), 'POST /api/focus/regenerate': focus_snapshot({ headline: 'Generated at last.' }) }));
+        mount();
+        fireEvent.click(await screen.findByRole('button', { name: 'Generate my focus' }));
+        expect(await screen.findByText('Generated at last.')).toBeInTheDocument();
+        expect(mock.mock.calls.some((c) => String(c[0]).endsWith('/focus/regenerate'))).toBe(true);
+    });
+
+    it('a failed Generate my focus says why and keeps the button', async () => {
+        stub_api(routes({ 'GET /api/focus': envelope(null, 200), 'POST /api/focus/regenerate': envelope(null, 500, 'ANTHROPIC_API_KEY is not set.') }));
+        mount();
+        fireEvent.click(await screen.findByRole('button', { name: 'Generate my focus' }));
+        expect(await screen.findByRole('alert')).toHaveTextContent('ANTHROPIC_API_KEY is not set.');
+        expect(screen.getByRole('button', { name: 'Generate my focus' })).toBeEnabled();
     });
 
     it('shows a focus error with Retry while the rest of the page still works', async () => {
@@ -100,6 +118,13 @@ describe('Home stale-problem prompts', () => {
         fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(screen.getByText(/haven’t talked about/)).toBeInTheDocument();
+    });
+
+    it('says how long in weeks, as a sentence ("in 5 weeks"), using the newest touch', async () => {
+        const ago = (days: number) => new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
+        stub_api(routes({ 'GET /api/problems': [problem({ id: 7, title: 'Racing mind', is_stale: true, last_discussed_at: ago(90), last_reviewed_at: ago(36) })] }));
+        mount();
+        expect(await screen.findByText(/haven’t talked about/)).toHaveTextContent('You haven’t talked about Racing mind in 5 weeks. Still relevant?');
     });
 
     it('shows nothing when no problem is stale', async () => {

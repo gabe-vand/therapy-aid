@@ -3,13 +3,14 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 // Hard rule 1 (CLAUDE.md): every file stays below 200 lines. Checked across the whole workspace
-// from here — source, scripts, the docs pages and features.html — so the frontend and the docs
-// are held to it by the same suite.
+// from here — source, tests, the DDL, scripts (TypeScript and shell), the docs pages, the deploy
+// config, the skills and CLAUDE.md itself — so everything the rule covers is held to it by the same
+// suite, not just the code.
 
 const REPO = join(import.meta.dir, '..', '..', '..');
-const SCANNED = ['backend/src', 'backend/tests', 'frontend/src', 'frontend/tests', 'packages/shared/src', 'scripts', 'docs'];
-const SCANNED_FILES = ['features.html'];
-const CODE = /\.(ts|tsx|css|sql|html)$/;
+const SCANNED = ['backend/src', 'backend/tests', 'backend/db-schemas', 'frontend/src', 'frontend/tests', 'packages/shared/src', 'scripts', 'docs', 'deploy', '.claude/skills'];
+const SCANNED_FILES = ['features.html', 'CLAUDE.md', 'docker-compose.yml', 'frontend/nginx.conf', 'frontend/index.html', 'frontend/vite.config.ts', 'backend/.env.example', 'backend/Dockerfile', 'frontend/Dockerfile'];
+const CODE = /\.(ts|tsx|css|sql|html|sh|md|yml|yaml|conf|json)$/;
 const LIMIT = 200;
 
 /** Recursively collect source files under a dir. */

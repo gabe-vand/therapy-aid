@@ -6,15 +6,16 @@ import { problems } from '@/db/schema/problems';
 import { db } from '@/services/common/svc-db';
 
 export type ProblemRow = typeof problems.$inferSelect;
-export type NewProblemRow = Pick<ProblemRow, 'title' | 'description'> & Partial<Pick<ProblemRow, 'status' | 'last_discussed_at' | 'last_reviewed_at' | 'origin_session_id'>>;
+export type NewProblemRow = Pick<ProblemRow, 'title' | 'description'> & Partial<Pick<ProblemRow, 'status' | 'last_discussed_at' | 'last_reviewed_at' | 'origin_session_id' | 'created_at'>>;
 export type ProblemPatch = Partial<Omit<ProblemRow, 'id' | 'created_at' | 'updated_at'>>;
 
-/** Inserts one problem (status defaults to active; timestamps set here) and returns it. */
+/** Inserts one problem (status defaults to active) and returns it. created_at defaults to now; a
+    caller backfilling history (a problem opened from an old session) passes the real date. */
 export const insertProblem = (values: NewProblemRow): ProblemRow => {
     const now = new Date().toISOString();
     return db
         .insert(problems)
-        .values({ status: 'active', ...values, created_at: now, updated_at: now })
+        .values({ status: 'active', ...values, created_at: values.created_at ?? now, updated_at: now })
         .returning()
         .get();
 };

@@ -13,32 +13,40 @@ import { TranscriptionError } from '@/services/common/svc-deepgram';
 import { parseSessionSummary } from '@/services/context/session-summary';
 import { regenerateFocus } from '@/services/focus/focus';
 import { reindexSession } from '@/services/search/search';
-import { partialAudioPath } from './audio-files';
 import { applyProblemUpdates } from './apply-problems';
 import { SessionNotFoundError, SessionStateError } from './errors';
 import { mapProblems } from './map-problems';
 import { summarizeSession } from './summarize';
 import { transcribeSession } from './transcribe';
 
-const ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
 const RUNNABLE = new Set(['uploaded', 'transcribing', 'summarizing', 'failed']);
 
 /** Thrown inside a run when the row vanished (the session was deleted mid-processing). */
 class SessionGoneError extends Error {}
 
-/** The message stored in sessions.error: readable, and never an SDK JSON dump. */
+/** The message stored in sessions.error (and served to the SPA): readable, and never an SDK JSON
+    dump. An unrecognised error gets a fixed sentence — its own message can carry file paths or
+    SQLite text, and runPipeline has already logged it in full. */
 export const describeFailure = (e: unknown): string => {
     if (e instanceof AiError || e instanceof TranscriptionError) return e.message;
     const status = (e as { status?: unknown } | null)?.status;
     if (typeof status === 'number') {
         return status === 429 || status >= 500 ? `The AI service is busy or unavailable right now (HTTP ${status}). Press Retry in a minute.` : `The AI service rejected the request (HTTP ${status}).`;
     }
-    return e instanceof Error ? `Processing failed: ${e.message}` : 'Processing failed for an unknown reason.';
+    return 'Processing failed unexpectedly. Press Retry; if it keeps failing, check the API logs.';
 };
 
 /** updateSession that throws SessionGoneError when the row no longer exists. */
 const save = (id: number, patch: repo_sessions.SessionPatch): SessionRow => {
     const row = repo_sessions.updateSession(id, patch);
+    if (!row) throw new SessionGoneError();
+    return row;
+};
+
+/** The row as it is NOW. The title and date can be edited (PATCH) while an AI call is in flight,
+    so anything written or read after an await starts from a fresh read, not the captured row. */
+const reread = (id: number): SessionRow => {
+    const row = repo_sessions.selectSessionById(id);
     if (!row) throw new SessionGoneError();
     return row;
 };
@@ -55,7 +63,8 @@ const runSteps = async (initial: SessionRow): Promise<void> => {
     let summary = parseSessionSummary(session.summary_json);
     if (!summary?.overview) {
         summary = await summarizeSession(session);
-        session = save(session.id, { summary_json: JSON.stringify(summary), title: session.title ?? summary.title });
+        // A title typed while summarize ran wins over the AI's.
+        session = save(session.id, { summary_json: JSON.stringify(summary), title: reread(session.id).title ?? summary.title });
         reindexSession(session);
     }
 
@@ -63,6 +72,7 @@ const runSteps = async (initial: SessionRow): Promise<void> => {
     // per problem, so stale ones would mislead it) — and so applyProblemUpdates only ever adds.
     repo_updates.deleteUpdatesForSession(session.id);
     const extraction = await mapProblems(session.occurred_at, summary);
+    session = reread(session.id); // a date edited during the mapping call dates the notes
     const applied = applyProblemUpdates(session, extraction);
     console.log(`[sessions] session ${session.id}: ${applied.updated} problem(s) updated, ${applied.created} opened, ${applied.resolved} resolved, ${applied.skipped} skipped`);
 
@@ -114,20 +124,4 @@ export const retrySession = (id: number): SessionRow => {
     const row = save(id, { status: 'uploaded', error: null });
     void processSession(id);
     return row;
-};
-
-/** Boot recovery: re-queue anything a restart interrupted, oldest first. A recording still open
-    after 6 hours is abandoned: failed, with whatever audio was saved kept so Retry can use it. */
-export const recoverStuckSessions = (): void => {
-    for (const session of repo_sessions.selectSessionsByStatus(['recording', 'uploaded', 'transcribing', 'summarizing'])) {
-        if (session.status !== 'recording') {
-            console.log(`[sessions] re-queueing session ${session.id} (was ${session.status})`);
-            void processSession(session.id);
-        } else if (Date.now() - Date.parse(session.created_at) > ABANDONED_AFTER_MS) {
-            const audio_path = partialAudioPath(session);
-            const error = audio_path ? 'This recording was never finished. The audio captured so far was kept; press Retry to transcribe it.' : 'This recording was never finished and no audio was saved.';
-            console.log(`[sessions] abandoning session ${session.id}: ${error}`);
-            repo_sessions.updateSession(session.id, { status: 'failed', error, ...(audio_path ? { audio_path } : {}) });
-        }
-    }
 };

@@ -41,6 +41,12 @@ describe('POST /sessions/recordings', () => {
         expect((await post('/sessions/recordings', {})).status).toBe(400);
         expect((await post('/sessions/recordings', { mime: 'text/plain' })).status).toBe(400);
     });
+
+    it('rejects a mime with a header-breaking tail or an absurd length, accepts codec parameters', async () => {
+        expect((await post('/sessions/recordings', { mime: 'audio/webm\r\nX-Evil: 1' })).status).toBe(400);
+        expect((await post('/sessions/recordings', { mime: `audio/webm${'a'.repeat(200)}` })).status).toBe(400);
+        expect((await post('/sessions/recordings', { mime: 'audio/webm;codecs=opus' })).status).toBe(200);
+    });
 });
 
 describe('POST /sessions/:id/chunks', () => {
@@ -120,6 +126,20 @@ describe('POST /sessions/:id/finalize', () => {
         expect((await post(`/sessions/${id}/finalize`, { chunk_count: 0 })).status).toBe(400);
         expect((await post(`/sessions/${id}/finalize`, { chunk_count: 1 })).status).toBe(400); // nothing recorded
         expect((await post('/sessions/9999/finalize', { chunk_count: 1 })).status).toBe(404);
+    });
+
+    it('without chunk_count, finalises with the chunks on disk (salvaging a recording whose tab died)', async () => {
+        const id = await start();
+        await chunk(id, 0, 'aa');
+        await chunk(id, 1, 'bb');
+        const { status, body } = await json<Session>(await post(`/sessions/${id}/finalize`, {}));
+        expect(status).toBe(200);
+        expect(body.data.status).toBe('uploaded');
+    });
+
+    it('refuses a seq past the recording cap', async () => {
+        const id = await start();
+        expect((await chunk(id, 5000, 'x')).status).toBe(400);
     });
 });
 

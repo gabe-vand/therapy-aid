@@ -1,7 +1,10 @@
 // Writes a ProblemExtraction to the problems tables. It only ADDS: the pipeline clears the
-// session's earlier notes (deleteUpdatesForSession) before mapping, so retry is idempotent; a "new" problem whose title
-// matches an existing one becomes an update instead of a duplicate; last_discussed_at only ever
-// moves forward; and an id the model made up is skipped with a log line, never a crash.
+// session's earlier notes (deleteUpdatesForSession) before mapping, so retry is idempotent; a "new"
+// problem whose title matches an existing one becomes an update instead of a duplicate;
+// last_discussed_at only ever moves forward; a NEW problem is born at the session's date
+// (created_at = occurred_at) so a backfilled session's problems age from when they happened, not
+// from when they were imported (an existing problem's created_at is never touched); and an id the
+// model made up is skipped with a log line, never a crash.
 import * as repo_updates from '@/repositories/problem-updates';
 import * as repo_problems from '@/repositories/problems';
 import type { ProblemRow } from '@/repositories/problems';
@@ -64,7 +67,7 @@ export const applyProblemUpdates = (session: SessionRow, extraction: ProblemExtr
             }
             continue;
         }
-        const created = repo_problems.insertProblem({ title: p.title, description: p.description, last_discussed_at: session.occurred_at, origin_session_id: session.id });
+        const created = repo_problems.insertProblem({ title: p.title, description: p.description, last_discussed_at: session.occurred_at, created_at: session.occurred_at, origin_session_id: session.id });
         live.set(created.id, created);
         by_title.set(normTitle(created.title), created);
         touched.add(created.id);
