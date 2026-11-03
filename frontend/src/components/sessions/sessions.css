@@ -1,15 +1,7 @@
-/* Styles for the session screens (imported by the components in this folder). Tokens only.
-   The processing stepper lives in session-steps.css. */
-
-.ta-month-label {
-    margin: 0 0 8px;
-    padding: 0 4px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-}
+/* The session row (SessionRow.tsx — the Sessions timeline and Home's last-session card) and the
+   transcript disclosure (Collapsible.tsx). Tokens only. The timeline rail is in
+   sessions-timeline.css, the detail page's sections in session-detail.css, the stepper in
+   session-steps.css. */
 
 .ta-session-row {
     display: flex;
@@ -49,8 +41,9 @@
 
 .ta-session-row__date {
     margin: 2px 0 0;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ta-session-row__end {
@@ -59,70 +52,6 @@
     align-items: center;
     gap: 8px;
     color: var(--muted);
-}
-
-/* Session detail: plain sections on the page, a small uppercase label above each. */
-.ta-label {
-    margin: 0 0 8px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-}
-
-.ta-bullets {
-    margin: 0;
-    padding-left: 1.2em;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--ink);
-}
-
-.ta-bullets li::marker {
-    color: var(--faint);
-}
-
-.ta-updates {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.ta-updates__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-}
-
-.ta-updates__head svg {
-    flex: none;
-    color: var(--muted);
-}
-
-.ta-updates__head a {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
-    text-decoration: none;
-}
-
-.ta-updates__head a:hover {
-    color: var(--accent);
-}
-
-.ta-updates p {
-    margin: 4px 0 0 24px;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--ink-2);
 }
 
 /* Native <details> disclosure (a Card): keeps keyboard + screen-reader behaviour for free. */

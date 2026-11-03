@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import './problems-list.css';
 
-/* The "+ New problem" form: a title and an optional description. It owns only its field state;
-   the page's hook does the POST (on_submit resolves true on success, which closes the form). */
+/* The "New problem" form, inline at the top of the problem list (a tinted first row): a title and
+   an optional description. It owns only its field state; the page's hook does the POST
+   (on_submit resolves true on success, which closes the form). */
 
 type Props = { creating: boolean; error: string | null; on_submit: (title: string, description: string) => Promise<boolean>; on_cancel: () => void };
 
@@ -18,7 +19,7 @@ export function NewProblemForm({ creating, error, on_submit, on_cancel }: Props)
     };
 
     return (
-        <Card as="div" className="mb-5">
+        <div className="ta-pnew">
             <form onSubmit={submit} className="flex flex-col gap-3" aria-label="New problem">
                 <label className="flex flex-col gap-1 text-[13px] font-medium">
                     Title
@@ -26,10 +27,10 @@ export function NewProblemForm({ creating, error, on_submit, on_cancel }: Props)
                 </label>
                 <label className="flex flex-col gap-1 text-[13px] font-medium">
                     What is it? <span className="ta-muted font-normal">(optional)</span>
-                    <textarea className="ta-input" rows={3} value={description} onChange={(e) => set_description(e.target.value)} placeholder="A sentence or two, in your own words." />
+                    <textarea className="ta-input" rows={2} value={description} onChange={(e) => set_description(e.target.value)} placeholder="A sentence or two, in your own words." />
                 </label>
                 {error && (
-                    <p role="alert" className="text-[13px]" style={{ color: 'var(--danger)' }}>
+                    <p role="alert" className="ta-pnew__error">
                         {error}
                     </p>
                 )}
@@ -42,6 +43,6 @@ export function NewProblemForm({ creating, error, on_submit, on_cancel }: Props)
                     </Button>
                 </div>
             </form>
-        </Card>
+        </div>
     );
 }

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RecordControl } from '@/components/record/RecordControl';
+import '@/components/record/record.css';
 import { Notice, RecordNotices } from '@/components/record/RecordNotices';
 import { UploadStatus } from '@/components/record/UploadStatus';
 import { Card } from '@/components/ui/Card';
@@ -27,7 +28,8 @@ export default function Record() {
         <Page width="reading">
             <PageHeader back={{ to: paths.sessions, label: 'Sessions' }} title="Record a session" subtitle="Put your phone down near you, keep the screen on, and tap the button." />
             <RecordNotices secure={secure} supported={supported} />
-            <Card>
+            <Card className="ta-rec-hero">
+                <p className="ta-rec-eyebrow">Live session</p>
                 {capture_warning && <Notice role="alert">{capture_warning}</Notice>}
                 {notice && (
                     <Notice role="alert">
@@ -47,7 +49,7 @@ export default function Record() {
                     </div>
                 )}
             </Card>
-            <p className="ta-muted mt-4 text-[13px]">Closing this tab while recording will ask you to confirm. Leaving the page stops the recording and saves what was captured.</p>
+            <p className="ta-rec-foot">Closing this tab while recording will ask you to confirm. Leaving the page stops the recording and saves what was captured.</p>
         </Page>
     );
 }

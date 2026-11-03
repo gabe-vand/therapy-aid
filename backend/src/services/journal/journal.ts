@@ -1,9 +1,11 @@
 // Journal entries: CRUD with the search index kept in step (every write reindexes, delete removes),
-// plus the per-entry insight history. Insight generation itself lives in insights.ts.
+// plus the per-entry note history (margin notes and reflections) and dismissing a note. Writing
+// notes lives in margin/ (automatic) and insights.ts (on demand).
 import type { JournalEntry, JournalInsight } from '@therapy-aid/shared';
 import * as repo_journal from '@/repositories/journal';
 import * as repo_insights from '@/repositories/journal-insights';
 import { reindexJournalEntry, removeDocument } from '@/services/search/search';
+import { toInsight } from './margin/margin';
 
 const toEntry = (row: repo_journal.JournalEntryRow, insight_count: number): JournalEntry => ({ ...row, insight_count });
 
@@ -43,8 +45,15 @@ export const deleteEntry = (id: number): boolean => {
     return true;
 };
 
-/** An entry's insight history, newest first; null when the entry doesn't exist. */
+/** An entry's live notes (both kinds), newest first; null when the entry doesn't exist. */
 export const listInsights = (entry_id: number): JournalInsight[] | null => {
     if (!repo_journal.selectJournalEntryById(entry_id)) return null;
-    return repo_insights.selectInsightsForEntry(entry_id);
+    return repo_insights.selectInsightsForEntry(entry_id).map(toInsight);
+};
+
+/** Hides one note for good (it stays in the table for history). Null when entry or note is missing. */
+export const dismissInsight = (entry_id: number, note_id: number): JournalInsight | null => {
+    if (!repo_insights.dismissInsight(entry_id, note_id)) return null;
+    const row = repo_insights.selectInsightById(note_id);
+    return row ? toInsight(row) : null;
 };

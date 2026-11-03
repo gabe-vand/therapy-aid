@@ -41,7 +41,7 @@ describe('GET /ai/usage', () => {
         recordUsage('summarize', 'claude-sonnet-5-5', 'high', { input_tokens: 2000, output_tokens: 500, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } as never);
         const { status, body } = await call<AiUsage>('GET', '/ai/usage');
         expect(status).toBe(200);
-        expect(body.data.rows).toHaveLength(6);
+        expect(body.data.rows).toHaveLength(8);
         expect(body.data.rows[0]).toMatchObject({ task: 'summarize', model: 'claude-sonnet-5-5', effort: 'high', calls: 1, input_tokens: 2000 });
         expect(body.data.total_usd).toBeCloseTo(0.009, 9);
         expect(body.data.configured).toBe(false);

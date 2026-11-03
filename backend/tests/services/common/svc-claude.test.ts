@@ -124,10 +124,7 @@ describe('completeWithTools', () => {
     const tools: Anthropic.Tool[] = [{ name: 'search_notes', description: 'search', input_schema: { type: 'object', properties: { query: { type: 'string' } } } }];
 
     it('runs every tool_use of a turn and returns ALL results in ONE user message', async () => {
-        fake = installFakeClaude([
-            message([text('Let me look.'), toolUse('t1', 'search_notes', { query: 'panic' }), toolUse('t2', 'search_notes', { query: 'sleep' })], 'tool_use'),
-            message([text('Here is what David said.')]),
-        ]);
+        fake = installFakeClaude([message([text('Let me look.'), toolUse('t1', 'search_notes', { query: 'panic' }), toolUse('t2', 'search_notes', { query: 'sleep' })], 'tool_use'), message([text('Here is what David said.')])]);
         const ran: unknown[] = [];
         const answer = await completeWithTools({ ...base, task: 'chat', tools, run_tool: async (name, input) => (ran.push([name, input]), `result for ${(input as { query: string }).query}`) });
 

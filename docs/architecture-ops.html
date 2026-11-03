@@ -29,16 +29,16 @@
     <h2>Sections</h2>
     <ol>
       <li><a href="architecture.html"><span class="n">1&ndash;5</span>Pipelines, data model, grounding <em>(main page)</em></a></li>
-      <li><a href="#r6"><span class="n">6</span>Model routing and cost</a></li>
-      <li><a href="#r7"><span class="n">7</span>Auth</a></li>
-      <li><a href="#r8"><span class="n">8</span>Where data lives on the Pi</a></li>
-      <li><a href="#r9"><span class="n">9</span>Seeding and backups</a></li>
-      <li><a href="#r10"><span class="n">10</span>Failure behaviour</a></li>
+      <li><a href="#r6"><span class="n">7</span>Model routing and cost</a></li>
+      <li><a href="#r7"><span class="n">8</span>Auth</a></li>
+      <li><a href="#r8"><span class="n">9</span>Where data lives on the Pi</a></li>
+      <li><a href="#r9"><span class="n">10</span>Seeding and backups</a></li>
+      <li><a href="#r10"><span class="n">11</span>Failure behaviour</a></li>
     </ol>
   </nav>
 
   <section class="rule" id="r6">
-    <div class="rule-head"><span class="num">6</span><h3>Model routing and cost</h3></div>
+    <div class="rule-head"><span class="num">7</span><h3>Model routing and cost</h3></div>
     <div class="rule-body">
       <p>No call site names a model. Each AI call names a <strong>task</strong> and <code>svc-models.ts</code> resolves its model and reasoning effort, so cost is tuned in one table (and per task through <code>CLAUDE_MODEL_&lt;TASK&gt;</code> / <code>CLAUDE_EFFORT_&lt;TASK&gt;</code>, or everything at once with <code>CLAUDE_MODEL</code>).</p>
       <table>
@@ -46,7 +46,9 @@
         <tr><td><code>summarize</code></td><td>transcript or notes to title, overview, key points, advice</td><td>Faithfulness to the source matters most; one narrow job.</td></tr>
         <tr><td><code>map_problems</code></td><td>summary + problem list to progress notes and new problems</td><td>Opus: the eval showed problem mapping is the long-lived structure and Sonnet opens practices (meditation, routines) as problems. The call is small (a ~1k-token summary, not the transcript), so Opus costs about $0.03 a session.</td></tr>
         <tr><td><code>focus</code></td><td>whole picture to headline + 1&ndash;3 actions</td><td>The one judgment call over everything; runs once per session.</td></tr>
-        <tr><td><code>insight</code></td><td>journal draft x therapy advice to an observation</td><td>Only on a button press.</td></tr>
+        <tr><td><code>insight</code></td><td>a whole journal entry x the context pack to a reflection</td><td>Only on request (&ldquo;Reflect on this entry&rdquo;).</td></tr>
+        <tr><td><code>classify</code></td><td>one finished journal paragraph to the problem it is about (id + confidence), or none</td><td>Haiku, low effort: a label against a short cached list, run on every paragraph Gabe finishes (about $0.0001 a call), so it has to cost nothing. Feeds the journal&harr;problem links.</td></tr>
+        <tr><td><code>margin_note</code></td><td>a confident match + narrow evidence to a 25&ndash;60 word margin note</td><td>Sonnet over the problem's notes and the three sessions that match the paragraph (not the whole pack): about half a cent a note, and the writer only runs when the classifier is confident and the cadence allows.</td></tr>
         <tr><td><code>chat</code></td><td>grounded answers with tools</td><td>Evidence is pre-retrieved, so a mid-tier model suffices.</td></tr>
         <tr><td><code>title</code></td><td>mechanical naming</td><td>Cheapest tier.</td></tr>
       </table>
@@ -55,13 +57,13 @@
         <li><strong>Prompt caching.</strong> For chat, focus and insight the system prompt is the persona plus the context pack, both marked cacheable and byte-stable; today's date, the draft and the question go in the user message. Repeated chat turns and insights read the large block at a fraction of the input price. The two session-processing calls (<code>summarize</code>, <code>map_problems</code>) cache only their static instructions: their per-session context (profile, problems, recent sessions) changes every session, so it rides in the user message and <code>cached=</code> stays small for them during seeding. That is expected, not a caching bug. The log line shows <code>cached=</code> so it can be verified.</li>
         <li><strong>See the bill.</strong> Every call logs one line (task, model, input / cached / output tokens, estimated dollars) and adds to in-memory per-task totals, served at <code>GET /ai/usage</code> and shown under Settings. Totals reset when the API restarts.</li>
         <li><strong>Structured output</strong> uses the SDK's zod parse with schemas that carry no hard length limits; limits are written into the prompt and clamped in code, because a violated schema discards the whole (paid-for) reply.</li>
-        <li><strong>Never automatic where it costs.</strong> Insights and regenerate-focus happen on a click; the only automatic AI work is processing a session the user just added.</li>
+        <li><strong>Automatic only where it is nearly free.</strong> Reflections and regenerate-focus happen on a click. Margin notes are the one companion that runs on its own while Gabe writes, and it is built to be cheap: a Haiku classification per finished paragraph, and a Sonnet note only on a confident match, at most one a minute, five an entry and forty a day (<code>services/journal/margin/</code>). The switch in Settings turns it off per device. The other automatic AI work is processing a session the user just added.</li>
       </ul>
     </div>
   </section>
 
   <section class="rule" id="r7">
-    <div class="rule-head"><span class="num">7</span><h3>Auth</h3></div>
+    <div class="rule-head"><span class="num">8</span><h3>Auth</h3></div>
     <div class="rule-body">
       <p>There are no passwords or sessions. <code>tailscale serve</code> authenticates each request against the tailnet and adds a <code>Tailscale-User-Login</code> header; <code>md-auth.ts</code> allows a request only when that header equals <code>ALLOWED_TAILSCALE_LOGIN</code> (case-insensitive). Everything except <code>/health</code> is behind it, 404s included. <code>GET /me</code> returns the login.</p>
       <ul>
@@ -76,7 +78,7 @@
   </section>
 
   <section class="rule" id="r8">
-    <div class="rule-head"><span class="num">8</span><h3>Where data lives on the Pi</h3></div>
+    <div class="rule-head"><span class="num">9</span><h3>Where data lives on the Pi</h3></div>
     <div class="rule-body">
       <table>
         <tr><th>What</th><th>Where</th><th>Survives</th></tr>
@@ -93,7 +95,7 @@
   </section>
 
   <section class="rule" id="r9">
-    <div class="rule-head"><span class="num">9</span><h3>Seeding and backups</h3></div>
+    <div class="rule-head"><span class="num">10</span><h3>Seeding and backups</h3></div>
     <div class="rule-body">
       <ul>
         <li><strong>History is imported over HTTP, from a dev machine.</strong> <code>scripts/import-seed.ts</code> reads the local, gitignored <code>seed-data/</code> and calls the same API the app uses: profile, journal, then therapy notes oldest first, waiting for each to be <code>ready</code> before sending the next (<a href="architecture.html#r2">&sect;2</a>). Re-running skips what exists and retries what failed. Runbook: the <code>/ship</code> skill, &ldquo;Seeding history&rdquo;.</li>
@@ -104,7 +106,7 @@
   </section>
 
   <section class="rule" id="r10">
-    <div class="rule-head"><span class="num">10</span><h3>Failure behaviour</h3></div>
+    <div class="rule-head"><span class="num">11</span><h3>Failure behaviour</h3></div>
     <div class="rule-body">
       <table>
         <tr><th>When</th><th>What happens</th></tr>

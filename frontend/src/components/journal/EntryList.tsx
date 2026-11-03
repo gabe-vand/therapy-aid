@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Lightbulb } from 'lucide-react';
+import { MessageSquareText } from 'lucide-react';
 import type { JournalEntry } from '@therapy-aid/shared';
 import { Loading, Skeleton } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { format_date, format_month } from '@/services/dates';
 import { paths } from '@/services/paths';
-import { first_line } from './idea-rules';
+import { first_line } from './entry-text';
 import './journal.css';
 
 /* The journal's entry list, newest first, grouped under sticky month labels ("October 2026"):
    each row is the day over the entry's first line (Markdown stripped), the open one highlighted,
-   and a small lightbulb count where insights exist. Loading / empty / error are handled here so
+   and a small count where notes exist. Loading / empty / error are handled here so
    the page only decides where the list sits. */
 
 type Props = {
@@ -64,8 +64,8 @@ export function EntryList({ entries, loading, error, selected_id, on_retry, on_s
                             <span className="ta-jrow__top">
                                 <span className="ta-jrow__date">{format_date(e.occurred_at, { weekday: true, year: false })}</span>
                                 {e.insight_count > 0 && (
-                                    <span className="ta-jrow__ideas" aria-label={`${e.insight_count} ideas`}>
-                                        <Lightbulb aria-hidden />
+                                    <span className="ta-jrow__ideas" aria-label={`${e.insight_count} notes`}>
+                                        <MessageSquareText aria-hidden />
                                         {e.insight_count}
                                     </span>
                                 )}

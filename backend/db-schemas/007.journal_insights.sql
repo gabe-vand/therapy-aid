@@ -10,3 +10,15 @@ create table if not exists journal_insights (
 );
 
 create index if not exists journal_insights_entry_id on journal_insights (entry_id);
+
+-- 2026-11-03: insights became "notes" of two kinds: margin notes written automatically about one
+-- paragraph while Gabe writes (source 'margin', anchored to the paragraph's opening words, tied to
+-- a problem and sometimes a session) and the on-demand reflections that were here before (source
+-- 'reflection'). Dismissed notes stay for history but are hidden. svc-migrate treats an ALTER whose
+-- column already exists as applied, which is what keeps this file idempotent.
+alter table journal_insights add column kind text not null default 'reflection';
+alter table journal_insights add column source text not null default 'reflection';
+alter table journal_insights add column problem_id integer references problems (id) on delete set null;
+alter table journal_insights add column session_id integer references sessions (id) on delete set null;
+alter table journal_insights add column anchor text;
+alter table journal_insights add column dismissed_at text;

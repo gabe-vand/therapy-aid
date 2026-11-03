@@ -1,0 +1,187 @@
+/* The small controls on a focus row (FocusRow, WeekCheckins): the "Why?" disclosure, the
+   problem chip, and the week of check-in circles — 24px rings, today ringed in the accent, done
+   filled with a check, future days faint and disabled. Tokens only. */
+
+.ta-why {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 24px;
+    margin-left: -6px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 120ms ease,
+        color 120ms ease;
+}
+
+.ta-why svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 120ms ease;
+}
+
+.ta-why[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+}
+
+.ta-why:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.ta-problem-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    height: 22px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 120ms ease;
+}
+
+.ta-problem-chip svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.ta-problem-chip:hover {
+    background: var(--surface-2);
+}
+
+@media (pointer: coarse) {
+    .ta-why,
+    .ta-problem-chip {
+        height: 36px;
+    }
+}
+
+.ta-week {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.ta-week__days {
+    display: flex;
+    gap: 4px;
+}
+
+.ta-week__day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ta-week__letter {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 14px;
+    color: var(--muted);
+}
+
+.ta-week__circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    box-sizing: border-box;
+    border: 1.5px solid var(--line-2);
+    border-radius: 50%;
+    color: var(--on-accent);
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.ta-week__circle svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+
+.ta-week__day:hover:not(:disabled) .ta-week__circle {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.ta-week__day.is-today .ta-week__letter {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.ta-week__day.is-today .ta-week__circle {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ta-week__day.is-done .ta-week__circle,
+.ta-week__day.is-done:hover:not(:disabled) .ta-week__circle {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.ta-week__day:disabled {
+    cursor: default;
+}
+
+.ta-week__day:disabled .ta-week__circle {
+    border-color: var(--line);
+}
+
+.ta-week__day:disabled .ta-week__letter {
+    color: var(--faint);
+}
+
+.ta-week__count {
+    min-width: 28px;
+    padding-bottom: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: right;
+    color: var(--muted);
+}
+
+/* Phones: the week spans the row, each day a 40px-wide target. */
+@media (max-width: 767px) {
+    .ta-week__days {
+        flex: 1;
+        justify-content: space-between;
+    }
+
+    .ta-week__day {
+        width: 40px;
+        min-height: 44px;
+        justify-content: flex-end;
+    }
+}

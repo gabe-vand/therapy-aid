@@ -1,4 +1,4 @@
-/* The shell's phone chrome (imported by AppShell): the sticky 48px top bar (brand + Settings gear,
+/* The shell's phone chrome (imported by AppShell): the sticky 48px top bar (brand, search and the Settings gear,
    blurred over the content) and the fixed bottom tab bar, both clear of the safe-area insets.
    Scoped to below 768px so the desktop rules in shell.css never have to fight it; the sizes come
    from --ta-topbar-h / --ta-tabbar-h on .ta-shell. */
@@ -20,14 +20,28 @@
         border-bottom: 1px solid var(--line);
     }
 
+    .ta-topbar__actions {
+        display: flex;
+        align-items: center;
+    }
+
     .ta-icon-link {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 40px;
         height: 40px;
+        padding: 0;
+        border: 0;
         border-radius: var(--r-sm);
+        background: transparent;
         color: var(--ink-2);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .ta-icon-link:active {
+        background: var(--surface-3);
     }
 
     .ta-icon-link[aria-current='page'] {

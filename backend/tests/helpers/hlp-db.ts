@@ -11,7 +11,7 @@ import { sqlite } from '@/services/common/svc-db';
 import { dbMigrate } from '@/services/common/svc-migrate';
 
 // Children before parents, so foreign keys never block the wipe.
-const TABLES = ['search_index', 'chat_messages', 'chat_threads', 'journal_insights', 'journal_entries', 'focus_snapshots', 'problem_updates', 'problems', 'sessions', 'app_settings'];
+const TABLES = ['search_index', 'chat_messages', 'chat_threads', 'journal_problem_links', 'journal_insights', 'focus_checkins', 'journal_entries', 'focus_snapshots', 'problem_updates', 'problems', 'sessions', 'app_settings'];
 
 /** Applies the schema (idempotent) and empties every app table. */
 export const resetDatabase = (): void => {
@@ -32,20 +32,11 @@ export const summary = (over: Partial<SessionSummary> = {}): SessionSummary => (
 export const seedSession = (over: Partial<repo_sessions.NewSessionRow> & { summary?: SessionSummary | null } = {}): repo_sessions.SessionRow => {
     const { summary: s, ...rest } = over;
     const sum = s === undefined ? summary() : s;
-    return repo_sessions.insertSession({
-        occurred_at: '2026-09-11T16:00:00.000Z',
-        source: 'notes',
-        status: 'ready',
-        notes: 'Raw notes from the session.',
-        title: sum?.title ?? null,
-        summary_json: sum ? JSON.stringify(sum) : null,
-        ...rest,
-    });
+    return repo_sessions.insertSession({ occurred_at: '2026-09-11T16:00:00.000Z', source: 'notes', status: 'ready', notes: 'Raw notes from the session.', title: sum?.title ?? null, summary_json: sum ? JSON.stringify(sum) : null, ...rest });
 };
 
 /** An active problem unless overridden. */
-export const seedProblem = (over: Partial<repo_problems.NewProblemRow> = {}): repo_problems.ProblemRow =>
-    repo_problems.insertProblem({ title: 'Racing mind at night', description: 'Thoughts speed up when trying to sleep.', ...over });
+export const seedProblem = (over: Partial<repo_problems.NewProblemRow> = {}): repo_problems.ProblemRow => repo_problems.insertProblem({ title: 'Racing mind at night', description: 'Thoughts speed up when trying to sleep.', ...over });
 
 /** One progress note on a problem. */
 export const seedUpdate = (problem_id: number, over: Partial<repo_updates.NewProblemUpdateRow> & { created_at?: string } = {}): repo_updates.ProblemUpdateRow =>
@@ -56,5 +47,4 @@ export const seedJournal = (over: { occurred_at?: string; body?: string } = {}):
     repo_journal.insertJournalEntry({ occurred_at: '2026-10-13T16:00:00.000Z', body: 'Slept badly again.\nThe list helped a bit.', ...over });
 
 /** One focus snapshot. */
-export const seedFocus = (content: { headline: string; items: unknown[] }, session_id: number | null = null): repo_focus.FocusSnapshotRow =>
-    repo_focus.insertFocusSnapshot({ session_id, content_json: JSON.stringify(content) });
+export const seedFocus = (content: { headline: string; items: unknown[] }, session_id: number | null = null): repo_focus.FocusSnapshotRow => repo_focus.insertFocusSnapshot({ session_id, content_json: JSON.stringify(content) });

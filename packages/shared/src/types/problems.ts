@@ -1,5 +1,7 @@
 // Problems: the big-picture threads that persist across sessions ("key problems identified").
 
+import type { JournalMention } from './journal';
+
 export type ProblemStatus = 'active' | 'resolved' | 'discarded';
 
 /** GET /problems — one problem with its derived fields. */
@@ -31,7 +33,9 @@ export interface ProblemUpdate {
     created_at: string;
 }
 
-/** GET /problems/:id — a problem and its timeline, newest first. */
+/** GET /problems/:id — a problem, its timeline (newest first) and the journal paragraphs the
+    margin-note classifier tied to it (newest first). */
 export interface ProblemDetail extends Problem {
     updates: ProblemUpdate[];
+    journal_mentions: JournalMention[];
 }

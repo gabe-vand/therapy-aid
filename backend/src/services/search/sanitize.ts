@@ -23,7 +23,11 @@ const PREFIX_MIN = 4;
 
 /** The FTS5 MATCH expression for `text`, or null when nothing searchable is left. */
 export const toMatchQuery = (text: string, max_terms = 12): string | null => {
-    const words = text.toLowerCase().replace(/['’]/g, '').match(/[\p{L}\p{N}]+/gu) ?? [];
+    const words =
+        text
+            .toLowerCase()
+            .replace(/['’]/g, '')
+            .match(/[\p{L}\p{N}]+/gu) ?? [];
     const terms = [...new Set(words.filter((word) => word.length > 1 && !STOPWORDS.has(word)))].slice(0, max_terms);
     if (terms.length === 0) return null;
     return terms.map((term) => (term.length >= PREFIX_MIN ? `"${term}"*` : `"${term}"`)).join(' OR ');

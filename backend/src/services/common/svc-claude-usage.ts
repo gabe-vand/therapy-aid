@@ -29,9 +29,7 @@ export const tokenCounts = (usage: Anthropic.Usage): TokenCounts => ({
 export const recordUsage = (task: AiTask, model: string, effort: AiEffort, usage: Anthropic.Usage): number => {
     const counts = tokenCounts(usage);
     const usd = estimateCost(model, counts);
-    console.log(
-        `[ai] task=${task} model=${model} effort=${effort} in=${counts.input_tokens} cached=${counts.cache_read_tokens} write=${counts.cache_write_tokens} out=${counts.output_tokens} est=$${usd.toFixed(4)}`,
-    );
+    console.log(`[ai] task=${task} model=${model} effort=${effort} in=${counts.input_tokens} cached=${counts.cache_read_tokens} write=${counts.cache_write_tokens} out=${counts.output_tokens} est=$${usd.toFixed(4)}`);
 
     const key = `${task}|${model}`;
     const row = totals.get(key) ?? { task, model, effort, calls: 0, input_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, output_tokens: 0, est_usd: 0 };

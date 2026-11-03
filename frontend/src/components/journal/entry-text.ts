@@ -1,19 +1,6 @@
-/* The exact rules for the "I have an idea…" button (SPEC §8), kept as pure functions so they can
-   be tested without a UI and cannot drift from the component:
-   - visible once the draft has at least 120 characters;
-   - pulses (once) when the draft has grown by 200+ characters since the last insight AND the
-     writer has paused for 4 seconds — it "occasionally pops up" without ever generating by itself.
-   Plus the plain-text helpers the list previews and the character count use: entries are stored
-   as Markdown, so the syntax is stripped before a human sees a preview or a count. */
-
-export const IDEA_MIN_CHARS = 120;
-export const IDEA_GROWTH_CHARS = 200;
-export const IDEA_PAUSE_MS = 4000;
-
-export const idea_visible = (draft_length: number): boolean => draft_length >= IDEA_MIN_CHARS;
-
-/* `baseline` is the draft length when the entry was opened or when the last insight was made. */
-export const idea_wants_pulse = (draft_length: number, baseline: number): boolean => idea_visible(draft_length) && draft_length - baseline >= IDEA_GROWTH_CHARS;
+/* Plain-text helpers over stored Markdown: entries are saved as Markdown, so the syntax is
+   stripped before a human sees a preview or a count, and before a paragraph is sent off to be
+   classified for a margin note (paragraphs.ts builds on these). Pure functions, no DOM. */
 
 /* One line of Markdown as plain text: block markers (#, >, -, *, +, 1.) at the start, emphasis
    marks (*, _, ~~) and backslash escapes anywhere, and [link](url) reduced to its text. */
@@ -26,6 +13,7 @@ export const strip_markdown = (line: string): string =>
         .replace(/^(?:[-*+]|\d+[.)])(?:\s+|$)/, '')
         .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
         .replace(/(\*\*|__|~~|\*|_)(?=\S)([\s\S]*?\S)\1/g, '$2')
+        .replace(/`([^`]*)`/g, '$1')
         .replace(/\\([\\`*_[\]~#>+\-.!])/g, '$1')
         .trim();
 

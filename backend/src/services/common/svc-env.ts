@@ -31,8 +31,7 @@ interface EnvKey {
 }
 
 /** CLAUDE_<KIND>_<TASK> for every task, '' where unset. */
-const per_task = (kind: 'MODEL' | 'EFFORT'): Record<AiTask, string> =>
-    Object.fromEntries(AI_TASKS.map((task) => [task, process.env[`CLAUDE_${kind}_${task.toUpperCase()}`] || ''])) as Record<AiTask, string>;
+const per_task = (kind: 'MODEL' | 'EFFORT'): Record<AiTask, string> => Object.fromEntries(AI_TASKS.map((task) => [task, process.env[`CLAUDE_${kind}_${task.toUpperCase()}`] || ''])) as Record<AiTask, string>;
 
 export const app_env: EnvKey = {
     app_env: process.env.APP_ENV || 'development',

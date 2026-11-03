@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tidy_markdown } from '@/components/journal/markdown-text';
-import { first_line, plain_length, strip_markdown } from '@/components/journal/idea-rules';
+import { first_line, plain_length, strip_markdown } from '@/components/journal/entry-text';
 
 /* What gets stored and previewed: TipTap's entity-encoded &, <, > come back as plain characters
    wherever that cannot change the Markdown, and previews/counts ignore Markdown syntax. */

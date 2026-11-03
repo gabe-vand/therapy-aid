@@ -137,3 +137,17 @@ describe('Settings: appearance', () => {
         expect(document.documentElement.dataset.theme).toBe('dark');
     });
 });
+
+describe('Settings: margin notes', () => {
+    afterEach(() => localStorage.removeItem('ta-margin-notes'));
+
+    it('is on by default and Off sticks in localStorage', () => {
+        stub_api(routes());
+        open();
+        const group = screen.getByRole('group', { name: 'Margin notes while writing' });
+        expect(within(group).getByRole('button', { name: 'On' })).toHaveAttribute('aria-pressed', 'true');
+        fireEvent.click(within(group).getByRole('button', { name: 'Off' }));
+        expect(within(group).getByRole('button', { name: 'Off' })).toHaveAttribute('aria-pressed', 'true');
+        expect(localStorage.getItem('ta-margin-notes')).toBe('off');
+    });
+});

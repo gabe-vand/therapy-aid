@@ -46,7 +46,10 @@ const fake_server = (opts: { sessions?: FakeSession[]; journal?: { id: number; o
             }
             const retry = /^\/sessions\/(\d+)\/retry$/.exec(path);
             if (retry) {
-                Object.assign(state.sessions.find((x) => x.id === Number(retry[1]))!, { status: 'summarizing', error: null, polls_left: 1 });
+                Object.assign(
+                    state.sessions.find((x) => x.id === Number(retry[1]))!,
+                    { status: 'summarizing', error: null, polls_left: 1 },
+                );
                 state.posts.push(`retry ${retry[1]}`);
             }
             return {} as never;
@@ -124,7 +127,9 @@ describe('createApi', () => {
         expect(await ok.get('/y')).toEqual({ a: 1 });
         const denied = createApi('http://x/api', stub(Response.json({ data: null, status_code: 401, message: 'UNAUTHORIZED' }, { status: 401 })));
         await expect(denied.get('/me')).rejects.toThrow(/HTTP 401.*UNAUTHORIZED.*tailnet/);
-        const down = createApi('http://x', (async () => { throw new Error('refused'); }) as unknown as typeof fetch);
+        const down = createApi('http://x', (async () => {
+            throw new Error('refused');
+        }) as unknown as typeof fetch);
         await expect(down.get('/me')).rejects.toThrow(/Could not reach http:\/\/x/);
     });
 });

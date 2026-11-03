@@ -56,5 +56,6 @@ export const focus_snapshot = (over: Partial<FocusSnapshot> = {}): FocusSnapshot
     created_at: '2026-09-12T12:00:00.000Z',
     headline: 'Protect your mornings this week.',
     items: [{ title: 'Write the first task the night before', why: 'David suggested it on Sep 11.', action: 'Do it three nights this week.', problem_id: 3 }],
+    checkins: [],
     ...over,
 });

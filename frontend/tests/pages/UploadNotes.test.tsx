@@ -41,6 +41,14 @@ describe('UploadNotes page', () => {
         await waitFor(() => expect(screen.getByRole('button', { name: /summarize/i })).toBeEnabled());
     });
 
+    it('counts words and characters as you type', () => {
+        mount();
+        expect(screen.getByText('0 words · 0 characters')).toBeInTheDocument();
+        type_notes('We talked about sleep.');
+        expect(screen.getByText('4 words · 22 characters')).toBeInTheDocument();
+        expect(screen.getByLabelText('Notes')).toHaveAttribute('aria-describedby', 'notes-count');
+    });
+
     it('Cancel goes back to the list', async () => {
         mount();
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));

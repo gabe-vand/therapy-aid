@@ -8,12 +8,14 @@ import { except } from 'hono/combine';
 import { logger } from 'hono/logger';
 import { router_ai } from '@/routes/ai/ai';
 import { router_chat } from '@/routes/chat/chat';
+import { router_dashboard } from '@/routes/dashboard/dashboard';
 import { router_focus } from '@/routes/focus/focus';
 import { router_health } from '@/routes/health/health';
 import { router_hello } from '@/routes/hello/hello';
 import { router_journal } from '@/routes/journal/journal';
 import { router_me } from '@/routes/me/me';
 import { router_problems } from '@/routes/problems/problems';
+import { router_search } from '@/routes/search/search';
 import { router_sessions } from '@/routes/sessions/sessions';
 import { router_settings } from '@/routes/settings/settings';
 import { err, rsp, stc } from '@/services/common/svc-response';
@@ -39,6 +41,8 @@ app.route('/problems', router_problems);
 app.route('/focus', router_focus);
 app.route('/journal', router_journal);
 app.route('/chat', router_chat);
+app.route('/dashboard', router_dashboard);
+app.route('/search', router_search);
 
 app.notFound((c) => rsp(c, {}, stc.NOT_FOUND, err.NOT_FOUND));
 

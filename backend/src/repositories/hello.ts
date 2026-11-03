@@ -11,7 +11,10 @@ export const insertVisit = (): void => {
 
 /** Total visits plus the first and latest timestamps (both null on an empty table). */
 export const selectVisitStats = (): { visit_count: number; first_visit_at: string | null; last_visit_at: string | null } => {
-    const row = db.select({ visit_count: count(), first_visit_at: min(visits.created_at), last_visit_at: max(visits.created_at) }).from(visits).get();
+    const row = db
+        .select({ visit_count: count(), first_visit_at: min(visits.created_at), last_visit_at: max(visits.created_at) })
+        .from(visits)
+        .get();
     return row ?? { visit_count: 0, first_visit_at: null, last_visit_at: null };
 };
 

@@ -5,11 +5,7 @@
 import { AI_TASKS, type AiEffort, type AiTask } from '@therapy-aid/shared';
 import { app_env } from './svc-env';
 
-export const MODEL_IDS = {
-    opus: 'claude-opus-5-5',
-    sonnet: 'claude-sonnet-5-5',
-    haiku: 'claude-haiku-5-5',
-} as const;
+export const MODEL_IDS = { opus: 'claude-opus-5-5', sonnet: 'claude-sonnet-5-5', haiku: 'claude-haiku-5-5' } as const;
 
 export interface TaskRoute {
     model: string;
@@ -17,7 +13,9 @@ export interface TaskRoute {
 }
 
 /** The default route per task. Narrow, evidence-fed tasks run on cheaper models; judgment over
-    the whole picture (focus) stays on Opus. Haiku only gets mechanical work (thread titles).
+    the whole picture (focus) stays on Opus. Haiku gets mechanical work: thread titles, and the
+    per-paragraph classifier behind margin notes (a label against a short list, run constantly,
+    so it has to cost next to nothing). The note writer runs on Sonnet over narrow evidence.
     map_problems is Opus too: the eval showed problem mapping is the long-lived structure and Sonnet
     opens practices (meditation, routines) as problems; the call is small, so ~$0.03/session. */
 export const TASK_MODELS: Record<AiTask, TaskRoute> = {
@@ -25,6 +23,8 @@ export const TASK_MODELS: Record<AiTask, TaskRoute> = {
     map_problems: { model: MODEL_IDS.opus, effort: 'high' },
     focus: { model: MODEL_IDS.opus, effort: 'high' },
     insight: { model: MODEL_IDS.sonnet, effort: 'high' },
+    classify: { model: MODEL_IDS.haiku, effort: 'low' },
+    margin_note: { model: MODEL_IDS.sonnet, effort: 'medium' },
     chat: { model: MODEL_IDS.sonnet, effort: 'medium' },
     title: { model: MODEL_IDS.haiku, effort: 'low' },
 };
@@ -59,11 +59,7 @@ const tier = (input: number, output: number, cache_read: number): ModelPrice => 
 /** Published list prices (shared/models.md, Nov 2026). Haiku's cache-read rate is not published in
     our reference; 0.1x input is assumed. Unknown models are estimated at Opus prices (the
     conservative choice: an unknown model never looks cheaper than it is). */
-export const PRICES: Record<string, PriceEntry> = {
-    [MODEL_IDS.opus]: tier(4, 20, 0.2),
-    [MODEL_IDS.sonnet]: tier(2, 10, 0.2),
-    [MODEL_IDS.haiku]: { ...tier(0.1, 0.5, 0.01), long_context: { above_tokens: 100_000, price: tier(0.5, 2.5, 0.05) } },
-};
+export const PRICES: Record<string, PriceEntry> = { [MODEL_IDS.opus]: tier(4, 20, 0.2), [MODEL_IDS.sonnet]: tier(2, 10, 0.2), [MODEL_IDS.haiku]: { ...tier(0.1, 0.5, 0.01), long_context: { above_tokens: 100_000, price: tier(0.5, 2.5, 0.05) } } };
 
 export interface TokenCounts {
     input_tokens: number;

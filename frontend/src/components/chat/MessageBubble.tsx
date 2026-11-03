@@ -3,14 +3,21 @@ import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/States';
 import { format_time } from '@/services/dates';
 import './chat-messages.css';
+import './chat-bubbles.css';
 
 /* The things a conversation shows: the user's message (a soft accent bubble, plain text,
    right-aligned), the assistant's answer (no bubble — markdown prose under a small "therapy-aid ·
-   time" label, full width so lists and quotes breathe), and the in-between states of a message
+   time" label, full width so lists and quotes breathe; the user's own time appears on hover), and the in-between states of a message
    that is still being answered or failed. */
 
-export const UserBubble = ({ content }: { content: string }) => (
+/* The time shows beside the bubble on hover (and on focus within, for keyboards). */
+export const UserBubble = ({ content, created_at }: { content: string; created_at?: string }) => (
     <div className="ta-bubble-row ta-bubble-row--user">
+        {created_at && (
+            <time className="ta-bubble__time" dateTime={created_at}>
+                {format_time(created_at)}
+            </time>
+        )}
         <div className="ta-bubble--user">{content}</div>
     </div>
 );
@@ -29,13 +36,15 @@ export const AssistantBubble = ({ content, created_at }: { content: string; crea
     </div>
 );
 
-/* The placeholder while the (non-streaming) reply is being written; it can take a minute. */
+/* The placeholder while the (non-streaming) reply is being written; it can take a minute. A thin
+   accent bar sweeps over a hairline under the word, so it reads as alive without a spinner. */
 export const ThinkingBubble = () => (
     <div className="ta-msg">
         <Label />
         <div role="status" className="ta-bubble--thinking">
             Thinking…
         </div>
+        <div className="ta-thinking-bar" aria-hidden />
     </div>
 );
 

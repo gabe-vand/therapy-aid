@@ -32,8 +32,7 @@ describe('problems opened from a backfilled session', () => {
         const first = ago(90);
         applyProblemUpdates(seedSession({ occurred_at: first }), open('Recurring'));
         const created = repo_problems.selectProblemsByStatus(['active'])[0]!;
-        const update = (occurred_at: string) =>
-            applyProblemUpdates(seedSession({ occurred_at }), { problem_updates: [{ problem_id: created.id, progress_note: 'Again.', suggested_status: 'active' }], new_problems: [] });
+        const update = (occurred_at: string) => applyProblemUpdates(seedSession({ occurred_at }), { problem_updates: [{ problem_id: created.id, progress_note: 'Again.', suggested_status: 'active' }], new_problems: [] });
 
         const recent = ago(10);
         update(recent);

@@ -50,12 +50,7 @@ export const transcribeDiarized = async (audio: Blob | Uint8Array | ArrayBuffer,
 
     let res: Response;
     try {
-        res = await fetch(LISTEN_URL, {
-            method: 'POST',
-            headers: { Authorization: `Token ${app_env.deepgram_api_key}`, 'Content-Type': mime },
-            body: audio,
-            signal: AbortSignal.timeout(TIMEOUT_MS),
-        });
+        res = await fetch(LISTEN_URL, { method: 'POST', headers: { Authorization: `Token ${app_env.deepgram_api_key}`, 'Content-Type': mime }, body: audio, signal: AbortSignal.timeout(TIMEOUT_MS) });
     } catch (e) {
         console.error('[deepgram] request failed', e);
         throw new TranscriptionError('Could not reach the transcription service. Try again.');
@@ -67,9 +62,7 @@ export const transcribeDiarized = async (audio: Blob | Uint8Array | ArrayBuffer,
     }
 
     const body = (await res.json()) as DeepgramResponse;
-    const utterances = (body.results?.utterances ?? [])
-        .filter((u) => (u.transcript ?? '').trim().length > 0)
-        .map((u) => ({ speaker: u.speaker ?? 0, transcript: (u.transcript ?? '').trim(), start: u.start ?? 0, end: u.end ?? 0 }));
+    const utterances = (body.results?.utterances ?? []).filter((u) => (u.transcript ?? '').trim().length > 0).map((u) => ({ speaker: u.speaker ?? 0, transcript: (u.transcript ?? '').trim(), start: u.start ?? 0, end: u.end ?? 0 }));
     return { utterances, duration_sec: body.metadata?.duration ?? null };
 };
 

@@ -5,19 +5,17 @@ import { to_date_input, today_input } from '@/services/dates';
 import { type Doc, new_doc, park, parked_count, send_doc, unpark } from '@/services/hooks/journal-autosave';
 import { usePageExit } from '@/services/hooks/use-page-exit';
 
-/* One journal entry in the editor, with autosave. The draft lives in a mutable `Doc` (a ref) so a
-   save always works on the entry it was started for, even if the user has since switched entries:
+/* One journal entry in the editor, with autosave; loaded_body is the text it opened with. The draft lives in a mutable `Doc` (a ref)
+   so a save always works on the entry it was started for, even if the user has since switched entries:
    - a NEW draft (id null) is created with POST on the first non-blank keystroke;
    - after that every edit schedules a PATCH 1.5s after the last keystroke (debounce);
-   - leaving the entry or unmounting flushes any unsaved text immediately, and so does the page being
-     hidden or closed (phone backgrounded, tab closed or refreshed — use-page-exit, sent with
-     keepalive so the request outlives the page);
-   - a failed save on screen keeps the text, shows the error, and retries on the next edit or
-     `save_now`; one that fails after the entry left the screen is parked in the outbox
-     (journal-autosave) and retried until it lands, so a flaky connection at the moment of leaving
-     does not lose the text either.
-   The page learns about saves through `on_change` (keep the list fresh) and `on_created` (move the
-   URL to the new entry — the hook then skips re-fetching the entry it just made). */
+   - leaving the entry or unmounting flushes any unsaved text immediately, and so does the page being hidden or closed
+     (phone backgrounded, tab closed or refreshed � use-page-exit, sent with keepalive so the request outlives the page);
+   - a failed save on screen keeps the text, shows the error, and retries on the next edit or `save_now`; one that fails after
+     the entry left the screen is parked in the outbox (journal-autosave) and retried until it lands, so a flaky connection
+     at the moment of leaving does not lose the text either.
+   The page learns about saves through `on_change` (keep the list fresh) and `on_created` (move the URL to the new entry �
+   the hook then skips re-fetching the entry it just made). */
 
 export const AUTOSAVE_MS = 1500;
 
@@ -29,7 +27,7 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
     const [entry_id, set_entry_id] = useState<number | null>(id);
     const [body, set_body_state] = useState('');
     const [date, set_date_state] = useState(today_input());
-    const [loaded_length, set_loaded_length] = useState(0);
+    const [loaded_body, set_loaded_body] = useState('');
     const [loading, set_loading] = useState(id !== null);
     const [error, set_error] = useState<string | null>(null);
     const [save_state, set_save_state] = useState<SaveState>('idle');
@@ -94,14 +92,14 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
         set_entry_id(id);
         set_body_state('');
         set_date_state(doc.date);
-        set_loaded_length(0);
+        set_loaded_body('');
         set_save_state('idle');
         set_save_error(null);
         set_error(null);
         if (id === null || parked) {
             set_body_state(doc.body);
             set_date_state(doc.date);
-            set_loaded_length(doc.body.length);
+            set_loaded_body(doc.body);
             set_loading(false);
             if (parked) void save(doc);
             return;
@@ -115,7 +113,7 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
                 doc.date = to_date_input(res.data.occurred_at);
                 set_body_state(doc.body);
                 set_date_state(doc.date);
-                set_loaded_length(doc.body.length);
+                set_loaded_body(doc.body);
             } else {
                 set_error(res.status_code === 404 ? 'This entry no longer exists.' : res.message);
             }
@@ -194,5 +192,5 @@ export const useJournalEntry = (id: number | null, options: Options = {}) => {
 
     const retry = useCallback(() => set_attempt((n) => n + 1), []);
 
-    return { entry_id, body, date, loaded_length, loading, error, retry, save_state, save_error, set_body, set_date, save_now, remove, deleting };
+    return { entry_id, body, date, loaded_body, loading, error, retry, save_state, save_error, set_body, set_date, save_now, remove, deleting };
 };

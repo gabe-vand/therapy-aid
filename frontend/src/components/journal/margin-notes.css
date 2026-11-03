@@ -1,0 +1,82 @@
+/* Margin notes beside (or under) the journal document. The editor body is a grid once the pane
+   is wide enough for a 240px margin next to the 720px measure (a container query on the pane,
+   journal-editor.css sets `container-type`); below that the notes list under the document.
+   Tokens only. */
+
+.ta-margin {
+    position: relative;
+    display: none;
+}
+
+.ta-margin__slot {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    transition: top 160ms ease;
+}
+
+@keyframes ta-note-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.ta-margin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.ta-margin-list__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 2px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ta-margin-list__eyebrow svg {
+    width: 13px;
+    height: 13px;
+}
+
+.ta-note-pill {
+    position: fixed;
+    bottom: calc(var(--ta-tabbar-h, 0px) + 16px);
+    left: 50%;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-md);
+    transform: translateX(-50%);
+    animation: ta-note-in 300ms ease-out;
+}
+
+.ta-note-pill svg {
+    width: 14px;
+    height: 14px;
+}
+
+@media (min-width: 1280px) {
+    .ta-margin {
+        display: block;
+    }
+}

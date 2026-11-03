@@ -38,7 +38,7 @@ export const stubClaude = (extraction: ProblemExtraction = EMPTY_EXTRACTION, sum
 };
 
 /** Stubs the focus refresh (owned by another module) so the pipeline's seam can be asserted. */
-export const stubFocus = () => spyOn(svc_focus, 'regenerateFocus').mockResolvedValue({ id: 1, session_id: null, created_at: '2026-01-01T00:00:00.000Z', headline: 'Focus.', items: [] });
+export const stubFocus = () => spyOn(svc_focus, 'regenerateFocus').mockResolvedValue({ id: 1, session_id: null, created_at: '2026-01-01T00:00:00.000Z', headline: 'Focus.', items: [], checkins: [] });
 
 /** A session waiting to be processed. */
 export const uploadedNotes = (over: Partial<repo_sessions.NewSessionRow> = {}): SessionRow =>

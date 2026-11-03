@@ -1,8 +1,10 @@
-// "I have an idea…": on click, saves the draft as the entry body, then asks Claude for a short
-// note that connects it to Gabe's therapy. Never runs on its own. The draft is saved FIRST so a
-// failed AI call (no key, refusal, network) never loses what he typed. The context pack is built
-// WITHOUT this entry: the draft is already in the user message, and leaving it in the cached
-// system block would change that block on every click and miss the prompt cache each time.
+// Reflections — the on-demand, long-form note about a whole entry ("Reflect on this entry" in the
+// editor's menu). On request, saves the draft as the entry body, then asks Claude for a note that
+// connects it to Gabe's therapy. The draft is saved FIRST so a failed AI call (no key, refusal,
+// network) never loses what he typed. The context pack is built WITHOUT this entry: the draft is
+// already in the user message, and leaving it in the cached system block would change that block
+// on every click and miss the prompt cache each time. Margin notes (the automatic, per-paragraph
+// kind) live in margin/.
 import type { JournalInsight } from '@therapy-aid/shared';
 import * as repo_journal from '@/repositories/journal';
 import * as repo_insights from '@/repositories/journal-insights';
@@ -10,21 +12,20 @@ import { AiOutputError, completeStructured, systemBlocks } from '@/services/comm
 import { buildContextPack } from '@/services/context/context-pack';
 import { formatDay, truncateWords } from '@/services/context/format';
 import { journalSearchDocument, reindexJournalEntry } from '@/services/search/search';
+import { toInsight } from './margin/margin';
 import { INSIGHT_PERSONA, InsightSchema, buildInsightMessage } from './prompts';
 
 const OTHER_ENTRIES = 3;
 // A guard, not a target: the prompt asks for 80 to 180 words.
 const MAX_WORDS = 350;
 
-/** Saves `draft`, generates and stores one insight. Null when the entry doesn't exist. */
+/** Saves `draft`, generates and stores one reflection. Null when the entry doesn't exist. */
 export const generateInsight = async (entry_id: number, draft: string): Promise<JournalInsight | null> => {
     const saved = repo_journal.updateJournalEntry(entry_id, { body: draft });
     if (!saved) return null;
     reindexJournalEntry(saved);
 
-    const others = repo_journal
-        .selectJournalEntries(OTHER_ENTRIES, entry_id)
-        .map((row) => `- ${formatDay(row.occurred_at)} [entry #${row.id}]: ${journalSearchDocument(row).title}`);
+    const others = repo_journal.selectJournalEntries(OTHER_ENTRIES, entry_id).map((row) => `- ${formatDay(row.occurred_at)} [entry #${row.id}]: ${journalSearchDocument(row).title}`);
 
     const { body } = await completeStructured({
         task: 'insight',
@@ -34,5 +35,6 @@ export const generateInsight = async (entry_id: number, draft: string): Promise<
     });
     const note = truncateWords(body, MAX_WORDS);
     if (!note) throw new AiOutputError('The AI reply was empty. Try again.');
-    return repo_insights.insertJournalInsight({ entry_id, body: note });
+    const row = repo_insights.insertJournalInsight({ entry_id, body: note, kind: 'reflection', source: 'reflection' });
+    return toInsight({ ...row, problem_title: null });
 };

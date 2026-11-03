@@ -96,10 +96,7 @@ describe('through the real tool loop (fake transport)', () => {
 
     it('returns real data for a good id and is_error for a bad one, all in ONE user message', async () => {
         const session = seedSession({ summary: summary({ title: 'Mornings' }) });
-        fake = installFakeClaude([
-            message([toolUse('t1', 'read_session', { session_id: session.id }), toolUse('t2', 'read_session', { session_id: 9999 })], 'tool_use'),
-            message([text('Per your Mornings session, David wants a steady wake time.')]),
-        ]);
+        fake = installFakeClaude([message([toolUse('t1', 'read_session', { session_id: session.id }), toolUse('t2', 'read_session', { session_id: 9999 })], 'tool_use'), message([text('Per your Mornings session, David wants a steady wake time.')])]);
         const thread = createThread();
         const result = (await sendMessage(thread.id, 'what did we say about mornings?'))!;
 

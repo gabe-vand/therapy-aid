@@ -32,6 +32,22 @@ describe('Sessions page', () => {
         expect(within(september).getByText('Untitled session')).toBeInTheDocument();
     });
 
+    it('draws a timeline node per session, coloured by its status', async () => {
+        stub_api({ 'GET /api/sessions': [list_item({ id: 4, status: 'ready' }), list_item({ id: 3, status: 'transcribing' }), list_item({ id: 2, status: 'failed' }), list_item({ id: 1, status: 'recording' })] });
+        const { container } = render_at(<Sessions />, { path: '/sessions' });
+        await screen.findByRole('region');
+        expect([...container.querySelectorAll('.ta-tl__node')].map((n) => n.getAttribute('data-node'))).toEqual(['ready', 'processing', 'failed', 'idle']);
+    });
+
+    it('subtitles the list with the rhythm, adding the usual gap from the dashboard', async () => {
+        stub_api({
+            'GET /api/sessions': [list_item({ id: 2, occurred_at: '2026-09-11T16:00:00.000Z' }), list_item({ id: 1, occurred_at: '2026-08-06T16:00:00.000Z' })],
+            'GET /api/dashboard': { sessions: { total: 2, axis: [], last: null, typical_gap_days: 14 }, threads: [], journal: { entries_30d: 0, words_7d: 0, streak_days: 0, last_entry: null, themes: [] }, since_last_session: null },
+        });
+        render_at(<Sessions />, { path: '/sessions' });
+        expect(await screen.findByText(/^2 sessions since Aug 6 · usually every 2 weeks · last one/)).toBeInTheDocument();
+    });
+
     it('offers both ways in from the header', async () => {
         stub_api({ 'GET /api/sessions': [list_item()] });
         render_at(<Sessions />, { path: '/sessions' });

@@ -2,20 +2,23 @@ import { AlertTriangle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AddNoteForm } from '@/components/problems/AddNoteForm';
 import { EditableText } from '@/components/problems/EditableText';
+import { JournalMentions } from '@/components/problems/JournalMentions';
+import { ProblemFacts } from '@/components/problems/ProblemFacts';
 import '@/components/problems/problems-detail.css';
 import { ProblemTimeline } from '@/components/problems/ProblemTimeline';
 import { StatusActions } from '@/components/problems/StatusActions';
 import { Button } from '@/components/ui/Button';
-import { Card, Chip, Loading, Skeleton } from '@/components/ui/Card';
+import { Chip, Loading, Skeleton } from '@/components/ui/Card';
 import { BackLink, ErrorState } from '@/components/ui/States';
 import { Page } from '@/components/ui/Page';
-import { format_date, relative_time } from '@/services/dates';
 import { useProblem } from '@/services/hooks/use-problem';
 import { paths } from '@/services/paths';
 
-/* One problem: inline-editable title and description, Resolve / Reopen / Discard (each confirmed),
-   a Keep prompt when it has gone stale, a form for manual notes, and the timeline of everything
-   said about it. A discard sends you back to the list, since the problem is no longer on it. */
+/* One problem: an inline-editable title with its status chip and Resolve / Reopen / Discard (each
+   confirmed) under it, a facts strip (opened, last discussed, notes, journal mentions), the
+   editable description, a Keep prompt when it has gone stale, then the timeline rail — the
+   add-note form at its top — and the journal paragraphs that mentioned it. A discard sends you
+   back to the list, since the problem is no longer on it. */
 export default function ProblemDetail() {
     const { id } = useParams();
     const problem_id = id && /^\d+$/.test(id) ? Number(id) : null;
@@ -29,7 +32,8 @@ export default function ProblemDetail() {
             <Page width="reading">
                 {back}
                 <Loading label="Loading problem">
-                    <Skeleton height={36} className="mb-4" />
+                    <Skeleton height={32} className="mb-3 w-3/4" />
+                    <Skeleton height={12} className="mb-8 w-1/2" />
                     <Skeleton lines={3} />
                 </Loading>
             </Page>
@@ -50,22 +54,22 @@ export default function ProblemDetail() {
         return ok;
     };
 
-    const count = problem.update_count;
     return (
         <Page width="reading">
             {back}
-            <div className="mb-3 mt-1 flex flex-wrap items-center gap-2">
-                {problem.status === 'resolved' && <Chip tone="ok">Resolved</Chip>}
-                {problem.status === 'discarded' && <Chip tone="danger">Discarded</Chip>}
-                {problem.is_stale && <Chip tone="warn">Stale</Chip>}
-            </div>
-
             <EditableText value={problem.title} label="title" required disabled={busy} on_save={(title) => patch({ title })} />
-            <p className="ta-muted mt-2 text-[13px]" style={{ paddingInline: 0 }}>
-                Opened {format_date(problem.created_at)} · {problem.last_discussed_at ? `last discussed ${relative_time(problem.last_discussed_at)}` : 'not discussed yet'} · {count} {count === 1 ? 'update' : 'updates'}
-            </p>
+            <div className="ta-pbar">
+                <div className="ta-pbar__chips">
+                    {problem.status === 'active' && <Chip tone="accent">Active</Chip>}
+                    {problem.status === 'resolved' && <Chip tone="ok">Resolved</Chip>}
+                    {problem.status === 'discarded' && <Chip tone="danger">Discarded</Chip>}
+                    {problem.is_stale && <Chip tone="warn">Stale</Chip>}
+                </div>
+                <StatusActions problem={problem} busy={busy} on_status={on_status} />
+            </div>
+            <ProblemFacts problem={problem} />
 
-            <div className="mt-4">
+            <div className="mt-6">
                 <EditableText value={problem.description} label="description" multiline placeholder="No description yet. Add a sentence so future you remembers what this is." disabled={busy} on_save={(description) => patch({ description })} />
             </div>
 
@@ -85,16 +89,14 @@ export default function ProblemDetail() {
                 </div>
             )}
 
-            <div className="mt-5">
-                <StatusActions problem={problem} busy={busy} on_status={on_status} />
-            </div>
+            <section aria-labelledby="timeline-title" className="ta-pdetail__section">
+                <h2 id="timeline-title" className="ta-section-label">
+                    Timeline
+                </h2>
+                <ProblemTimeline updates={problem.updates} compose={<AddNoteForm busy={busy} on_add={add_note} />} />
+            </section>
 
-            <Card as="section" className="mt-8">
-                <AddNoteForm busy={busy} on_add={add_note} />
-            </Card>
-
-            <h2 className="ta-section-label">Timeline</h2>
-            <ProblemTimeline updates={problem.updates} />
+            <JournalMentions mentions={problem.journal_mentions} />
         </Page>
     );
 }

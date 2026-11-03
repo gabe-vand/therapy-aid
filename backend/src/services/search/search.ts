@@ -25,13 +25,7 @@ export const removeDocument = (kind: SearchKind, ref_id: number): void => repo_s
 export const sessionSearchDocument = (row: SessionRow): SearchDocument => {
     const summary = parseSessionSummary(row.summary_json);
     const parts = [summary?.overview, summary?.key_points.join('\n'), summary?.therapist_advice.join('\n'), row.notes, row.transcript];
-    return {
-        kind: 'session',
-        ref_id: row.id,
-        occurred_at: row.occurred_at,
-        title: row.title ?? summary?.title ?? 'Untitled session',
-        body: parts.filter((part): part is string => !!part && part.trim().length > 0).join('\n\n'),
-    };
+    return { kind: 'session', ref_id: row.id, occurred_at: row.occurred_at, title: row.title ?? summary?.title ?? 'Untitled session', body: parts.filter((part): part is string => !!part && part.trim().length > 0).join('\n\n') };
 };
 
 /** The index document for a journal entry: titled by its first line. */

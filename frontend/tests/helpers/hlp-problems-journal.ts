@@ -30,7 +30,7 @@ export const update = (over: Partial<ProblemUpdate> = {}): ProblemUpdate => ({
     ...over,
 });
 
-export const problem_detail = (over: Partial<ProblemDetail> = {}): ProblemDetail => ({ ...problem(), updates: [update()], ...over });
+export const problem_detail = (over: Partial<ProblemDetail> = {}): ProblemDetail => ({ ...problem(), updates: [update()], journal_mentions: [], ...over });
 
 export const entry = (over: Partial<JournalEntry> = {}): JournalEntry => ({
     id: 1,
@@ -42,4 +42,21 @@ export const entry = (over: Partial<JournalEntry> = {}): JournalEntry => ({
     ...over,
 });
 
-export const insight = (over: Partial<JournalInsight> = {}): JournalInsight => ({ id: 1, entry_id: 1, body: 'You keep describing the **same loop**.', created_at: '2026-10-13T13:00:00.000Z', ...over });
+export const insight = (over: Partial<JournalInsight> = {}): JournalInsight => ({
+    id: 1,
+    entry_id: 1,
+    body: 'You keep describing the **same loop**.',
+    kind: 'reflection',
+    source: 'reflection',
+    problem_id: null,
+    problem_title: null,
+    session_id: null,
+    anchor: null,
+    dismissed_at: null,
+    created_at: '2026-10-13T13:00:00.000Z',
+    ...over,
+});
+
+/** A margin note anchored to a paragraph, tied to problem 3. */
+export const margin_note = (over: Partial<JournalInsight> = {}): JournalInsight =>
+    insight({ id: 2, kind: 'advice', source: 'margin', problem_id: 3, problem_title: 'Racing mind at night', anchor: 'Lay awake again, thoughts going a mile a minute', body: 'On Sep 11 David suggested the worry list.', ...over });

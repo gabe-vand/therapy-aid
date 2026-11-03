@@ -33,14 +33,14 @@ describe('Journal page: list', () => {
         show();
         const row = await screen.findByRole('link', { name: /Big day/ });
         expect(row).not.toHaveTextContent('#');
-        expect(within(row).getByLabelText('2 ideas')).toHaveTextContent('2');
+        expect(within(row).getByLabelText('2 notes')).toHaveTextContent('2');
     });
 
     it('shows a quiet empty editor pane with a way to start writing', async () => {
         stub_api({ 'GET /api/journal': [entry()] });
         show();
         await screen.findByRole('link', { name: /Rough night/ });
-        expect(screen.getByText('Nothing open')).toBeInTheDocument();
+        expect(screen.getByText('Write today’s entry')).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start writing' }));
         expect(screen.getByRole('textbox', { name: 'Journal entry' })).toHaveValue('');
     });
@@ -135,5 +135,15 @@ describe('Journal page: editor and autosave', () => {
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
         await waitFor(() => expect(requests(mock)).toContain('DELETE /api/journal/5'));
         await waitFor(() => expect(screen.queryByRole('link', { name: /Doomed entry/ })).not.toBeInTheDocument());
+    });
+});
+
+describe('Journal page: deep link', () => {
+    it('opens a blank entry for /journal?new=1 and cleans the URL', async () => {
+        vi.mock('@/components/journal/RichEditor', () => import('../helpers/hlp-rich-editor'));
+        stub_api({ 'GET /api/journal': [entry()] });
+        show('/journal?new=1');
+        expect(await screen.findByRole('textbox', { name: 'Journal entry' })).toHaveValue('');
+        expect(screen.getByTestId('where')).toHaveTextContent('/journal');
     });
 });

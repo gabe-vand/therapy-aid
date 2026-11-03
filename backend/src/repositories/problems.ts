@@ -24,8 +24,7 @@ export const insertProblem = (values: NewProblemRow): ProblemRow => {
 export const selectProblemById = (id: number): ProblemRow | null => db.select().from(problems).where(eq(problems.id, id)).get() ?? null;
 
 /** Problems in any of `statuses`, by id (creation order) — callers sort for display. */
-export const selectProblemsByStatus = (statuses: ProblemStatus[]): ProblemRow[] =>
-    db.select().from(problems).where(inArray(problems.status, statuses)).orderBy(asc(problems.id)).all();
+export const selectProblemsByStatus = (statuses: ProblemStatus[]): ProblemRow[] => db.select().from(problems).where(inArray(problems.status, statuses)).orderBy(asc(problems.id)).all();
 
 /** Applies `patch` and bumps updated_at. Returns the updated row, or null if there is none. */
 export const updateProblem = (id: number, patch: ProblemPatch): ProblemRow | null =>

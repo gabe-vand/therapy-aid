@@ -17,7 +17,7 @@ describe('SessionDetail failed after summarizing', () => {
         stub_api({ 'GET /api/sessions/4': session({ status: 'failed', error: 'The AI service is busy or unavailable right now (HTTP 429). Press Retry in a minute.' }) });
         mount();
         expect(await screen.findByText(/updating your problems failed/i)).toBeInTheDocument();
-        expect(screen.getByText('Overview')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
         const items = within(screen.getByRole('list', { name: /processing progress/i })).getAllByRole('listitem');
         expect(items.map((li) => li.getAttribute('data-state'))).toEqual(['done', 'done', 'failed']);
@@ -27,7 +27,7 @@ describe('SessionDetail failed after summarizing', () => {
         stub_api({ 'GET /api/sessions/4': session({ status: 'failed', error: 'Nope.', summary: null }) });
         mount();
         expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
-        expect(screen.queryByText('Overview')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Overview' })).not.toBeInTheDocument();
     });
 });
 

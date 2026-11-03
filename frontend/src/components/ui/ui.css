@@ -6,6 +6,7 @@
 @import './ui-forms.css';
 @import './ui-overlays.css';
 @import './ui-layout.css';
+@import './ui-data.css';
 
 .ta-muted {
     color: var(--muted);

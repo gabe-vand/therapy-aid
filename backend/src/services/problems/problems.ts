@@ -4,6 +4,7 @@
 // module (apply-problems); everything here is the manual side. Every mutation answers with the
 // fresh ProblemDetail (or null when the id doesn't exist) so the SPA can just replace its copy.
 import type { Problem, ProblemDetail, ProblemStatus, ProblemUpdate } from '@therapy-aid/shared';
+import * as repo_links from '@/repositories/journal-insights';
 import * as repo_updates from '@/repositories/problem-updates';
 import * as repo_problems from '@/repositories/problems';
 import { isStale } from './staleness';
@@ -34,15 +35,7 @@ const toProblem = (row: repo_problems.ProblemRow, update_count: number, latest_u
     latest_update,
 });
 
-const toUpdate = (u: repo_updates.ProblemUpdateWithSession): ProblemUpdate => ({
-    id: u.id,
-    problem_id: u.problem_id,
-    session_id: u.session_id,
-    session_title: u.session_title,
-    body: u.body,
-    source: u.source,
-    created_at: u.created_at,
-});
+const toUpdate = (u: repo_updates.ProblemUpdateWithSession): ProblemUpdate => ({ id: u.id, problem_id: u.problem_id, session_id: u.session_id, session_title: u.session_title, body: u.body, source: u.source, created_at: u.created_at });
 
 /** Active first, then resolved, and discarded only with `include_discarded`. */
 export const listProblems = (opts: { include_discarded?: boolean; now?: number } = {}): Problem[] => {
@@ -56,12 +49,14 @@ export const listProblems = (opts: { include_discarded?: boolean; now?: number }
         .map((row) => toProblem(row, counts.get(row.id) ?? 0, latest.get(row.id) ?? null, now));
 };
 
-/** One problem with its full timeline (newest first, session titles joined), or null. */
+/** One problem with its full timeline (newest first, session titles joined) and the journal
+    paragraphs the margin-note classifier tied to it, or null. */
 export const getProblem = (id: number): ProblemDetail | null => {
     const row = repo_problems.selectProblemById(id);
     if (!row) return null;
     const updates = repo_updates.selectUpdatesForProblem(id).map(toUpdate);
-    return { ...toProblem(row, updates.length, updates[0]?.body ?? null, Date.now()), updates };
+    const journal_mentions = repo_links.selectLinksForProblem(id).map((l) => ({ entry_id: l.entry_id, occurred_at: l.occurred_at, excerpt: l.excerpt, confidence: l.confidence }));
+    return { ...toProblem(row, updates.length, updates[0]?.body ?? null, Date.now()), updates, journal_mentions };
 };
 
 /** A manually written problem: active, and not stale because created_at is now. */

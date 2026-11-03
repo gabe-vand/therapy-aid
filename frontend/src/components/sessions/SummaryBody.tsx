@@ -1,38 +1,51 @@
 import type { ReactNode } from 'react';
 import type { SessionSummary } from '@therapy-aid/shared';
 import { Markdown } from '@/components/markdown/Markdown';
-import './sessions.css';
+import './session-detail.css';
 
-/* The ready session's substance: overview (markdown), key points, and what David suggested — plain
-   sections on the page under small uppercase labels, not nested cards. Sections with nothing in
-   them are left out rather than shown empty. */
+/* The ready session's substance, as anchored sections the desktop mini-nav jumps between: the
+   overview as prose, the key points as a numbered list (quiet tabular numbers), and what David
+   suggested — the most valuable words on the page — as weighted items on an accent rule. Sections
+   with nothing in them are left out rather than shown empty. */
 
-const Section = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
-    <section aria-labelledby={id}>
-        <h2 id={id} className="ta-label">
+export const DetailSection = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
+    <section id={id} aria-labelledby={`${id}-title`} className="ta-ssec">
+        <h2 id={`${id}-title`} className="ta-ssec__title">
             {title}
         </h2>
         {children}
     </section>
 );
 
-const Bullets = ({ id, title, items }: { id: string; title: string; items: string[] }) =>
-    items.length === 0 ? null : (
-        <Section id={id} title={title}>
-            <ul className="ta-bullets">
-                {items.map((item, i) => (
-                    <li key={i}>{item}</li>
-                ))}
-            </ul>
-        </Section>
-    );
+/* The sections a summary will render, in page order — the mini-nav is built from the same list. */
+export const summary_sections = (summary: SessionSummary): { id: string; label: string }[] => [
+    { id: 'overview', label: 'Overview' },
+    ...(summary.key_points.length > 0 ? [{ id: 'key-points', label: 'Key points' }] : []),
+    ...(summary.therapist_advice.length > 0 ? [{ id: 'advice', label: 'David suggested' }] : []),
+];
 
 export const SummaryBody = ({ summary }: { summary: SessionSummary }) => (
     <>
-        <Section id="overview-title" title="Overview">
+        <DetailSection id="overview" title="Overview">
             <Markdown text={summary.overview} />
-        </Section>
-        <Bullets id="key-points-title" title="Key points" items={summary.key_points} />
-        <Bullets id="advice-title" title="What David suggested" items={summary.therapist_advice} />
+        </DetailSection>
+        {summary.key_points.length > 0 && (
+            <DetailSection id="key-points" title="Key points">
+                <ol className="ta-points">
+                    {summary.key_points.map((point, i) => (
+                        <li key={i}>{point}</li>
+                    ))}
+                </ol>
+            </DetailSection>
+        )}
+        {summary.therapist_advice.length > 0 && (
+            <DetailSection id="advice" title="What David suggested">
+                <ul className="ta-advice">
+                    {summary.therapist_advice.map((advice, i) => (
+                        <li key={i}>{advice}</li>
+                    ))}
+                </ul>
+            </DetailSection>
+        )}
     </>
 );

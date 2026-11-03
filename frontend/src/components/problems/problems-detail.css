@@ -1,5 +1,5 @@
-/* Problem detail pieces: inline-editable text, the stale prompt, the section label, the
-   timeline and the action row. Tokens only. Split from problems.css for the 200-line cap. */
+/* Problem detail pieces: inline-editable text, the stale prompt, the status bar and the action
+   row. Tokens only. The facts strip, timeline and journal mentions are in problems-timeline.css. */
 
 /* Inline-editable text (title / description) */
 .ta-editable {
@@ -29,10 +29,10 @@
 }
 
 .ta-editable__value--title {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
 }
 
 .ta-editable__value--prose {
@@ -98,65 +98,19 @@
     margin: 0;
 }
 
-/* Section label + timeline */
-.ta-section-label {
-    margin: 32px 0 16px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
-}
-
-.ta-timeline {
-    list-style: none;
-    margin: 0;
-    padding: 0 0 0 20px;
-    border-left: 1px solid var(--line-2);
-}
-
-.ta-timeline__item {
-    position: relative;
-    padding-bottom: 24px;
-}
-
-.ta-timeline__item:last-child {
-    padding-bottom: 0;
-}
-
-.ta-timeline__item::before {
-    content: '';
-    position: absolute;
-    left: -25px;
-    top: 4px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 2px solid var(--accent);
-}
-
-.ta-timeline__meta {
+/* Status bar under the title: chips left, Resolve / Reopen / Discard right. */
+.ta-pbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 4px 8px;
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: var(--muted);
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-top: 8px;
 }
 
-.ta-timeline__meta a {
-    font-weight: 500;
-    color: var(--accent);
-}
-
-.ta-timeline__body {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    color: var(--ink);
+.ta-pbar__chips {
+    display: flex;
+    gap: 6px;
 }
 
 /* Detail actions row */
