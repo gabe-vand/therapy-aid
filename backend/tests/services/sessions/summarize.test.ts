@@ -73,7 +73,11 @@ describe('clamping', () => {
         const cut = clampTitle(long);
         expect(cut.length).toBeLessThanOrEqual(60);
         expect(cut.endsWith('…')).toBe(true);
+        expect(cut).toBe('Racing mind at night and the long road to better morning…');
         expect(clampTitle('  Short   title ')).toBe('Short title');
+        const sixty = 'a'.repeat(30) + ' ' + 'b'.repeat(29);
+        expect(clampTitle(sixty)).toBe(sixty);
+        expect(clampTitle('Hi ' + 'x'.repeat(70))).toBe('Hi…');
     });
 
     it('limits and cleans the summary lists and falls back to the session title when the model gave none', () => {
@@ -106,7 +110,9 @@ describe('prompts', () => {
         expect(SUMMARIZE_SYSTEM).toContain('David');
         expect(SUMMARIZE_SYSTEM).toMatch(/Speaker 0/);
         expect(SUMMARIZE_SYSTEM).toMatch(/Never invent/);
-        expect(SUMMARIZE_SYSTEM).toMatch(/60 characters/);
+        expect(SUMMARIZE_SYSTEM).toMatch(/under 50 characters/);
+        expect(SUMMARIZE_SYSTEM).toMatch(/only things David actually said/);
+        expect(SUMMARIZE_SYSTEM).toMatch(/Never firm up a fragmentary note/);
         expect(SUMMARIZE_SYSTEM.split('\n').length).toBeLessThan(200);
     });
 
@@ -115,6 +121,10 @@ describe('prompts', () => {
         expect(MAP_PROBLEMS_SYSTEM).toMatch(/durable theme/);
         expect(MAP_PROBLEMS_SYSTEM).toMatch(/1 to 3 sentences/);
         expect(MAP_PROBLEMS_SYSTEM).toMatch(/clearly closes/);
+        expect(MAP_PROBLEMS_SYSTEM).toMatch(/practice, tool or assignment.*never a problem/);
+        expect(MAP_PROBLEMS_SYSTEM).toMatch(/distinct from general anxiety/);
+        expect(MAP_PROBLEMS_SYSTEM).toMatch(/most specific matching problem/);
+        expect(MAP_PROBLEMS_SYSTEM).toMatch(/at most six words/);
     });
 
     it('builds the user messages with the date, the kind of source and the evidence', () => {

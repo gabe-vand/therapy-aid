@@ -95,6 +95,11 @@ describe('sendMessage', () => {
         expect(call.tools.map((t) => t.name)).toEqual(['search_notes', 'read_session', 'read_journal_entry']);
     });
 
+    it('persona asks for concrete dated instructions and for conflicts to be named with both dates', () => {
+        expect(CHAT_PERSONA).toMatch(/concrete, dated practical instructions/);
+        expect(CHAT_PERSONA).toMatch(/two sessions seem to conflict.*both dates/);
+    });
+
     it('keeps the system prefix byte-identical between turns (so it caches)', async () => {
         seedSession();
         const thread = createThread();

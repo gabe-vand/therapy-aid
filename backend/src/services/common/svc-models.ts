@@ -17,10 +17,12 @@ export interface TaskRoute {
 }
 
 /** The default route per task. Narrow, evidence-fed tasks run on cheaper models; judgment over
-    the whole picture (focus) stays on Opus. Haiku only gets mechanical work (thread titles). */
+    the whole picture (focus) stays on Opus. Haiku only gets mechanical work (thread titles).
+    map_problems is Opus too: the eval showed problem mapping is the long-lived structure and Sonnet
+    opens practices (meditation, routines) as problems; the call is small, so ~$0.03/session. */
 export const TASK_MODELS: Record<AiTask, TaskRoute> = {
     summarize: { model: MODEL_IDS.sonnet, effort: 'high' },
-    map_problems: { model: MODEL_IDS.sonnet, effort: 'high' },
+    map_problems: { model: MODEL_IDS.opus, effort: 'high' },
     focus: { model: MODEL_IDS.opus, effort: 'high' },
     insight: { model: MODEL_IDS.sonnet, effort: 'high' },
     chat: { model: MODEL_IDS.sonnet, effort: 'medium' },

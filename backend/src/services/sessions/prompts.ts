@@ -8,7 +8,7 @@ import { formatDay } from '@/services/context/format';
 
 // A module-level constant so repeated calls share the structured-output cache entry.
 export const SummarySchema = z.object({
-    title: z.string().describe('At most 60 characters. Names the 2-4 main themes, e.g. "Racing mind, ADHD, morning structure".'),
+    title: z.string().describe('A complete phrase under 50 characters, never cut mid-phrase. Names the 2-4 main themes, e.g. "Racing mind, ADHD, morning structure".'),
     overview: z.string().describe("Markdown, 120-250 words. What was discussed and what mattered, in David's framing."),
     key_points: z.array(z.string()).describe('3-8 concrete points worth remembering, one sentence each.'),
     therapist_advice: z.array(z.string()).describe('0-8 things David actually suggested or assigned, imperative and specific, close to his own words.'),
@@ -30,10 +30,10 @@ HOW TO WRITE IT
 - Capture what David actually said, in David's framing: his metaphors, his distinctions, the words he used for things. If David called something "a loop, not a fact", say that. A faithful paraphrase beats a tidy generic one.
 - Be concrete: what happened, what Gabe felt or noticed, which people and situations came up, what changed since last time. Specifics are what make a record worth rereading.
 - Never invent. Do not fill gaps with plausible therapy content. If the source is thin, write a shorter record. A short true record beats a long padded one.
-- Advice is only what David suggested or assigned: exercises, experiments, things to notice, things to stop doing, things to bring next time. Write each as a short imperative ("Write a worry list before bed", "Notice what you do in the first ten minutes after waking"), close to his words, with the reason if he gave one. One item per distinct suggestion: the parts of one practice (when, what to skip, what to do instead) belong together in a single item, not split across several. If he suggested nothing, return an empty list. Do not turn Gabe's own plans or your ideas into David's advice.
+- Advice is only what David suggested or assigned: exercises, experiments, things to notice, things to stop doing, things to bring next time. Write each as a short imperative ("Write a worry list before bed", "Notice what you do in the first ten minutes after waking"), close to his words, with the reason if he gave one. One item per distinct suggestion: the parts of one practice (when, what to skip, what to do instead) belong together in a single item, not split across several. If he suggested nothing, return an empty list. Do not turn Gabe's own plans or your ideas into David's advice. therapist_advice lists only things David actually said. Never firm up a fragmentary note into an instruction he did not give: if the note only hints at something, keep it a hint in the key points. Keep David's wording where it is distinctive.
 
 THE FIELDS
-- title: at most 60 characters. Names the two to four themes of the session, not the date. Example: "Racing mind, ADHD, morning structure".
+- title: a complete phrase under 50 characters, never cut off mid-phrase. Names the two to four themes of the session, not the date. Example: "Racing mind, ADHD, morning structure".
 - overview: markdown, 120 to 250 words, in short paragraphs. What was discussed and what mattered most, in the order that makes sense. Bold at most a few key phrases. No headings, no bullet lists (the key points do that).
 - key_points: 3 to 8 concrete points, one sentence each, the things Gabe would most want to recall. Fewer than 3 only if the source really has less. Do not repeat the advice list here; key points are what was understood or noticed, the advice list is what to do.
 - therapist_advice: as above, 0 to 8.

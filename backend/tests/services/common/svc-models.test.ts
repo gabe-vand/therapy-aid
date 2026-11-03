@@ -20,6 +20,8 @@ describe('resolveTask', () => {
         for (const task of AI_TASKS) expect(resolveTask(task)).toEqual(TASK_MODELS[task]);
         expect(resolveTask('title')).toEqual({ model: MODEL_IDS.haiku, effort: 'low' });
         expect(resolveTask('focus').model).toBe(MODEL_IDS.opus);
+        expect(resolveTask('map_problems')).toEqual({ model: MODEL_IDS.opus, effort: 'high' });
+        expect(resolveTask('summarize')).toEqual({ model: MODEL_IDS.sonnet, effort: 'high' });
     });
 
     it('CLAUDE_MODEL overrides every task; CLAUDE_MODEL_<TASK> beats it', () => {

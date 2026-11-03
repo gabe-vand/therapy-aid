@@ -12,13 +12,14 @@ const MAX_TITLE = 60;
 const MAX_POINTS = 8;
 const MAX_ADVICE = 8;
 
-/** Cuts a title to 60 characters at a word boundary when it can, with an ellipsis. */
+/** Only if a title is over 60 characters: cuts it at the last word boundary (never mid-word) and
+    adds an ellipsis. A single over-long word, with no boundary to cut at, is cut hard. */
 export const clampTitle = (title: string): string => {
     const t = title.trim().replace(/\s+/g, ' ');
     if (t.length <= MAX_TITLE) return t;
     const cut = t.slice(0, MAX_TITLE - 1);
     const space = cut.lastIndexOf(' ');
-    return `${(space > 30 ? cut.slice(0, space) : cut).replace(/[\s,;:-]+$/, '')}…`;
+    return `${(space > 0 ? cut.slice(0, space) : cut).replace(/[\s,;:-]+$/, '')}…`;
 };
 
 const cleanList = (items: string[], max: number): string[] =>
