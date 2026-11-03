@@ -1,0 +1,198 @@
+/* The command palette (CommandPalette, PaletteRow): a 560px panel 12vh from the top over the
+   overlay on desktop; on phones a full-width sheet hanging under the top bar, so the keyboard
+   never covers the input. Matches in snippets are a soft accent <mark>, never yellow. Tokens only. */
+
+.ta-pal-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.ta-pal {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: calc(100dvh - var(--ta-topbar-h, 48px) - 24px);
+    margin-top: var(--ta-topbar-h, 48px);
+    overflow: hidden;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (min-width: 768px) {
+    .ta-pal {
+        max-width: 560px;
+        max-height: min(560px, 76vh);
+        margin-top: 12vh;
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+    }
+}
+
+.ta-pal__field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.ta-pal__glass,
+.ta-pal__spin {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--muted);
+}
+
+.ta-pal__spin {
+    animation: ta-pal-spin 800ms linear infinite;
+}
+
+@keyframes ta-pal-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ta-pal__input {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+}
+
+.ta-pal__input::placeholder {
+    color: var(--faint);
+}
+
+.ta-pal__list {
+    flex: 1;
+    min-height: 0;
+    padding: 6px;
+    overflow-y: auto;
+}
+
+.ta-pal__group-label {
+    margin: 0;
+    padding: 8px 10px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ta-pal__empty,
+.ta-pal__error {
+    margin: 0;
+    padding: 20px 10px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.ta-pal__error {
+    color: var(--danger);
+}
+
+/* Rows */
+.ta-pal-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+    cursor: pointer;
+}
+
+.ta-pal-row.is-active {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.ta-pal-row__icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--muted);
+}
+
+.ta-pal-row__icon--top {
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+.ta-pal-row__body,
+.ta-pal-row__line {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+}
+
+.ta-pal-row__body {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ta-pal-row__line {
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ta-pal-row__title {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ta-pal-row__date {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-pal-row__snippet {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.ta-pal-row__snippet mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.ta-pal-row__enter {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin-left: auto;
+    color: var(--muted);
+}

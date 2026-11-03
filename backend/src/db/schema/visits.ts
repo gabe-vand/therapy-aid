@@ -2,7 +2,4 @@
 // shape; this mirrors it for typed Drizzle queries.
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-export const visits = sqliteTable('visits', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    created_at: text('created_at').notNull(),
-});
+export const visits = sqliteTable('visits', { id: integer('id').primaryKey({ autoIncrement: true }), created_at: text('created_at').notNull() });

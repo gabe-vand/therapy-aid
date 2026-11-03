@@ -102,12 +102,7 @@ describe('regenerateFocus', () => {
     });
 
     it('clamps to 3 items, trims text, and drops items with no title or action', async () => {
-        claude.mockResolvedValue(
-            reply({
-                headline: '  Headline  ',
-                items: [item({ title: ' One ' }), item({ title: '' }), item({ title: 'Two', action: '  ' }), item({ title: 'Three' }), item({ title: 'Four' }), item({ title: 'Five' })],
-            }),
-        );
+        claude.mockResolvedValue(reply({ headline: '  Headline  ', items: [item({ title: ' One ' }), item({ title: '' }), item({ title: 'Two', action: '  ' }), item({ title: 'Three' }), item({ title: 'Four' }), item({ title: 'Five' })] }));
         const snapshot = await regenerateFocus();
         expect(snapshot.headline).toBe('Headline');
         expect(snapshot.items.map((i) => i.title)).toEqual(['One', 'Three', 'Four']);

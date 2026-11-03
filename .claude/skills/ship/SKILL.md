@@ -156,6 +156,14 @@ bun scripts/import-seed.ts --url https://therapy-aid.elephant-trench.ts.net --di
   `ALLOWED_TAILSCALE_LOGIN`.
 - Do not paste seed content into chat or a PR: the repo is public and the files are personal.
 
+After seeding (or once, after margin notes shipped), classify the existing journal against the
+problems so Home's "In your journal lately" and each problem's "In your journal" are filled in:
+
+```bash
+bun scripts/classify-journal.ts --url https://therapy-aid.elephant-trench.ts.net --dry-run   # counts only
+bun scripts/classify-journal.ts --url https://therapy-aid.elephant-trench.ts.net             # Haiku per paragraph, links only, no notes
+```
+
 ### Backups and restore
 
 The API snapshots the database once per UTC day into `~/therapy-aid-backups/therapy-aid-YYYY-MM-DD.sqlite`

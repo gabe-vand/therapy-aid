@@ -1,31 +1,21 @@
 import { Mic } from 'lucide-react';
-import type { SessionListItem } from '@therapy-aid/shared';
-import { SessionRow } from '@/components/sessions/SessionRow';
+import { SessionTimeline } from '@/components/sessions/SessionTimeline';
+import { rhythm_sentence } from '@/components/sessions/rhythm';
 import { ButtonLink } from '@/components/ui/Button';
-import { Card, Loading, Skeleton } from '@/components/ui/Card';
+import { Loading, Skeleton } from '@/components/ui/Card';
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/States';
 import { Page } from '@/components/ui/Page';
-import { format_month } from '@/services/dates';
+import { useDashboard } from '@/services/hooks/use-dashboard';
 import { useSessions } from '@/services/hooks/use-sessions';
 import { paths } from '@/services/paths';
 
-/* Every session, newest first, grouped under month headings. Each row opens SessionDetail; the two
-   ways to add one (record live, paste notes) sit in the header so they are one tap from the list. */
-
-// The list arrives newest-first, so consecutive rows with the same month share a group.
-const group_by_month = (sessions: SessionListItem[]) => {
-    const groups: { month: string; items: SessionListItem[] }[] = [];
-    for (const s of sessions) {
-        const month = format_month(s.occurred_at);
-        const last = groups[groups.length - 1];
-        if (last && last.month === month) last.items.push(s);
-        else groups.push({ month, items: [s] });
-    }
-    return groups;
-};
-
+/* Every session, newest first, as a timeline grouped by month. The subtitle is a live sentence
+   about the rhythm of therapy (how many, since when, how often, how long ago) — the list drives
+   it, the dashboard adds the typical gap when it answers, and a dashboard failure just leaves that
+   part out. The two ways to add a session sit in the header, one tap from the list. */
 export default function Sessions() {
     const { sessions, loading, error, reload } = useSessions();
+    const { dashboard } = useDashboard();
 
     const actions = (
         <>
@@ -37,20 +27,26 @@ export default function Sessions() {
         </>
     );
 
+    const subtitle = rhythm_sentence({ sessions, typical_gap_days: dashboard?.sessions.typical_gap_days ?? null });
+
     return (
         <Page width="wide">
-            <PageHeader title="Sessions" subtitle="Every conversation with David, in one place." actions={actions} />
+            <PageHeader title="Sessions" subtitle={subtitle} actions={actions} />
 
             {loading && sessions.length === 0 && (
                 <Loading label="Loading sessions…">
-                    <Skeleton height={56} className="mb-2" />
-                    <Skeleton height={56} className="mb-2" />
-                    <Skeleton height={56} />
+                    <div className="flex flex-col gap-2 pl-7">
+                        <Skeleton height={12} className="mb-1 w-28" />
+                        <Skeleton height={56} />
+                        <Skeleton height={56} />
+                        <Skeleton height={56} />
+                    </div>
                 </Loading>
             )}
             {!loading && error && <ErrorState message={error} on_retry={reload} />}
             {!loading && !error && sessions.length === 0 && (
                 <EmptyState
+                    icon={<Mic size={24} />}
                     title="No sessions yet"
                     body="Record your next session as it happens, or paste in notes from an earlier one. Each becomes a summary, advice from David, and updates to your problems."
                     action={
@@ -64,18 +60,7 @@ export default function Sessions() {
                 />
             )}
 
-            <div className="flex flex-col gap-8">
-                {group_by_month(sessions).map((group) => (
-                    <section key={group.month} aria-label={group.month}>
-                        <h2 className="ta-month-label">{group.month}</h2>
-                        <Card padded={false} className="overflow-hidden">
-                            {group.items.map((s) => (
-                                <SessionRow key={s.id} session={s} />
-                            ))}
-                        </Card>
-                    </section>
-                ))}
-            </div>
+            {sessions.length > 0 && <SessionTimeline sessions={sessions} />}
         </Page>
     );
 }

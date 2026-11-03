@@ -4,7 +4,8 @@ import { Collapsible } from '@/components/sessions/Collapsible';
 import { ProblemUpdates } from '@/components/sessions/ProblemUpdates';
 import { ProcessingCard } from '@/components/sessions/ProcessingCard';
 import { SessionHeader } from '@/components/sessions/SessionHeader';
-import { SummaryBody } from '@/components/sessions/SummaryBody';
+import { SessionNav } from '@/components/sessions/SessionNav';
+import { SummaryBody, summary_sections } from '@/components/sessions/SummaryBody';
 import { Button } from '@/components/ui/Button';
 import { Loading, Skeleton } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -13,7 +14,8 @@ import { Page } from '@/components/ui/Page';
 import { useSession } from '@/services/hooks/use-session';
 import { paths } from '@/services/paths';
 
-/* One session. While it is processing it shows the stepper (the hook polls every 3s); failed shows
+/* One session, as anchored sections (Overview, Key points, What David suggested, Problems this
+   session touched) with a sticky mini-nav rail on wide screens. While it is processing it shows the stepper (the hook polls every 3s); failed shows
    the reason and Retry — plus the summary when it was already saved (a failure in the problem
    step must not hide a summary that was paid for); ready shows the summary, problem updates and
    the collapsible source text. An unfinished recording can be finished from here. Title and date
@@ -55,29 +57,34 @@ export default function SessionDetail() {
 
     const ready = session.status === 'ready';
     const show_summary = (ready || session.status === 'failed') && !!session.summary;
+    const sections = [...(show_summary ? summary_sections(session.summary!) : []), ...(session.problem_updates.length > 0 ? [{ id: 'problems', label: 'Problems' }] : [])];
     return (
-        <Page width="reading">
-            {back}
-            <SessionHeader session={session} saving={busy} on_save={save} />
-            {action_error && (
-                <div className="mb-4">
-                    <ErrorState message={action_error} />
+        <Page width="reading" className="ta-sdetail">
+            <div className="ta-sdetail__grid">
+                <div className="min-w-0">
+                    {back}
+                    <SessionHeader session={session} saving={busy} on_save={save} />
+                    {action_error && (
+                        <div className="mb-4">
+                            <ErrorState message={action_error} />
+                        </div>
+                    )}
+
+                    <div className="ta-sdetail__body">
+                        {!ready && <ProcessingCard session={session} busy={busy} on_retry={() => void retry()} on_finish={() => void finish()} />}
+                        {show_summary && <SummaryBody summary={session.summary!} />}
+                        {ready && !session.summary && <ErrorState message="This session finished without a summary. You can delete it and add it again." />}
+                        <ProblemUpdates updates={session.problem_updates} />
+                        {session.transcript && <Collapsible title="Transcript" text={session.transcript} />}
+                        {session.notes && <Collapsible title="Notes as written" text={session.notes} />}
+                    </div>
+                    <div className="mt-12">
+                        <Button variant="ghost" onClick={() => set_confirming(true)} disabled={busy} className="ta-btn-danger-text">
+                            Delete session
+                        </Button>
+                    </div>
                 </div>
-            )}
-
-            <div className="flex flex-col gap-8">
-                {!ready && <ProcessingCard session={session} busy={busy} on_retry={() => void retry()} on_finish={() => void finish()} />}
-                {show_summary && <SummaryBody summary={session.summary!} />}
-                {ready && !session.summary && <ErrorState message="This session finished without a summary. You can delete it and add it again." />}
-                <ProblemUpdates updates={session.problem_updates} />
-                {session.transcript && <Collapsible title="Transcript" text={session.transcript} />}
-                {session.notes && <Collapsible title="Notes as written" text={session.notes} />}
-            </div>
-
-            <div className="mt-12">
-                <Button variant="ghost" onClick={() => set_confirming(true)} disabled={busy} style={{ color: 'var(--danger)' }}>
-                    Delete session
-                </Button>
+                <SessionNav sections={sections} />
             </div>
             <ConfirmDialog
                 open={confirming}

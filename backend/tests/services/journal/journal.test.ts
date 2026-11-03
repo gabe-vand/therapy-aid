@@ -63,8 +63,8 @@ describe('listEntries / getEntry', () => {
     it('lists newest first with insight counts', () => {
         const older = seedJournal({ occurred_at: '2026-10-01T12:00:00.000Z', body: 'older' });
         const newer = seedJournal({ occurred_at: '2026-10-09T12:00:00.000Z', body: 'newer' });
-        repo_insights.insertJournalInsight({ entry_id: older.id, body: 'one' });
-        repo_insights.insertJournalInsight({ entry_id: older.id, body: 'two' });
+        repo_insights.insertJournalInsight({ entry_id: older.id, body: 'one', kind: 'reflection', source: 'reflection' });
+        repo_insights.insertJournalInsight({ entry_id: older.id, body: 'two', kind: 'reflection', source: 'reflection' });
         expect(listEntries().map((e) => [e.id, e.insight_count])).toEqual([
             [newer.id, 0],
             [older.id, 2],
@@ -80,7 +80,7 @@ describe('listEntries / getEntry', () => {
 describe('deleteEntry', () => {
     it('removes the entry, its insights and its index row', () => {
         const row = seedJournal({ body: 'Delete me, panicking.' });
-        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'insight' });
+        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'insight', kind: 'reflection', source: 'reflection' });
         expect(deleteEntry(row.id)).toBe(true);
         expect(remove).toHaveBeenCalledWith('journal', row.id);
         expect(getEntry(row.id)).toBeNull();
@@ -98,8 +98,8 @@ describe('listInsights', () => {
     it('returns the history newest first, [] for an entry with none, null for a missing entry', () => {
         const row = seedJournal();
         expect(listInsights(row.id)).toEqual([]);
-        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'first' });
-        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'second' });
+        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'first', kind: 'reflection', source: 'reflection' });
+        repo_insights.insertJournalInsight({ entry_id: row.id, body: 'second', kind: 'reflection', source: 'reflection' });
         expect(listInsights(row.id)!.map((i) => i.body)).toEqual(['second', 'first']);
         expect(listInsights(999)).toBeNull();
     });

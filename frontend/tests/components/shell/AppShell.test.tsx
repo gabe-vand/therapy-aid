@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import AppShell from '@/components/shell/AppShell';
@@ -53,6 +53,15 @@ describe('AppShell', () => {
         expect(side.getByRole('link', { name: 'Sessions' })).toHaveAttribute('aria-current', 'page');
         expect(tabs.getByRole('link', { name: 'Sessions' })).toHaveAttribute('aria-current', 'page');
         expect(side.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
+    });
+
+    it('has a Search button in the sidebar and in the mobile top bar, each opening the palette', () => {
+        render_app('/');
+        const in_top_bar = within(screen.getByRole('banner')).getByRole('button', { name: 'Search' });
+        expect(screen.getAllByRole('button', { name: 'Search' })).toHaveLength(2);
+        expect(screen.getByText('Search…').closest('button')).toHaveAttribute('aria-keyshortcuts', 'Control+K Meta+K /');
+        fireEvent.click(in_top_bar);
+        expect(screen.getByRole('dialog', { name: 'Command palette' })).toBeInTheDocument();
     });
 
     it('lights the mobile gear on /settings', () => {

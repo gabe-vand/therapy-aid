@@ -25,7 +25,7 @@ describe('useJournalEntry — loading', () => {
         expect(result.current.loading).toBe(false);
         expect(result.current.body).toBe('Hello there');
         expect(result.current.date).toBe('2026-10-13');
-        expect(result.current.loaded_length).toBe('Hello there'.length);
+        expect(result.current.loaded_body).toBe('Hello there');
         await tick(10_000);
         expect(mock).toHaveBeenCalledTimes(1);
     });

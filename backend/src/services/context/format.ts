@@ -18,7 +18,11 @@ const formatter = (time_zone: string): Intl.DateTimeFormat => {
 export const formatDay = (iso: string, time_zone: string = app_env.timezone): string => {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return iso;
-    const parts = Object.fromEntries(formatter(time_zone).formatToParts(date).map((p) => [p.type, p.value]));
+    const parts = Object.fromEntries(
+        formatter(time_zone)
+            .formatToParts(date)
+            .map((p) => [p.type, p.value]),
+    );
     return `${parts.weekday} ${parts.month} ${parts.day}, ${parts.year}`;
 };
 

@@ -14,5 +14,4 @@ export const lastTouchedMs = (p: Pick<ProblemRow, 'last_discussed_at' | 'last_re
 
 /** True when the problem is active and its last touch is strictly more than 30 days before `now`
     (exactly 30 days is still fresh; the 31st day flags it). */
-export const isStale = (p: Pick<ProblemRow, 'status' | 'last_discussed_at' | 'last_reviewed_at' | 'created_at'>, now: number = Date.now()): boolean =>
-    p.status === 'active' && now - lastTouchedMs(p) > STALE_AFTER_DAYS * DAY_MS;
+export const isStale = (p: Pick<ProblemRow, 'status' | 'last_discussed_at' | 'last_reviewed_at' | 'created_at'>, now: number = Date.now()): boolean => p.status === 'active' && now - lastTouchedMs(p) > STALE_AFTER_DAYS * DAY_MS;

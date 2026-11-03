@@ -22,7 +22,7 @@
 <div class="wrap">
 
   <div class="stackline">
-    <strong>Status:</strong> v1 &mdash; sessions, problems, focus, journal, chat, settings &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
+    <strong>Status:</strong> v1 &mdash; sessions, problems, focus, journal, chat, settings &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03 (margin notes, dashboard, palette)
   </div>
 
   <div class="note ok"><strong>How to read this page.</strong> A green tick is built, tested, and part of the product. A grey box is not there yet, listed so nobody assumes otherwise. The AI features need <code>ANTHROPIC_API_KEY</code> (and recordings need <code>DEEPGRAM_API_KEY</code>) in <code>~/therapy-aid.env</code> on the Pi; without them the app runs and says exactly what to set.</div>
@@ -38,7 +38,8 @@
         <li><span class="box">&#10003;</span> <strong>Add notes</strong> instead: paste or type notes or a summary for any past date.</li>
         <li><span class="box">&#10003;</span> Summary: title, overview, key points, therapist advice. Written for you to read next week.</li>
         <li><span class="box">&#10003;</span> Live progress on the session page (uploaded, transcribing, summarizing, ready); a failure shows the reason and a <strong>Retry</strong> that resumes at the step that failed. A failure after the summary was written keeps the summary on screen. Renaming or re-dating a session while it processes is kept.</li>
-        <li><span class="box">&#10003;</span> Sessions list grouped by month; edit a session's date or title; delete with confirmation (removes its audio).</li>
+        <li><span class="box">&#10003;</span> Sessions list as a <strong>timeline</strong>: a rail with one status-coloured node per session (ready / processing / failed), sticky month labels, and a live subtitle (how many sessions, since when, the usual gap, how long since the last one); edit a session's date or title; delete with confirmation (removes its audio).</li>
+        <li><span class="box">&#10003;</span> Session page as anchored sections: Overview, numbered Key points, <strong>What David suggested</strong> (given weight), Problems this session touched; a sticky &ldquo;On this page&rdquo; rail on wide screens, and a date line with source and duration. Add notes shows a live word and character count.</li>
         <li><span class="box">&#10003;</span> Interrupted work survives an API restart: stuck sessions are re-queued at boot.</li>
         <li class="todo"><span class="box"></span> Playing the audio back in the app (the file is kept on the Pi, but there is no player).</li>
         <li><span class="box">&#10003;</span> <strong>Finish this recording</strong>: a recording whose tab closed or phone died can be finished from its session page, processing the audio that reached the server. One nobody finishes is failed after 30 minutes without audio (checked every 5 minutes, not only at boot), with the audio kept for Retry.</li>
@@ -55,11 +56,12 @@
       <p>The big-picture threads that persist across sessions.</p>
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Every session is mapped onto your existing problems (progress notes) or opens a new one for a durable theme; a note says what changed this session.</li>
-        <li><span class="box">&#10003;</span> Problem page with a dated timeline of notes, each linked to the session it came from.</li>
+        <li><span class="box">&#10003;</span> Problem list rows show a status dot, the dots of the recent sessions that discussed it, when it was last discussed, note count and recent journal mentions; the subtitle counts active, going quiet and resolved; new problems are added inline at the top.</li>
+        <li><span class="box">&#10003;</span> Problem page: a facts strip (opened from which session, last discussed, notes, journal mentions), a timeline rail of notes each linked to its session with the add-note form at its top, and <strong>In your journal</strong>, the paragraphs that mentioned it.</li>
         <li><span class="box">&#10003;</span> Create, edit, add your own notes, <strong>resolve</strong>, reopen, <strong>discard</strong> (destructive actions ask first).</li>
-        <li><span class="box">&#10003;</span> Stale check: a problem not discussed or reviewed for 30 days asks &ldquo;still relevant?&rdquo; on Home, with Keep or Discard.</li>
+        <li><span class="box">&#10003;</span> Stale check: a problem not discussed or reviewed for 30 days is flagged &ldquo;quiet&rdquo; in Home's Threads grid and in the list, with Keep or Discard inline.</li>
         <li class="todo"><span class="box"></span> Merging two problems that turned out to be the same one.</li>
-        <li class="todo"><span class="box"></span> Charts or trends over time per problem (the timeline is text for now).</li>
+        <li class="todo"><span class="box"></span> Charts or trends over time per problem beyond the session dots.</li>
       </ul>
     </div>
   </section>
@@ -70,7 +72,7 @@
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Home banner: &ldquo;what to focus on right now&rdquo; &mdash; a headline and up to three items, each with why and one concrete action for this week.</li>
         <li><span class="box">&#10003;</span> Regenerated automatically after every session, and on demand with Refresh. If that automatic run failed, Home offers <strong>Generate my focus</strong> instead of an empty state.</li>
-        <li><span class="box">&#10003;</span> Home also shows the latest session and one-tap actions: record, add notes, write in the journal.</li>
+        <li><span class="box">&#10003;</span> <strong>Home is a dashboard</strong>: a time-of-day greeting with Record / Add notes / Write; the focus as a <strong>This week</strong> check-in board (tap a day to tick an item's action, Mon&ndash;Sun in local time; &ldquo;Why?&rdquo; expands the reasoning); <strong>Threads</strong>, every active problem against the last 8 sessions as a dot grid, with quiet problems flagged and Keep / Discard inline; <strong>Rhythm</strong>, the last session (due against your usual gap), journal entries / streak / words this week, and what has happened since the last session; <strong>In your journal lately</strong> theme bars; and David's suggestions from the last session. Each block loads and fails on its own.</li>
         <li class="todo"><span class="box"></span> Focus history view (older snapshots are stored but not browsable).</li>
         <li class="todo"><span class="box"></span> Reminders or notifications before a session.</li>
       </ul>
@@ -82,7 +84,9 @@
     <div class="rule-body">
       <ul class="ledger">
         <li><span class="box">&#10003;</span> Entries by date, with an editor that autosaves as you type and says when it has saved. It also saves the moment the phone is backgrounded or the tab is closed, and a save that fails after you left the entry is retried until it lands. Changing the date right after the first keystroke is kept.</li>
-        <li><span class="box">&#10003;</span> <strong>&ldquo;I have an idea&hellip;&rdquo;</strong>: on request, an insight on the draft that connects it to recent therapy sessions and entries, with David's advice taking priority. Never generated on its own; past insights stay with the entry.</li>
+        <li><span class="box">&#10003;</span> <strong>Margin notes</strong>: as you finish a paragraph, it is matched against your problems (a near-free Haiku call); when one clearly fits, a short note appears beside the paragraph &mdash; what David suggested (with the session date), a connection to how that thread has been moving, or one question back. At most one a minute and a few per entry; dismissable; off per device in Settings. On a wide screen the notes sit in a margin column next to their paragraphs; on a phone they list under the entry with a &ldquo;New margin note&rdquo; pill.</li>
+        <li><span class="box">&#10003;</span> <strong>Journal &harr; problems</strong>: every confident match is kept as a link (even when no note is written), so Home shows what the journal has been about lately and each problem lists the entries that touched it. <code>scripts/classify-journal.ts</code> classifies the entries written before this existed.</li>
+        <li><span class="box">&#10003;</span> <strong>Reflect on this entry</strong> (in the entry menu): the longer, on-request note on the whole entry, connecting it to recent sessions with David's advice taking priority. Past reflections stay with the entry.</li>
         <li><span class="box">&#10003;</span> <strong>Rich-text editor</strong> (TipTap): bold, italic, strike, headings, lists and quotes. Entries are still stored as Markdown, so search and the AI pipeline are unchanged.</li>
         <li><span class="box">&#10003;</span> Seedable with your history through the import script.</li>
         <li class="todo"><span class="box"></span> Photos or attachments in entries.</li>
@@ -98,9 +102,9 @@
         <li><span class="box">&#10003;</span> A chatbot that knows your sessions, problems, focus and journal, weighs therapy over journal, cites which session or entry it is drawing on, and says so when the material does not cover something.</li>
         <li><span class="box">&#10003;</span> Looks things up first (full-text search on your question) and can search and open sessions and entries to follow up.</li>
         <li><span class="box">&#10003;</span> Multiple threads; create (an untouched empty chat is reused, not duplicated), switch, delete; Enter sends, Shift+Enter adds a line; errors show inline with a retry.</li>
+        <li><span class="box">&#10003;</span> An empty conversation offers up to six <strong>suggested questions</strong> built from your focus and recently discussed problems; with no chat open, tapping one starts a chat and asks it. Thread rows show last activity and message count.</li>
         <li class="todo"><span class="box"></span> <strong>Streaming</strong> replies. The answer arrives whole after a thinking indicator.</li>
         <li class="todo"><span class="box"></span> Voice input or spoken replies.</li>
-        <li class="todo"><span class="box"></span> A standalone search page (chat is the way to search today).</li>
       </ul>
     </div>
   </section>
@@ -111,6 +115,7 @@
       <ul class="ledger">
         <li><span class="box">&#10003;</span> &ldquo;About me&rdquo; profile that every prompt includes, editable in the app.</li>
         <li><span class="box">&#10003;</span> <strong>Appearance</strong>: light (the default), dark or follow-the-device, in Settings and at the foot of the sidebar; remembered per browser, applied before first paint.</li>
+        <li><span class="box">&#10003;</span> <strong>Margin notes</strong> on or off per device, with a plain explanation of what runs and what it costs.</li>
         <li><span class="box">&#10003;</span> Shows who you are signed in as.</li>
         <li><span class="box">&#10003;</span> <strong>AI usage</strong>: per task, the model, calls, tokens and estimated dollars since the API last started.</li>
         <li><span class="box">&#10003;</span> Per-task model routing (cheaper models where quality holds), prompt caching, and env overrides for any task's model and effort.</li>
@@ -152,6 +157,7 @@
       <ul class="ledger">
         <li><span class="box">&#10003;</span> <strong>UI refresh</strong>: a Linear-style shell (sidebar on desktop, top bar and tab bar on phones), Inter, hairline cards, one shared set of primitives and colour tokens. See <a href="docs/frontend-styling.html">Frontend Styling</a>.</li>
         <li><span class="box">&#10003;</span> <strong>Mobile layout</strong>: designed at 390px first, one pane at a time for Journal and Chat, 40px touch targets, 16px inputs, safe-area insets, dialogs as bottom sheets.</li>
+        <li><span class="box">&#10003;</span> <strong>Command palette</strong>: Ctrl/&#8984;+K, &ldquo;/&rdquo;, or Search in the sidebar / top bar opens quick actions (new entry, record, add notes, go anywhere, toggle theme) and full-text search over sessions and the journal with highlighted matches; arrow keys and Enter.</li>
         <li class="todo"><span class="box"></span> A custom theme beyond light, dark and system.</li>
       </ul>
     </div>

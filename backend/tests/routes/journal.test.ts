@@ -52,7 +52,13 @@ describe('entries', () => {
     });
 
     it('answers 404 for a missing or malformed id', async () => {
-        for (const [method, path] of [['GET', '/journal/999'], ['PATCH', '/journal/999'], ['DELETE', '/journal/999'], ['GET', '/journal/999/insights'], ['GET', '/journal/abc']] as const) {
+        for (const [method, path] of [
+            ['GET', '/journal/999'],
+            ['PATCH', '/journal/999'],
+            ['DELETE', '/journal/999'],
+            ['GET', '/journal/999/insights'],
+            ['GET', '/journal/abc'],
+        ] as const) {
             const { status, body } = await call(method, path, method === 'PATCH' ? { body: 'x' } : undefined);
             expect([method, path, status]).toEqual([method, path, 404]);
             expect(body.status_code).toBe(404);

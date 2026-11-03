@@ -1,0 +1,137 @@
+/* Home's focus card (FocusBoard, FocusRow, WeekCheckins): a headline sentence over a soft accent
+   wash, then the "This week" board — one hairline-separated row per item with seven check-in
+   circles. Tokens only. */
+
+.ta-focus {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 70%, var(--surface)) 0, var(--surface) 180px);
+}
+
+.ta-focus--empty {
+    background: var(--surface);
+}
+
+.ta-focus--empty .ta-empty {
+    padding: 24px 8px;
+}
+
+.ta-focus__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 28px;
+}
+
+.ta-focus__meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-focus__headline {
+    display: -webkit-box;
+    max-width: 52ch;
+    margin: 0;
+    overflow: hidden;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.ta-focus__board-label {
+    margin-top: 12px;
+}
+
+.ta-focus__board {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+    transition: opacity 120ms ease;
+}
+
+.ta-focus__board[aria-busy='true'] {
+    opacity: 0.55;
+}
+
+/* One item: text over the week on phones; text | week from 768px. */
+.ta-focus-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.ta-focus-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.ta-focus-row__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ink);
+}
+
+.ta-focus-row__action {
+    display: -webkit-box;
+    margin: 2px 0 0;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.ta-focus-row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-top: 6px;
+}
+
+.ta-focus-row__why {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-2);
+}
+
+.ta-focus-row__why[hidden] {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .ta-focus__headline {
+        font-size: 22px;
+        -webkit-line-clamp: 2;
+    }
+
+    .ta-focus-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px 32px;
+    }
+
+    .ta-focus-row__action {
+        -webkit-line-clamp: 1;
+    }
+}

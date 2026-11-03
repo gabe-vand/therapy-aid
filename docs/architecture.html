@@ -34,12 +34,13 @@
       <li><a href="#r2"><span class="n">2</span>Session pipelines</a></li>
       <li><a href="#r3"><span class="n">3</span>Data model</a></li>
       <li><a href="#r4"><span class="n">4</span>Grounding: context pack + retrieval</a></li>
-      <li><a href="#r5"><span class="n">5</span>Why not embeddings</a></li>
-      <li><a href="architecture-ops.html#r6"><span class="n">6</span>Model routing and cost <em>(operations page)</em></a></li>
-      <li><a href="architecture-ops.html#r7"><span class="n">7</span>Auth <em>(operations page)</em></a></li>
-      <li><a href="architecture-ops.html#r8"><span class="n">8</span>Where data lives on the Pi <em>(operations page)</em></a></li>
-      <li><a href="architecture-ops.html#r9"><span class="n">9</span>Seeding and backups <em>(operations page)</em></a></li>
-      <li><a href="architecture-ops.html#r10"><span class="n">10</span>Failure behaviour <em>(operations page)</em></a></li>
+      <li><a href="#margin"><span class="n">5</span>Margin notes: the companion that reads along</a></li>
+      <li><a href="#r5"><span class="n">6</span>Why not embeddings</a></li>
+      <li><a href="architecture-ops.html#r6"><span class="n">7</span>Model routing and cost <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r7"><span class="n">8</span>Auth <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r8"><span class="n">9</span>Where data lives on the Pi <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r9"><span class="n">10</span>Seeding and backups <em>(operations page)</em></a></li>
+      <li><a href="architecture-ops.html#r10"><span class="n">11</span>Failure behaviour <em>(operations page)</em></a></li>
     </ol>
   </nav>
 
@@ -107,7 +108,9 @@ api  (Bun + Hono, port 3010)
         <tr><td><code>problems</code></td><td>Durable threads (&ldquo;racing mind&rdquo;, &ldquo;Nicole&rdquo;): status active | resolved | discarded, <code>last_discussed_at</code>, <code>last_reviewed_at</code>, <code>origin_session_id</code>.</td></tr>
         <tr><td><code>problem_updates</code></td><td>The timeline of each problem: one progress note per session that touched it (source <code>ai</code>) or by hand (<code>manual</code>). Deleting a session keeps its notes and nulls the link.</td></tr>
         <tr><td><code>focus_snapshots</code></td><td>Every regenerated &ldquo;what to focus on now&rdquo; (headline + 1&ndash;3 items). The newest is the banner; older ones are history.</td></tr>
-        <tr><td><code>journal_entries</code>, <code>journal_insights</code></td><td>Journal text, and the insights generated on request for an entry.</td></tr>
+        <tr><td><code>journal_entries</code>, <code>journal_insights</code></td><td>Journal text, and the notes written on an entry: <em>margin notes</em> (source <code>margin</code>; kind advice | connection | question; anchored to a paragraph's opening words, tied to a problem and sometimes a session) and <em>reflections</em> (source <code>reflection</code>, on request). <code>dismissed_at</code> hides one for good.</td></tr>
+        <tr><td><code>journal_problem_links</code></td><td>What the classifier decided: one row per (entry, problem) with the strongest confidence seen and the paragraph excerpt. Powers &ldquo;In your journal lately&rdquo; on Home and &ldquo;In your journal&rdquo; on a problem's page.</td></tr>
+        <tr><td><code>focus_checkins</code></td><td>One row per day Gabe ticked a focus item's action on Home (snapshot, item index, local day).</td></tr>
         <tr><td><code>chat_threads</code>, <code>chat_messages</code></td><td>Conversations with the grounded chatbot.</td></tr>
         <tr><td><code>app_settings</code></td><td>Key/value; today just <code>profile</code>, the &ldquo;About me&rdquo; text every prompt opens with.</td></tr>
         <tr><td><code>search_index</code></td><td>An FTS5 virtual table (<code>porter unicode61</code>), one row per session or journal entry, rewritten on every write and rebuilt at boot if empty.</td></tr>
@@ -119,7 +122,7 @@ api  (Bun + Hono, port 3010)
   <section class="rule" id="r4">
     <div class="rule-head"><span class="num crit">4</span><h3>Grounding &mdash; the context pack, then retrieval</h3></div>
     <div class="rule-body">
-      <p>Chat, focus and insights all answer from the same grounding text, built by <code>services/context/context-pack.ts</code>:</p>
+      <p>Chat, focus and reflections all answer from the same grounding text, built by <code>services/context/context-pack.ts</code>:</p>
       <ol>
         <li><code>About Gabe</code> &mdash; the profile.</li>
         <li><code>Current focus</code> &mdash; the latest snapshot.</li>
@@ -136,8 +139,22 @@ api  (Bun + Hono, port 3010)
     </div>
   </section>
 
+  <section class="rule" id="margin">
+    <div class="rule-head"><span class="num">5</span><h3>Margin notes &mdash; the companion that reads along</h3></div>
+    <div class="rule-body">
+      <p>While Gabe writes, the journal quietly matches each paragraph he finishes against his problems and, now and then, pencils a short note in the margin. It is the only AI work that runs without a click, so it is built as two narrow stages rather than one big call (<code>services/journal/margin/</code>):</p>
+      <ol>
+        <li><strong>Trigger (SPA).</strong> Two seconds after the last keystroke, <code>use-margin-notes.ts</code> looks for blocks that just became &ldquo;settled&rdquo;: at least 60 plain-text characters, ending a sentence, and not seen before (the blocks an entry opened with are seeded as seen, so reading never fires). Each is sent to <code>POST /journal/:id/notes</code> with <code>write</code> set only when the cadence allows: one note a minute, four an editor session.</li>
+        <li><strong>Classify (Haiku, task <code>classify</code>).</strong> The paragraph against a cached one-line-per-problem list &rarr; <code>{ problem_id, confidence, because }</code>. At or above 0.6 the (entry, problem) link is upserted into <code>journal_problem_links</code> with the excerpt &mdash; whether or not a note follows. This is what Home's &ldquo;In your journal lately&rdquo; and a problem's &ldquo;In your journal&rdquo; read. <code>scripts/classify-journal.ts</code> runs this stage over existing entries once.</li>
+        <li><strong>Write (Sonnet, task <code>margin_note</code>).</strong> Only on a confident match, when the entry has no live note about that problem yet, under five notes for the entry and forty for the day. The evidence is narrow on purpose: that problem's description and last four notes, plus the three ready sessions whose text best matches the paragraph (FTS5), each with David's advice and key points &mdash; a few thousand tokens instead of the 30k pack. The model picks the kind: <em>advice</em> (what David said, with the date; preferred when the evidence has it), <em>connection</em> (how the thread has been moving) or <em>question</em> (one honest question when the evidence is thin). 25&ndash;60 words, stored with the paragraph's opening words as its anchor.</li>
+        <li><strong>Show (SPA).</strong> On a wide pane the note sits beside its paragraph (the anchor is matched to the editor's block and measured; overlapping cards spread downwards); narrower, it is listed under the document quoting its paragraph, with a &ldquo;New margin note&rdquo; pill on phones. Dismiss hides it for good. &ldquo;Reflect on this entry&rdquo; in the entry menu is the old on-demand, whole-entry note, kept as a separate kind.</li>
+      </ol>
+      <p>Why this shape: the classifier is cheap enough to run on everything, which makes the links a by-product worth having on their own; the writer is where the money goes, so it runs rarely and reads little. Both stages are structured-output calls with the limits in the prompt and clamped in code.</p>
+    </div>
+  </section>
+
   <section class="rule" id="r5">
-    <div class="rule-head"><span class="num">5</span><h3>Why not embeddings</h3></div>
+    <div class="rule-head"><span class="num">6</span><h3>Why not embeddings</h3></div>
     <div class="rule-body">
       <ul>
         <li><strong>The corpus fits.</strong> Years of weekly sessions, summarized, are tens of thousands of tokens. The recent, high-value part sits in the prompt whole; the rest is one line each. Nothing needs to be &ldquo;retrieved&rdquo; to be seen.</li>

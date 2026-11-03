@@ -1,0 +1,74 @@
+/* The session detail header (SessionHeader.tsx) and the processing / failed card under it
+   (ProcessingCard.tsx). Tokens only. */
+
+.ta-shead {
+    margin-bottom: 32px;
+}
+
+.ta-shead--form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ta-shead__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ta-shead__title {
+    min-width: 0;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+}
+
+.ta-shead__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Processing / failed card: the stepper, then one bold line and one quiet line. */
+.ta-proc__note {
+    margin: 20px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.ta-proc__fail {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.ta-proc__fail-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--danger);
+}
+
+.ta-proc__fail-body {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-2);
+}
+
+/* A quiet destructive action (Delete session) — ghost, in the danger colour. */
+.ta-btn-danger-text.ta-btn {
+    color: var(--danger);
+}

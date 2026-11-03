@@ -36,7 +36,11 @@ const is_repository = (spec: string) => spec.startsWith('@/repositories');
 
 /** "<file>: <spec>" for every import in `files` that `banned` matches. */
 const violations = (files: string[], banned: (spec: string) => boolean): string[] =>
-    files.flatMap((file) => import_specs(file).filter(banned).map((spec) => `${relative(ROOT, file)}: ${spec}`));
+    files.flatMap((file) =>
+        import_specs(file)
+            .filter(banned)
+            .map((spec) => `${relative(ROOT, file)}: ${spec}`),
+    );
 
 // services/common (infra) and services/middleware (Hono middleware, by definition) are exempt.
 const feature_services = ts_files(join(SRC, 'services')).filter((f) => !f.includes(join('services', 'common')) && !f.includes(join('services', 'middleware')));

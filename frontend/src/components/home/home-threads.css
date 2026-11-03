@@ -1,0 +1,121 @@
+/* Home's Threads grid (ThreadsCard, ThreadRow): one 44px row per active problem — title, a stale
+   chip, inline Keep / Discard, the session dots and the journal count. Phones stack the title over
+   the dots; from 768px it is one line. The title link stretches over the row (::after) so the
+   whole row navigates while the buttons stay clickable above it. Tokens only. */
+
+.ta-threads {
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+}
+
+.ta-threads__empty {
+    margin: 0;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.ta-thread {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        'main main'
+        'dots count';
+    align-items: center;
+    gap: 6px 12px;
+    padding: 10px 16px;
+    transition: background 120ms ease;
+}
+
+.ta-thread.is-stale {
+    grid-template-areas:
+        'main main'
+        'dots count'
+        'actions actions';
+}
+
+.ta-thread + .ta-thread {
+    border-top: 1px solid var(--line);
+}
+
+.ta-thread:hover {
+    background: var(--surface-2);
+}
+
+.ta-thread__main {
+    grid-area: main;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ta-thread__link {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ta-thread__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
+.ta-thread__link:focus-visible {
+    outline: none;
+}
+
+.ta-thread:has(.ta-thread__link:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+}
+
+.ta-thread__actions {
+    grid-area: actions;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 2px;
+}
+
+.ta-thread__dots {
+    grid-area: dots;
+}
+
+.ta-thread__mentions {
+    grid-area: count;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 36px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-thread__mentions svg {
+    width: 12px;
+    height: 12px;
+}
+
+@media (min-width: 768px) {
+    .ta-thread {
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        grid-template-areas: 'main actions dots count';
+        min-height: 44px;
+        padding: 6px 16px;
+        box-sizing: border-box;
+    }
+
+    .ta-thread.is-stale {
+        grid-template-areas: 'main actions dots count';
+    }
+}

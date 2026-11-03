@@ -48,10 +48,7 @@ export const getClaudeTransport = (): ClaudeTransport => {
     if (!app_env.anthropic_api_key) throw new AiNotConfiguredError();
     if (!real) {
         const client = new Anthropic({ apiKey: app_env.anthropic_api_key });
-        real = {
-            create: (params) => client.messages.create(params),
-            parse: (params) => client.messages.parse(params),
-        };
+        real = { create: (params) => client.messages.create(params), parse: (params) => client.messages.parse(params) };
     }
     return real;
 };

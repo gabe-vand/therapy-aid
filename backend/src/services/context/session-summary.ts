@@ -10,12 +10,7 @@ export const parseSessionSummary = (json: string | null): SessionSummary | null 
     if (!json) return null;
     try {
         const raw = JSON.parse(json) as Record<string, unknown>;
-        return {
-            title: typeof raw.title === 'string' ? raw.title : '',
-            overview: typeof raw.overview === 'string' ? raw.overview : '',
-            key_points: strings(raw.key_points),
-            therapist_advice: strings(raw.therapist_advice),
-        };
+        return { title: typeof raw.title === 'string' ? raw.title : '', overview: typeof raw.overview === 'string' ? raw.overview : '', key_points: strings(raw.key_points), therapist_advice: strings(raw.therapist_advice) };
     } catch (e) {
         console.error('[sessions] unreadable summary_json', e);
         return null;

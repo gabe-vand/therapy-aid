@@ -1,0 +1,127 @@
+/* One margin note card (MarginNote.tsx): accent rule on the left (warn for a question), the
+   kind line, the paragraph quote (inline layout only), the body, the problem chip and the stamp.
+   The arrival animation (ta-note-in) is shared with the phone pill in margin-notes.css. Tokens only. */
+
+.ta-note {
+    position: relative;
+    padding: 10px 12px 10px 14px;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ta-note::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -1px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+}
+
+.ta-note--question::before {
+    background: var(--warn);
+}
+
+.ta-note--fresh {
+    animation: ta-note-in 420ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-note--fresh {
+        animation: none;
+    }
+}
+
+.ta-note__head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ta-note--question .ta-note__head {
+    color: var(--warn);
+}
+
+.ta-note__head > svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+}
+
+.ta-note__when {
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    text-decoration: none;
+}
+
+.ta-note__when:hover {
+    text-decoration: underline;
+}
+
+.ta-note__dismiss {
+    margin-left: auto;
+    margin-right: -6px;
+    color: var(--faint);
+}
+
+.ta-note__dismiss:hover {
+    color: var(--ink);
+}
+
+.ta-note__quote {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--muted);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ta-note__body.ta-md {
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.ta-note__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ta-note__problem {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ta-note__stamp {
+    font-size: 11px;
+    color: var(--faint);
+    white-space: nowrap;
+}

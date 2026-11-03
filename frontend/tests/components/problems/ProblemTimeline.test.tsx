@@ -23,9 +23,9 @@ describe('ProblemTimeline', () => {
         expect(screen.getByRole('link', { name: 'Session' })).toHaveAttribute('href', '/sessions/12');
     });
 
-    it('renders a note typed by hand with the Note chip and no link', () => {
+    it('renders a note typed by hand with the Your note chip and no link', () => {
         show([update({ source: 'manual', session_id: null, session_title: null, body: 'My own note' })]);
-        expect(screen.getByText('Note')).toBeInTheDocument();
+        expect(screen.getByText('Your note')).toBeInTheDocument();
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 });

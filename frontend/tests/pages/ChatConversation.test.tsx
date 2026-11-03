@@ -119,7 +119,9 @@ describe('Chat: conversation', () => {
             'POST /api/chat/threads/5/messages': { user: message({ id: 1, thread_id: 5, content: 'q' }), assistant: message({ id: 2, thread_id: 5, role: 'assistant', content: 'a' }) },
         });
         open('/chat/5');
-        fireEvent.click(await screen.findByRole('button', { name: 'What has David said about my racing mind?' }));
-        await waitFor(() => expect(sent_body(mock, 2)).toEqual({ content: 'What has David said about my racing mind?' }));
+        fireEvent.click(await screen.findByRole('button', { name: 'Summarise my last session' }));
+        const post = () => mock.mock.calls.findIndex((c) => (c[1] as RequestInit | undefined)?.method === 'POST');
+        await waitFor(() => expect(post()).toBeGreaterThan(-1));
+        expect(sent_body(mock, post())).toEqual({ content: 'Summarise my last session' });
     });
 });

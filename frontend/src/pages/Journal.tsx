@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { NotebookPen, Plus } from 'lucide-react';
 import type { JournalEntry } from '@therapy-aid/shared';
 import { EntryEditor } from '@/components/journal/EntryEditor';
@@ -21,6 +21,7 @@ export default function Journal() {
     const { id } = useParams();
     const selected_id = id && /^\d+$/.test(id) ? Number(id) : null;
     const navigate = useNavigate();
+    const [params] = useSearchParams();
     const { entries, loading, error, reload, apply_entry, drop_entry } = useJournal();
     const [composing, set_composing] = useState(false);
     const [session, set_session] = useState(0);
@@ -35,6 +36,13 @@ export default function Journal() {
         set_composing(true);
         if (selected_id !== null) navigate(paths.journal);
     };
+
+    // /journal?new=1 (Home's "Write", the palette) opens a blank entry straight away.
+    useEffect(() => {
+        if (params.get('new') !== '1') return;
+        set_composing(true);
+        navigate(paths.journal, { replace: true });
+    }, [params, navigate]);
 
     const back = () => {
         set_composing(false);
@@ -83,8 +91,8 @@ export default function Journal() {
                         <div className="ta-journal__idle">
                             <EmptyState
                                 icon={<NotebookPen size={20} />}
-                                title="Nothing open"
-                                body="Pick an entry to read or edit, or start a new one."
+                                title="Write today’s entry"
+                                body="Or pick one on the left to read or edit. As you finish paragraphs, short margin notes appear when they connect to what you and David are working on."
                                 action={
                                     <Button size="sm" onClick={start_new}>
                                         Start writing

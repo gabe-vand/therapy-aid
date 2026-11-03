@@ -1,0 +1,110 @@
+/* The 48px entry bar at the top of the journal's editor pane (EntryToolbar): sticky, the quiet
+   date input, the save status, the breathing pen while a margin note is being considered, and
+   the save error under it. Desktop: sticks at 0 inside the scrolling pane; phones: under the top
+   bar (--ta-bar-top is set by .ta-entry in journal-editor.css). Tokens only. */
+
+.ta-entry-bar {
+    position: sticky;
+    top: var(--ta-bar-top);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 48px;
+    padding: 0 8px 0 4px;
+    box-sizing: border-box;
+    background: var(--paper);
+}
+
+.ta-entry-bar__status {
+    margin-left: auto;
+    padding: 0 4px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.ta-entry-bar__error {
+    color: var(--danger);
+}
+
+.ta-entry-bar__retry {
+    font-weight: 600;
+    text-decoration: underline;
+    color: inherit;
+}
+
+.ta-date-quiet {
+    height: 40px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background 120ms ease;
+}
+
+.ta-date-quiet:hover {
+    background: var(--surface-3);
+}
+
+.ta-date-quiet:focus-visible {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ta-entry-bar__thinking {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent);
+    animation: ta-thinking 1.4s ease-in-out infinite;
+}
+
+.ta-entry-bar__thinking svg {
+    width: 15px;
+    height: 15px;
+}
+
+@keyframes ta-thinking {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-entry-bar__thinking {
+        animation: none;
+    }
+}
+
+.ta-entry__save-error {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4px 24px 0;
+    box-sizing: border-box;
+    font-size: 13px;
+    color: var(--danger);
+}
+
+@media (min-width: 768px) {
+    .ta-entry-bar {
+        padding: 0 12px 0 max(12px, calc((100% - 720px) / 2 + 16px));
+    }
+
+    .ta-entry-bar .ta-entry-bar__back {
+        display: none;
+    }
+
+    .ta-date-quiet {
+        height: 28px;
+        font-size: 13px;
+    }
+}

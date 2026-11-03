@@ -1,7 +1,7 @@
 // AI model routing and cost visibility. Every Claude call names one of these tasks; the backend
 // resolves model + effort per task (svc-models.ts) and GET /ai/usage reports what each one cost.
 
-export const AI_TASKS = ['summarize', 'map_problems', 'focus', 'insight', 'chat', 'title'] as const;
+export const AI_TASKS = ['summarize', 'map_problems', 'focus', 'insight', 'classify', 'margin_note', 'chat', 'title'] as const;
 
 export type AiTask = (typeof AI_TASKS)[number];
 

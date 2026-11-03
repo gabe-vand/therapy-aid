@@ -32,8 +32,30 @@ describe('SessionDetail ready', () => {
         expect(screen.getByText(/first task before bed/)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Sleep and the racing mind' })).toHaveAttribute('href', '/problems/3');
         const fresh = screen.getByRole('link', { name: 'Avoiding hard talks' }).parentElement!;
-        expect(within(fresh).getByText('new')).toBeInTheDocument();
+        expect(within(fresh).getByText('New')).toBeInTheDocument();
         expect(screen.queryByRole('list', { name: /processing/i })).not.toBeInTheDocument();
+    });
+
+    it('numbers the key points, gives David’s advice its own list, and links the sections from the mini-nav', async () => {
+        stub_api({ 'GET /api/sessions/4': session({ problem_updates: [{ problem_id: 3, problem_title: 'Sleep', body: 'b', is_new_problem: false }] }) });
+        mount();
+        const points = within(await screen.findByRole('region', { name: 'Key points' })).getByRole('list');
+        expect(points.tagName).toBe('OL');
+        expect(within(points).getAllByRole('listitem')).toHaveLength(2);
+        expect(within(screen.getByRole('region', { name: 'What David suggested' })).getAllByRole('listitem')).toHaveLength(1);
+        const nav = screen.getByRole('navigation', { name: 'On this page' });
+        expect(
+            within(nav)
+                .getAllByRole('link')
+                .map((a) => a.getAttribute('href')),
+        ).toEqual(['#overview', '#key-points', '#advice', '#problems']);
+        expect(screen.getByRole('region', { name: 'Problems this session touched' })).toBeInTheDocument();
+    });
+
+    it('shows the date line with source and duration', async () => {
+        stub_api({ 'GET /api/sessions/4': session({ source: 'recording', duration_sec: 48 * 60 }) });
+        mount();
+        expect(await screen.findByText(/· Recorded · 48 min$/)).toBeInTheDocument();
     });
 
     it('offers the transcript or the notes as a collapsible', async () => {
@@ -93,7 +115,7 @@ describe('SessionDetail processing and failure', () => {
         expect(items[0]).toHaveAttribute('data-state', 'done');
         expect(items[1]).toHaveAttribute('data-state', 'current');
         expect(items[2]).toHaveAttribute('data-state', 'todo');
-        expect(screen.queryByText('Overview')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Overview' })).not.toBeInTheDocument();
     });
 
     it('a notes session has no transcribing step', async () => {
@@ -117,7 +139,7 @@ describe('SessionDetail processing and failure', () => {
         expect(within(screen.getByRole('list', { name: /processing progress/i })).getAllByRole('listitem')[1]).toHaveAttribute('data-state', 'failed');
         fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
         await waitFor(() => expect(screen.queryByText(/Transcription is not configured/)).not.toBeInTheDocument());
-        expect(await screen.findByText('Overview')).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument();
     });
 });
 

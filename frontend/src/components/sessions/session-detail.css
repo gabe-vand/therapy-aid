@@ -1,0 +1,172 @@
+/* Session detail (SessionDetail page, SummaryBody, ProblemUpdates, SessionNav): the layout with
+   its desktop mini-nav rail, the section eyebrows, numbered key points, David's advice on an
+   accent rule, and the touched-problem rows. Tokens only. The header is in session-header.css. */
+
+/* ≥1100px the reading column gains a 160px rail on the right; below it the rail is hidden. */
+.ta-sdetail__grid {
+    display: block;
+}
+
+.ta-snav {
+    display: none;
+}
+
+@media (min-width: 1100px) {
+    .ta-page--reading.ta-sdetail {
+        max-width: 1000px;
+    }
+
+    .ta-sdetail__grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 160px;
+        gap: 48px;
+        align-items: start;
+    }
+
+    .ta-snav {
+        position: sticky;
+        top: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 40px;
+    }
+}
+
+.ta-snav__title {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ta-snav__link {
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    transition:
+        color 120ms ease,
+        border-color 120ms ease;
+}
+
+.ta-snav__link:hover {
+    color: var(--ink);
+}
+
+.ta-snav__link[aria-current='location'] {
+    border-left-color: var(--accent);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.ta-sdetail__body {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Sections: an 11px eyebrow, then the content. scroll-margin clears the mobile top bar. */
+.ta-ssec {
+    scroll-margin-top: calc(var(--ta-topbar-h, 0px) + 16px);
+}
+
+.ta-ssec__title {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* Key points: numbered, the numbers quiet and tabular so the text carries. */
+.ta-points {
+    counter-reset: point;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-points li {
+    counter-increment: point;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.ta-points li::before {
+    content: counter(point, decimal-leading-zero);
+    padding-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+}
+
+/* David's advice: each item on a 3px accent rule with a faint fill — weight without shouting. */
+.ta-advice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-advice li {
+    padding: 10px 14px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    background: var(--surface-2);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--ink);
+}
+
+/* Problems this session touched: hairline rows. */
+.ta-touched {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+
+.ta-touched__item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.ta-touched__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ta-touched__head a {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.ta-touched__head a:hover {
+    color: var(--accent);
+}
+
+.ta-touched__item p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-2);
+}

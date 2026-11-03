@@ -7,7 +7,7 @@ import { searchDocuments } from '@/services/search/search';
 import { installFakeClaude, message, text, type FakeTransport } from '../../helpers/hlp-claude';
 import { resetDatabase, seedFocus, seedJournal, seedSession } from '../../helpers/hlp-db';
 
-// "I have an idea…": the draft is saved first, then one structured call; nothing runs unless asked.
+// Reflections: the draft is saved first, then one structured call; nothing runs unless asked.
 
 beforeEach(() => resetDatabase());
 

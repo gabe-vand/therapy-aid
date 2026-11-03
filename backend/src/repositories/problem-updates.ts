@@ -43,13 +43,7 @@ export const selectUpdatesForProblem = (problem_id: number, limit?: number): Pro
     caller can tell "opened a new problem" from "updated an existing one"), oldest first. */
 export const selectUpdatesForSession = (session_id: number): SessionUpdateRow[] =>
     db
-        .select({
-            problem_id: problem_updates.problem_id,
-            problem_title: problems.title,
-            body: problem_updates.body,
-            origin_session_id: problems.origin_session_id,
-            created_at: problem_updates.created_at,
-        })
+        .select({ problem_id: problem_updates.problem_id, problem_title: problems.title, body: problem_updates.body, origin_session_id: problems.origin_session_id, created_at: problem_updates.created_at })
         .from(problem_updates)
         .innerJoin(problems, eq(problems.id, problem_updates.problem_id))
         .where(eq(problem_updates.session_id, session_id))
@@ -74,7 +68,5 @@ export const selectLatestUpdateBodies = (): { problem_id: number; body: string }
     db
         .select({ problem_id: problem_updates.problem_id, body: problem_updates.body })
         .from(problem_updates)
-        .where(
-            sql`${problem_updates.id} = (select u.id from problem_updates u where u.problem_id = ${problem_updates.problem_id} order by u.created_at desc, u.id desc limit 1)`,
-        )
+        .where(sql`${problem_updates.id} = (select u.id from problem_updates u where u.problem_id = ${problem_updates.problem_id} order by u.created_at desc, u.id desc limit 1)`)
         .all();

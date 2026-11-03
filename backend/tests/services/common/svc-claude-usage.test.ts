@@ -20,12 +20,7 @@ afterEach(() => {
 
 describe('tokenCounts', () => {
     it('reads null cache fields as 0', () => {
-        expect(tokenCounts({ input_tokens: 5, output_tokens: 2, cache_read_input_tokens: null, cache_creation_input_tokens: null } as Anthropic.Usage)).toEqual({
-            input_tokens: 5,
-            output_tokens: 2,
-            cache_read_tokens: 0,
-            cache_write_tokens: 0,
-        });
+        expect(tokenCounts({ input_tokens: 5, output_tokens: 2, cache_read_input_tokens: null, cache_creation_input_tokens: null } as Anthropic.Usage)).toEqual({ input_tokens: 5, output_tokens: 2, cache_read_tokens: 0, cache_write_tokens: 0 });
     });
 });
 

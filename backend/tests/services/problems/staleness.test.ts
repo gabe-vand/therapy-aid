@@ -4,13 +4,7 @@ import { isStale, lastTouchedMs } from '@/services/problems/staleness';
 const NOW = Date.parse('2026-11-03T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
 const ago = (days: number, extra_ms = 0): string => new Date(NOW - days * DAY - extra_ms).toISOString();
-const problem = (over: Partial<Parameters<typeof isStale>[0]> = {}): Parameters<typeof isStale>[0] => ({
-    status: 'active',
-    last_discussed_at: null,
-    last_reviewed_at: null,
-    created_at: ago(100),
-    ...over,
-});
+const problem = (over: Partial<Parameters<typeof isStale>[0]> = {}): Parameters<typeof isStale>[0] => ({ status: 'active', last_discussed_at: null, last_reviewed_at: null, created_at: ago(100), ...over });
 
 describe('isStale boundaries', () => {
     it('is fresh at 29 days and at exactly 30 days', () => {

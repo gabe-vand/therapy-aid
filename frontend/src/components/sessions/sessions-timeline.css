@@ -1,0 +1,118 @@
+/* The Sessions timeline (SessionTimeline.tsx): a 2px --line rail with 10px status nodes and
+   sticky month eyebrows. The rail sits 10px in from the left so the nodes centre on it; rows hang
+   off it at 28px. Tokens only. */
+
+.ta-tl {
+    position: relative;
+    padding-left: 28px;
+}
+
+/* The rail itself runs the full height, behind the nodes. */
+.ta-tl::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 9px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--line);
+}
+
+.ta-tl__month + .ta-tl__month {
+    margin-top: 20px;
+}
+
+/* Sticky under the mobile top bar; at the top of <main> (the scroller) on desktop. */
+.ta-tl__label {
+    position: sticky;
+    top: var(--ta-topbar-h);
+    z-index: 2;
+    margin: 0 0 4px -28px;
+    padding: 6px 0 6px 28px;
+    background: var(--paper);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* A small notch on the rail beside each month label. */
+.ta-tl__label::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    width: 8px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--line-2);
+}
+
+@media (min-width: 768px) {
+    .ta-tl__label {
+        top: 0;
+    }
+}
+
+.ta-tl__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-tl__item {
+    position: relative;
+}
+
+.ta-tl__item .ta-session-row {
+    border-radius: var(--r-md);
+    padding-inline: 12px;
+}
+
+.ta-tl__node {
+    position: absolute;
+    top: 50%;
+    left: -23px;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    background: var(--line-2);
+    box-shadow: 0 0 0 3px var(--paper);
+}
+
+.ta-tl__node[data-node='idle'] {
+    background: var(--paper);
+    border: 2px solid var(--line-2);
+}
+
+.ta-tl__node[data-node='ready'] {
+    background: var(--ok);
+}
+
+.ta-tl__node[data-node='failed'] {
+    background: var(--danger);
+}
+
+.ta-tl__node[data-node='processing'] {
+    background: var(--accent);
+    animation: ta-tl-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ta-tl-pulse {
+    50% {
+        box-shadow:
+            0 0 0 3px var(--paper),
+            0 0 0 6px var(--accent-soft);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-tl__node[data-node='processing'] {
+        animation: none;
+    }
+}

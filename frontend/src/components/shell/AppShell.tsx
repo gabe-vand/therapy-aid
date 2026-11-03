@@ -1,4 +1,8 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Search } from 'lucide-react';
+import { CommandPalette } from '@/components/palette/CommandPalette';
+import { Kbd, mod_key } from '@/components/ui/Kbd';
+import { usePalette } from '@/services/hooks/use-palette';
 import { paths } from '@/services/paths';
 import { NAV_ITEMS, is_active, type NavItem } from './nav';
 import { NavIcon } from './NavIcon';
@@ -7,10 +11,11 @@ import './shell.css';
 import './shell-mobile.css';
 
 /* The frame every page renders inside (App.tsx uses it as the layout route) — a Linear layout.
-   Desktop (≥ 768px): a fixed 240px sidebar (brand, nav, and at the bottom the theme switch and
-   Settings) beside a full-bleed main area that is the scroll container. Mobile: a 48px top bar
-   (brand + Settings gear), a bottom tab bar with the five main sections, and the WINDOW scrolls
-   (no inner scroller — iOS keyboards fight those). Pages size themselves with <Page width>. */
+   Desktop (≥ 768px): a fixed 240px sidebar (brand, a Search button, nav, and at the bottom the
+   theme switch and Settings) beside a full-bleed main area that is the scroll container. Mobile: a
+   48px top bar (brand, search, Settings gear), a bottom tab bar with the five main sections, and
+   the WINDOW scrolls (no inner scroller — iOS keyboards fight those). Pages size themselves with
+   <Page width>. The command palette (Ctrl/⌘+K, "/", or either Search button) is rendered once here. */
 
 const Brand = () => (
     <Link to={paths.home} className="ta-brand">
@@ -32,6 +37,7 @@ export default function AppShell() {
     const { pathname } = useLocation();
     const settings = NAV_ITEMS.find((item) => item.to === paths.settings)!;
     const sections = NAV_ITEMS.filter((item) => item !== settings);
+    const palette = usePalette();
 
     return (
         <div className="ta-shell">
@@ -39,6 +45,11 @@ export default function AppShell() {
                 <div className="ta-sidebar__brand">
                     <Brand />
                 </div>
+                <button type="button" className="ta-side-search" aria-label="Search" aria-keyshortcuts="Control+K Meta+K /" onClick={palette.show}>
+                    <Search aria-hidden size={15} />
+                    <span className="ta-side-search__label">Search…</span>
+                    <Kbd>{mod_key()}K</Kbd>
+                </button>
                 {/* Settings stays inside the Main nav (one landmark lists every section) but sits at the bottom. */}
                 <nav aria-label="Main" className="ta-sidebar__nav">
                     {sections.map((item) => (
@@ -56,9 +67,14 @@ export default function AppShell() {
             <div className="ta-content">
                 <header className="ta-topbar">
                     <Brand />
-                    <Link to={settings.to} className="ta-icon-link" aria-label="Settings" aria-current={current(is_active(settings, pathname))}>
-                        <NavIcon name="settings" size={20} />
-                    </Link>
+                    <div className="ta-topbar__actions">
+                        <button type="button" className="ta-icon-link" aria-label="Search" onClick={palette.show}>
+                            <Search aria-hidden size={20} strokeWidth={1.75} />
+                        </button>
+                        <Link to={settings.to} className="ta-icon-link" aria-label="Settings" aria-current={current(is_active(settings, pathname))}>
+                            <NavIcon name="settings" size={20} />
+                        </Link>
+                    </div>
                 </header>
 
                 <main className="ta-main">
@@ -74,6 +90,8 @@ export default function AppShell() {
                     </Link>
                 ))}
             </nav>
+
+            <CommandPalette open={palette.open} on_close={palette.close} />
         </div>
     );
 }

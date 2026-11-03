@@ -4,8 +4,8 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 72px;
-    height: 72px;
+    width: 88px;
+    height: 88px;
     border-radius: 999px;
     border: 0;
     background: var(--accent);
@@ -69,7 +69,7 @@
 
 .ta-rec-time {
     font-variant-numeric: tabular-nums;
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1;
@@ -125,4 +125,56 @@
 
 .ta-upload .ta-notice {
     margin: 16px 0 0;
+}
+
+/* The hero card on Record, its eyebrow, and the note under it. */
+.ta-rec-hero {
+    text-align: center;
+}
+
+.ta-rec-hero .ta-notice,
+.ta-rec-hero .ta-upload {
+    text-align: left;
+}
+
+.ta-rec-eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ta-rec-foot {
+    margin: 16px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Add notes: the form rhythm, a readable notes field and its live count. */
+.ta-notes-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+textarea.ta-input.ta-notes-field {
+    min-height: 260px;
+    resize: vertical;
+}
+
+@media (min-width: 768px) {
+    textarea.ta-input.ta-notes-field {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+}
+
+.ta-notes-count {
+    margin: -14px 0 0;
+    font-size: 12px;
+    text-align: right;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
 }

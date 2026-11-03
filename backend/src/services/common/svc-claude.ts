@@ -85,13 +85,7 @@ export const completeStructured = async <T>(opts: CallOptions & { schema: z.ZodT
     const r = route(opts);
     let response;
     try {
-        response = await getClaudeTransport().parse({
-            model: r.model,
-            max_tokens: opts.max_tokens ?? MAX_TOKENS,
-            system: opts.system,
-            messages: opts.messages,
-            output_config: { effort: r.effort, format: zodOutputFormat(opts.schema) },
-        });
+        response = await getClaudeTransport().parse({ model: r.model, max_tokens: opts.max_tokens ?? MAX_TOKENS, system: opts.system, messages: opts.messages, output_config: { effort: r.effort, format: zodOutputFormat(opts.schema) } });
     } catch (e) {
         // The SDK throws a plain AnthropicError (not an APIError) when the reply fails the schema.
         if (e instanceof Anthropic.AnthropicError && !(e instanceof Anthropic.APIError)) {
@@ -111,13 +105,7 @@ export const completeStructured = async <T>(opts: CallOptions & { schema: z.ZodT
 /** One plain-text call (markdown allowed). */
 export const completeText = async (opts: CallOptions): Promise<string> => {
     const r = route(opts);
-    const response = await getClaudeTransport().create({
-        model: r.model,
-        max_tokens: opts.max_tokens ?? MAX_TOKENS,
-        system: opts.system,
-        messages: opts.messages,
-        output_config: { effort: r.effort },
-    });
+    const response = await getClaudeTransport().create({ model: r.model, max_tokens: opts.max_tokens ?? MAX_TOKENS, system: opts.system, messages: opts.messages, output_config: { effort: r.effort } });
     accept(opts, r, response);
     return replyText(response);
 };
@@ -139,15 +127,7 @@ export const completeWithTools = async (opts: ToolOptions): Promise<string> => {
     const messages = [...opts.messages];
 
     for (let step = 0; step < max_iterations; step++) {
-        const response = await getClaudeTransport().create({
-            model: r.model,
-            max_tokens: opts.max_tokens ?? MAX_TOKENS,
-            system: opts.system,
-            messages,
-            tools: opts.tools,
-            output_config: { effort: r.effort },
-            cache_control: { type: 'ephemeral' },
-        });
+        const response = await getClaudeTransport().create({ model: r.model, max_tokens: opts.max_tokens ?? MAX_TOKENS, system: opts.system, messages, tools: opts.tools, output_config: { effort: r.effort }, cache_control: { type: 'ephemeral' } });
         accept(opts, r, response);
 
         if (response.stop_reason === 'pause_turn') {

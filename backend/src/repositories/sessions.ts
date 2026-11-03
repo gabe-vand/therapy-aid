@@ -40,11 +40,7 @@ export const selectAllSessions = (): SessionRow[] => db.select().from(sessions).
 /** Ready sessions' summaries, newest first; `limit` caps the count. Optional `before`
     (exclusive occurred_at) and `exclude_id` serve the summarizer ("the sessions before this one"). */
 export const selectReadySessionSummaries = (opts: { limit?: number; before?: string; exclude_id?: number } = {}): SessionSummaryRow[] => {
-    const where = and(
-        eq(sessions.status, 'ready'),
-        opts.before ? lt(sessions.occurred_at, opts.before) : undefined,
-        opts.exclude_id !== undefined ? ne(sessions.id, opts.exclude_id) : undefined,
-    );
+    const where = and(eq(sessions.status, 'ready'), opts.before ? lt(sessions.occurred_at, opts.before) : undefined, opts.exclude_id !== undefined ? ne(sessions.id, opts.exclude_id) : undefined);
     const query = db
         .select({ id: sessions.id, occurred_at: sessions.occurred_at, title: sessions.title, summary_json: sessions.summary_json })
         .from(sessions)
@@ -54,8 +50,7 @@ export const selectReadySessionSummaries = (opts: { limit?: number; before?: str
 };
 
 /** Sessions in any of `statuses`, oldest created first (boot recovery re-queues in order). */
-export const selectSessionsByStatus = (statuses: SessionStatus[]): SessionRow[] =>
-    db.select().from(sessions).where(inArray(sessions.status, statuses)).orderBy(asc(sessions.created_at), asc(sessions.id)).all();
+export const selectSessionsByStatus = (statuses: SessionStatus[]): SessionRow[] => db.select().from(sessions).where(inArray(sessions.status, statuses)).orderBy(asc(sessions.created_at), asc(sessions.id)).all();
 
 /** Applies `patch` and bumps updated_at. Returns the updated row, or null if there is none. */
 export const updateSession = (id: number, patch: SessionPatch): SessionRow | null =>

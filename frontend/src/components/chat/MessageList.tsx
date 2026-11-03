@@ -19,7 +19,7 @@ export const MessageList = ({ messages, pending, on_retry, on_discard }: { messa
 
     return (
         <div className="ta-chat-body" aria-live="polite">
-            {messages.map((m) => (m.role === 'user' ? <UserBubble key={m.id} content={m.content} /> : <AssistantBubble key={m.id} content={m.content} created_at={m.created_at} />))}
+            {messages.map((m) => (m.role === 'user' ? <UserBubble key={m.id} content={m.content} created_at={m.created_at} /> : <AssistantBubble key={m.id} content={m.content} created_at={m.created_at} />))}
             {pending && <UserBubble content={pending.content} />}
             {pending && pending.error === null && <ThinkingBubble />}
             {pending && pending.error !== null && <FailedNote message={pending.error} on_retry={on_retry} on_discard={on_discard} />}

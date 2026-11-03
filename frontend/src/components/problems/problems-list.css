@@ -1,0 +1,61 @@
+/* The Problems page around the rows: the inline new-problem form at the top of the list, the
+   "Resolved (n)" disclosure, and the phone-only meta separators. Tokens only. Rows are in problems.css. */
+
+.ta-pnew {
+    padding: 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+}
+
+.ta-pnew:only-child {
+    border-bottom: 0;
+}
+
+.ta-pnew__error {
+    margin: 0;
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.ta-disclosure {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 4px;
+    margin-top: 24px;
+    background: none;
+    border: 0;
+    border-radius: var(--r-sm);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ta-disclosure:hover {
+    color: var(--ink);
+}
+
+.ta-disclosure svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 120ms;
+}
+
+.ta-disclosure[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+}
+
+/* Phones: the row's meta is one wrapped line, so its parts get dot separators; from 768px the
+   meta is a right-aligned column (problems.css) and needs none. */
+@media (max-width: 767px) {
+    .ta-prow__counts::before,
+    .ta-prow__mentions::before {
+        content: '·';
+        color: var(--muted);
+    }
+}

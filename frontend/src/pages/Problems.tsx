@@ -1,23 +1,32 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import type { Problem } from '@therapy-aid/shared';
 import { NewProblemForm } from '@/components/problems/NewProblemForm';
 import { ProblemRow } from '@/components/problems/ProblemRow';
+import { problems_sentence } from '@/components/problems/summary';
 import { Button } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/States';
 import { Page } from '@/components/ui/Page';
+import '@/components/problems/problems-list.css';
+import { useDashboard } from '@/services/hooks/use-dashboard';
 import { useProblems } from '@/services/hooks/use-problems';
 
 /* The big-picture threads that persist across sessions. Active problems first (stale ones are
-   flagged with a chip and inline Keep / Discard), resolved ones in a disclosure underneath.
+   flagged with a chip and inline Keep / Discard), resolved ones in a disclosure underneath. Each
+   active row also draws its session dots and journal mentions from the dashboard, joined by id —
+   nothing extra shows while that loads, and a dashboard failure only loses the dots. The subtitle
+   counts what is on the list. New problems are typed into a form at the top of the list.
    Discard is destructive, so it goes through a ConfirmDialog; Keep is a one-tap review. */
+
 export default function Problems() {
     const { problems, loading, error, reload, keep, discard, create, creating, busy_id, action_error } = useProblems();
     const [adding, set_adding] = useState(false);
     const [show_resolved, set_show_resolved] = useState(false);
     const [to_discard, set_to_discard] = useState<Problem | null>(null);
+    const { dashboard } = useDashboard();
+    const threads = useMemo(() => new Map((dashboard?.threads ?? []).map((t) => [t.id, t])), [dashboard]);
 
     const active = problems.filter((p) => p.status === 'active');
     const resolved = problems.filter((p) => p.status === 'resolved');
@@ -37,9 +46,8 @@ export default function Problems() {
 
     return (
         <Page width="wide">
-            <PageHeader title="Problems" subtitle="The themes that keep coming up, and how they are moving." actions={new_button} />
+            <PageHeader title="Problems" subtitle={loading ? 'The themes that keep coming up, and how they are moving.' : problems_sentence(problems)} actions={new_button} />
 
-            {adding && <NewProblemForm creating={creating} error={action_error} on_submit={create} on_cancel={() => set_adding(false)} />}
             {!adding && action_error && (
                 <div className="mb-4">
                     <ErrorState message={action_error} />
@@ -48,27 +56,30 @@ export default function Problems() {
 
             {loading ? (
                 <Loading label="Loading problems">
-                    <Card padded={false}>
-                        <Skeleton height={56} />
-                        <Skeleton height={56} />
-                        <Skeleton height={56} />
+                    <Card padded={false} className="flex flex-col gap-3 p-4">
+                        <Skeleton height={40} />
+                        <Skeleton height={40} />
+                        <Skeleton height={40} />
                     </Card>
                 </Loading>
             ) : error ? (
                 <ErrorState message={error} on_retry={reload} />
             ) : (
                 <>
-                    {active.length === 0 ? (
-                        <EmptyState title="No active problems" body="Problems appear on their own as your sessions are summarised, or you can add one yourself." action={!adding && new_button} />
+                    {active.length === 0 && !adding ? (
+                        <EmptyState title="No active problems" body="Problems appear on their own as your sessions are summarised, or you can add one yourself." action={new_button} />
                     ) : (
-                        <Card padded={false}>
-                            <ul className="ta-prows" aria-label="Active problems">
-                                {active.map((p) => (
-                                    <li key={p.id}>
-                                        <ProblemRow problem={p} busy={busy_id === p.id} on_keep={(x) => void keep(x.id)} on_discard={set_to_discard} />
-                                    </li>
-                                ))}
-                            </ul>
+                        <Card padded={false} className="overflow-hidden">
+                            {adding && <NewProblemForm creating={creating} error={action_error} on_submit={create} on_cancel={() => set_adding(false)} />}
+                            {active.length > 0 && (
+                                <ul className="ta-prows" aria-label="Active problems">
+                                    {active.map((p) => (
+                                        <li key={p.id}>
+                                            <ProblemRow problem={p} thread={threads.get(p.id)} busy={busy_id === p.id} on_keep={(x) => void keep(x.id)} on_discard={set_to_discard} />
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </Card>
                     )}
 

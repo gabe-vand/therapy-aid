@@ -55,7 +55,11 @@ describe('threads', () => {
     });
 
     it('404s on a missing or malformed id', async () => {
-        for (const [method, path] of [['GET', '/chat/threads/999'], ['GET', '/chat/threads/abc'], ['DELETE', '/chat/threads/999']] as const) {
+        for (const [method, path] of [
+            ['GET', '/chat/threads/999'],
+            ['GET', '/chat/threads/abc'],
+            ['DELETE', '/chat/threads/999'],
+        ] as const) {
             expect([method, path, (await call(method, path)).status]).toEqual([method, path, 404]);
         }
         expect((await call('POST', '/chat/threads/999/messages', { content: 'hi' })).status).toBe(404);

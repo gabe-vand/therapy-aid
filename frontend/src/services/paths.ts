@@ -10,6 +10,7 @@ export const paths = {
     problem: (id: number | string) => `/problems/${id}`,
     journal: '/journal',
     journal_entry: (id: number | string) => `/journal/${id}`,
+    journal_new: '/journal?new=1',
     chat: '/chat',
     chat_thread: (id: number | string) => `/chat/${id}`,
     settings: '/settings',

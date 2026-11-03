@@ -36,7 +36,8 @@ describe('Chat: thread list', () => {
         const mock = stub_api({ 'GET /api/chat/threads': [racing], 'POST /api/chat/threads': created, 'GET /api/chat/threads/9': { thread: created, messages: [] } });
         open('/chat');
         fireEvent.click(await screen.findByRole('button', { name: 'New chat' }));
-        expect(await screen.findByText('Ask anything about your therapy')).toBeInTheDocument();
+        expect(await screen.findByRole('textbox', { name: 'Message' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Ask about your therapy' })).toBeInTheDocument();
         expect(mock.mock.calls.some((c) => c[0] === '/api/chat/threads/9')).toBe(true);
         expect(textbox()).toBeInTheDocument();
     });
@@ -46,7 +47,7 @@ describe('Chat: thread list', () => {
         const mock = stub_api({ 'GET /api/chat/threads': [racing, empty], 'GET /api/chat/threads/5': { thread: empty, messages: [] } });
         open('/chat');
         fireEvent.click(await screen.findByRole('button', { name: 'New chat' }));
-        expect(await screen.findByText('Ask anything about your therapy')).toBeInTheDocument();
+        expect(await screen.findByRole('textbox', { name: 'Message' })).toBeInTheDocument();
         expect(mock.mock.calls.some((c) => (c[1] as RequestInit | undefined)?.method === 'POST')).toBe(false);
     });
 });
@@ -86,7 +87,7 @@ describe('Chat: deleting', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Chat actions' }));
         fireEvent.click(screen.getByRole('menuitem', { name: 'Delete chat' }));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete chat' }));
-        expect(await screen.findByText('Pick a chat')).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Ask about your therapy' })).toBeInTheDocument();
         expect(screen.queryByRole('textbox', { name: 'Message' })).toBeNull();
     });
 

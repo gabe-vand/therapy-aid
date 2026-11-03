@@ -10,7 +10,12 @@ import { validate } from '@/services/common/svc-validate';
 
 export const router_chat = new Hono();
 
-const MessageBody = z.object({ content: z.string('Expected text.').max(20_000, 'Too long (20,000 characters max).').refine((value) => value.trim().length > 0, 'Write a message first.') });
+const MessageBody = z.object({
+    content: z
+        .string('Expected text.')
+        .max(20_000, 'Too long (20,000 characters max).')
+        .refine((value) => value.trim().length > 0, 'Write a message first.'),
+});
 
 const idOf = (c: Context): number | null => {
     const id = Number(c.req.param('id'));

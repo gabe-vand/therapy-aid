@@ -21,8 +21,7 @@ export const SUMMARIZATION_SESSIONS = 3;
 const SESSIONS_HEADING = '# Therapy sessions (newest first)';
 
 /** Newest notes per problem (newest first), `per_problem` each. */
-const updatesFor = (problems: ProblemRow[], per_problem: number): Map<number, ProblemUpdateWithSession[]> =>
-    new Map(problems.map((p) => [p.id, repo_updates.selectUpdatesForProblem(p.id, per_problem)]));
+const updatesFor = (problems: ProblemRow[], per_problem: number): Map<number, ProblemUpdateWithSession[]> => new Map(problems.map((p) => [p.id, repo_updates.selectUpdatesForProblem(p.id, per_problem)]));
 
 /** Fits the sessions section into `budget_tokens` (what is left after the fixed sections):
     full renders, newest first; oldest degrade to one line until it fits; if even the one-liners

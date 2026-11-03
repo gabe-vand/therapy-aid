@@ -1,0 +1,169 @@
+/* Problem detail, below the header: the facts strip (ProblemFacts), the timeline rail with its
+   compose row (ProblemTimeline) and the journal mentions (JournalMentions). The rail is 2px --line
+   10px in from the left; 10px nodes centre on it. Tokens only. */
+
+.ta-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 0;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ta-facts li + li::before {
+    content: '·';
+    margin: 0 8px;
+    color: var(--faint);
+}
+
+.ta-facts a {
+    color: var(--ink-2);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.ta-facts a:hover {
+    color: var(--accent);
+}
+
+.ta-pdetail__section {
+    margin-top: 40px;
+}
+
+.ta-section-label {
+    margin: 0 0 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* Timeline rail */
+.ta-ptl {
+    position: relative;
+    padding-left: 28px;
+}
+
+.ta-ptl::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 9px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--line);
+}
+
+.ta-ptl__compose,
+.ta-ptl__item {
+    position: relative;
+}
+
+.ta-ptl__compose {
+    margin-bottom: 28px;
+}
+
+.ta-ptl__node {
+    position: absolute;
+    top: 4px;
+    left: -23px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--paper);
+}
+
+.ta-ptl__node[data-kind='manual'] {
+    background: var(--ink-2);
+}
+
+.ta-ptl__node[data-kind='compose'] {
+    background: var(--paper);
+    border: 2px solid var(--line-2);
+}
+
+.ta-ptl__list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-ptl__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-ptl__date {
+    font-variant-numeric: tabular-nums;
+}
+
+.ta-ptl__meta a {
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.ta-ptl__meta a:hover {
+    text-decoration: underline;
+}
+
+.ta-ptl__body {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--ink);
+}
+
+.ta-ptl__empty {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* Journal mentions */
+.ta-jm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ta-jm__date {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.ta-jm__date:hover {
+    color: var(--accent);
+}
+
+.ta-jm__quote {
+    margin: 4px 0 0;
+    padding-left: 12px;
+    border-left: 2px solid var(--line-2);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-2);
+}

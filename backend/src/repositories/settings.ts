@@ -11,10 +11,5 @@ export const selectSetting = (key: string): SettingRow | null => db.select().fro
 /** Creates or replaces one setting (idempotent upsert) and returns the stored row. */
 export const upsertSetting = (key: string, value: string): SettingRow => {
     const updated_at = new Date().toISOString();
-    return db
-        .insert(app_settings)
-        .values({ key, value, updated_at })
-        .onConflictDoUpdate({ target: app_settings.key, set: { value, updated_at } })
-        .returning()
-        .get();
+    return db.insert(app_settings).values({ key, value, updated_at }).onConflictDoUpdate({ target: app_settings.key, set: { value, updated_at } }).returning().get();
 };
