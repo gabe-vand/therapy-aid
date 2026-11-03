@@ -1,7 +1,7 @@
 # therapy-aid on the Pi: SPA + API + SQLite, reachable ONLY over the tailnet.
 #
 #   tailnet ──https──▶ ts (node "therapy-aid", tailscale serve :443) ──▶ web:80 (nginx)
-#                                                                         └─ /api/* ──▶ api:3010 ──▶ /data/therapy-aid.sqlite
+#                                                                         └─ /api/* ──▶ api:3010 ──▶ /data/therapy-aid.sqlite + /data/recordings
 #
 # The `ts` sidecar joins the tailnet as its own machine, which is what gives the app its own name
 # (https://therapy-aid.<tailnet>.ts.net) and a real Let's Encrypt cert, without renaming the Pi.
@@ -16,7 +16,30 @@ services:
         build: { context: ., dockerfile: backend/Dockerfile }
         environment:
             APP_REVISION: ${APP_REVISION:-unknown}
+            # Secrets and tuning come from ~/therapy-aid.env (scripts/deploy.sh passes --env-file).
+            # The ${VAR:-} form means "empty when unset", so a missing key never breaks `up`; the API
+            # treats empty as "not configured" and falls back to its own default for each.
+            # Without ALLOWED_TAILSCALE_LOGIN the API rejects every request (md-auth fails closed).
+            ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+            DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:-}
+            ALLOWED_TAILSCALE_LOGIN: ${ALLOWED_TAILSCALE_LOGIN:-}
+            APP_TIMEZONE: ${APP_TIMEZONE:-}
+            # Optional model routing (svc-models.ts): one global override, then per-task model/effort.
+            CLAUDE_MODEL: ${CLAUDE_MODEL:-}
+            CLAUDE_MODEL_SUMMARIZE: ${CLAUDE_MODEL_SUMMARIZE:-}
+            CLAUDE_MODEL_MAP_PROBLEMS: ${CLAUDE_MODEL_MAP_PROBLEMS:-}
+            CLAUDE_MODEL_FOCUS: ${CLAUDE_MODEL_FOCUS:-}
+            CLAUDE_MODEL_INSIGHT: ${CLAUDE_MODEL_INSIGHT:-}
+            CLAUDE_MODEL_CHAT: ${CLAUDE_MODEL_CHAT:-}
+            CLAUDE_MODEL_TITLE: ${CLAUDE_MODEL_TITLE:-}
+            CLAUDE_EFFORT_SUMMARIZE: ${CLAUDE_EFFORT_SUMMARIZE:-}
+            CLAUDE_EFFORT_MAP_PROBLEMS: ${CLAUDE_EFFORT_MAP_PROBLEMS:-}
+            CLAUDE_EFFORT_FOCUS: ${CLAUDE_EFFORT_FOCUS:-}
+            CLAUDE_EFFORT_INSIGHT: ${CLAUDE_EFFORT_INSIGHT:-}
+            CLAUDE_EFFORT_CHAT: ${CLAUDE_EFFORT_CHAT:-}
+            CLAUDE_EFFORT_TITLE: ${CLAUDE_EFFORT_TITLE:-}
         volumes:
+            # The SQLite file AND session recordings (/data/recordings) share this volume.
             - db-data:/data
             # Daily verified snapshots (services/backups). A host folder, not a volume: it sits
             # beside the deploy dir (which every deploy replaces), is plain files you can scp

@@ -1,27 +1,54 @@
 /* therapy-aid design tokens — the one place colours are defined. Light by default, dark when
-   the OS asks for it. A new colour is a new token here, never a literal in a component. */
+   the OS asks for it. A new colour is a new token here, never a literal in a component.
+   Pairs: every tone has a solid (text/icon/border) and a -soft (tinted background) variant. */
 :root {
     --ink: #1d2a2a;
+    --ink-2: #3b4a49;
     --muted: #5f706e;
     --paper: #f4f7f5;
     --surface: #ffffff;
+    --surface-2: #f8faf9;
     --line: #dde5e1;
+    --line-2: #c6d3ce;
     --accent: #2f7d6d;
+    --accent-soft: #e2f0eb;
     --on-accent: #ffffff;
     --ok: #2f9e6d;
+    --ok-soft: #e1f3ea;
+    --warn: #a86a12;
+    --warn-soft: #fbf0dc;
     --danger: #c2483d;
+    --danger-soft: #fbe6e3;
+    --on-danger: #ffffff;
+    --overlay: rgba(16, 26, 25, 0.45);
+    --shadow: 0 1px 2px rgba(16, 26, 25, 0.06), 0 8px 24px rgba(16, 26, 25, 0.06);
+    --skeleton: #e8eeeb;
+    --skeleton-shine: #f3f6f4;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
         --ink: #e6efec;
+        --ink-2: #c3d1cd;
         --muted: #93a6a2;
         --paper: #111817;
         --surface: #182220;
+        --surface-2: #1c2725;
         --line: #26332f;
+        --line-2: #34443f;
         --accent: #5fb7a3;
+        --accent-soft: #1b322d;
         --on-accent: #0c1513;
         --ok: #4cc28e;
+        --ok-soft: #173126;
+        --warn: #e2a64c;
+        --warn-soft: #33281a;
         --danger: #e36a5e;
+        --danger-soft: #3a2220;
+        --on-danger: #160807;
+        --overlay: rgba(0, 0, 0, 0.6);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+        --skeleton: #22302d;
+        --skeleton-shine: #2a3936;
     }
 }

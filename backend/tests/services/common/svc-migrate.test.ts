@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { sqlite } from '@/services/common/svc-db';
 import { dbMigrate } from '@/services/common/svc-migrate';
 
 const SCHEMA_DIR = join(import.meta.dir, '..', '..', '..', 'db-schemas');
@@ -24,8 +25,16 @@ describe('db-schemas', () => {
     it('create every table with "if not exists"', () => {
         for (const name of schema_files) {
             const ddl = readFileSync(join(SCHEMA_DIR, name), 'utf8').toLowerCase();
-            const creates = ddl.match(/create\s+(table|index|unique\s+index)\s+(?!if\s+not\s+exists)/g);
+            const creates = ddl.match(/create\s+(table|virtual\s+table|index|unique\s+index)\s+(?!if\s+not\s+exists)/g);
             expect(creates, `${name} has a non-idempotent create`).toBeNull();
+        }
+    });
+
+    it('create every table the app reads, including the FTS5 search index', () => {
+        dbMigrate();
+        const tables = (sqlite.query("select name from sqlite_master where type = 'table'").all() as { name: string }[]).map((r) => r.name);
+        for (const table of ['sessions', 'problems', 'problem_updates', 'focus_snapshots', 'journal_entries', 'journal_insights', 'chat_threads', 'chat_messages', 'app_settings', 'search_index']) {
+            expect(tables).toContain(table);
         }
     });
 });

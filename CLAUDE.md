@@ -5,8 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 **therapy-aid** — a personal web app, self-hosted on a Raspberry Pi and reachable **only over the
-tailnet** at **https://therapy-aid.elephant-trench.ts.net**. Today it is a hello-world shell that
-proves the whole stack (SPA → API → SQLite) runs on the Pi; features land on top of it.
+tailnet** at **https://therapy-aid.elephant-trench.ts.net**. It keeps Gabe's weekly therapy
+within reach: sessions (recorded or pasted notes) → summaries → persistent problems → a focus
+banner, plus a journal with on-demand insights and a chat grounded in all of it.
 
 Its structure and conventions are adopted from `rx-unified-portal` (Rx Hub) — the same layering,
 file-size cap, hooks rule and docs layout, minus everything that existed only because Rx Hub shares
@@ -38,6 +39,9 @@ Before starting any task, read the relevant conventions file in `docs/`:
 
 - Backend: [`docs/backend-conventions.html`](docs/backend-conventions.html) — read before any work in `backend/`.
 - Frontend: [`docs/frontend-conventions.html`](docs/frontend-conventions.html) — read before any work in `frontend/`.
+- Architecture: [`docs/architecture.html`](docs/architecture.html) — the session pipeline, data model, context pack +
+  retrieval — and [`docs/architecture-ops.html`](docs/architecture-ops.html) — model routing and cost (the model
+  eval), auth, where data lives on the Pi, seeding, failure behaviour. Read both before touching more than one module.
 
 `docs/` is HTML only. Pages share `docs/docs.css` and follow the rule-card layout (hero → stackline
 → TOC → numbered rule cards). Classic scripts, no build step, no dependencies — the pages open
@@ -46,7 +50,8 @@ straight off disk. A page that needs more than one file gets its own folder.
 ## Hard rules (non-negotiable)
 
 1. **Every file must be below 200 lines.** Split proactively, not after.
-   `backend/tests/architecture/file-size.test.ts` enforces it across the whole workspace.
+   `backend/tests/architecture/file-size.test.ts` enforces it across the whole workspace (code,
+   `scripts/`, `docs/` and `features.html`).
 2. **Frontend uses hooks wherever possible** — components never call the network directly; every
    API call lives in a `services/hooks/use-*.ts` hook that owns loading/error state.
 3. **`features.html` must be updated with EVERY update** — it is the static status page explaining
@@ -79,7 +84,9 @@ Each app's `tsconfig.json` extends the root `tsconfig.base.json` and overrides o
 
 From the repo root: `bun install` (once, for the whole workspace), then `bun run dev` (frontend on
 **:5173**), `bun run dev:api` (API on **:3010**, watch mode), `bun run build`, `bun run test` (both
-suites), `bun run deploy` (ship HEAD to the Pi — normally via `/ship`).
+suites), `bun run deploy` (ship HEAD to the Pi — normally via `/ship`), `bun run eval` (the model
+eval, `scripts/eval-models.ts`: real prompts on `seed-data/` per model into the gitignored `eval-out/`;
+`--judge` adds Opus grades. Costs real money — run it only when choosing `TASK_MODELS`).
 
 Backend (inside `backend/`): `bun run dev`, `bun run test` (Bun test runner against `tests/`, on an
 in-memory SQLite — no files touched), `bun run lint` (typecheck), `bun run format` (Prettier).
@@ -140,9 +147,13 @@ Entry: `frontend/src/main.tsx` → `App.tsx` (flat `<Routes>`). Path alias `@` �
   + `/api` proxy), `ts` (Tailscale sidecar, node name `therapy-aid`, `tailscale serve` HTTPS on
   :443, Funnel off). Only the tailnet can reach it; the one host port is `127.0.0.1:8080`.
 - The deploy dir is replaced wholesale on every deploy (`git archive HEAD`) — never keep state
-  there. State lives in the `db-data` and `ts-state` volumes, backups in `~/therapy-aid-backups/`,
-  optional secrets in `~/therapy-aid.env`.
-- Full runbook: `.claude/skills/ship/SKILL.md`.
+  there. State lives in the `db-data` and `ts-state` volumes (recordings sit next to the database
+  in `db-data`), backups in `~/therapy-aid-backups/`, secrets in `~/therapy-aid.env`.
+  `ALLOWED_TAILSCALE_LOGIN` is effectively required there: unset, every request except `/health` is
+  rejected. `ANTHROPIC_API_KEY` / `DEEPGRAM_API_KEY` are optional at boot (AI and transcription fail
+  with a readable message until set).
+- Full runbook: `.claude/skills/ship/SKILL.md` — including "Secrets on the Pi" (the env file's keys)
+  and "Seeding history" (`scripts/import-seed.ts`).
 
 ## When adding a new API endpoint
 

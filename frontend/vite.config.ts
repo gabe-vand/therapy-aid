@@ -12,7 +12,7 @@ export default defineConfig({
         // /health, …), so the /api marker is ours and is stripped here.
         proxy: {
             '/api': {
-                target: 'http://localhost:3010',
+                target: 'http://127.0.0.1:3010', // the dev API binds 127.0.0.1 only (not ::1)
                 changeOrigin: true,
                 rewrite: (p) => p.replace(/^\/api/, ''),
             },

@@ -1,0 +1,52 @@
+/* Settings styles (imported by the settings components themselves). Tokens only. The usage table
+   scrolls sideways inside its card on narrow phones rather than squashing its numbers. */
+
+.ta-usage-scroll {
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+}
+
+.ta-usage {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ta-usage th,
+.ta-usage td {
+    padding: 10px 8px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.ta-usage th:first-child,
+.ta-usage td:first-child {
+    text-align: left;
+    padding-left: 0;
+}
+
+.ta-usage th:last-child,
+.ta-usage td:last-child {
+    padding-right: 0;
+}
+
+.ta-usage thead th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ta-usage tbody tr[data-idle='true'] td:not(:first-child) {
+    color: var(--muted);
+}
+
+.ta-usage tfoot td {
+    border-bottom: 0;
+    font-weight: 650;
+}

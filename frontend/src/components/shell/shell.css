@@ -1,0 +1,108 @@
+/* The app shell's own styles (imported by AppShell only). Layout breakpoint matches Tailwind's
+   md (768px): sidebar at and above it; top brand bar + bottom tab bar below it. */
+
+.ta-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--paper);
+}
+
+.ta-brand {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.ta-brand-mark {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--accent);
+    margin-right: 8px;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+/* Desktop sidebar */
+.ta-sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+}
+
+.ta-side-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.ta-side-link:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.ta-side-link[aria-current='page'] {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+/* Mobile top bar */
+.ta-topbar {
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding-top: env(safe-area-inset-top);
+}
+
+.ta-icon-link {
+    display: inline-flex;
+    padding: 8px;
+    border-radius: 10px;
+    color: var(--ink-2);
+}
+
+.ta-icon-link[aria-current='page'] {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+/* Mobile bottom tab bar */
+.ta-tabs {
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.ta-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.ta-tab[aria-current='page'] {
+    color: var(--accent);
+}
+
+/* Room for the fixed tab bar (plus the iPhone home indicator) under the content. */
+.ta-main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+    .ta-main {
+        padding-bottom: 64px;
+    }
+}
