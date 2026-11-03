@@ -34,3 +34,7 @@ coverage/
 
 .claude/worktrees/
 .claude/settings.local.json
+
+# Personal data and model-eval output — never committed (the repo is public)
+seed-data/
+eval-out/

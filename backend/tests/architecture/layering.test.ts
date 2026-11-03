@@ -6,7 +6,7 @@ import { join, relative } from 'node:path';
 // bans are checked file by file, so a shortcut fails the suite instead of a code review.
 //
 //   routes        never see the database, drizzle, or a repository
-//   services      never see drizzle, svc-db, or Hono (services/common is the infra exemption)
+//   services      never see drizzle, svc-db, or Hono (services/common + services/middleware are exempt)
 //   repositories  never see services (bar svc-db) or Hono — the ONLY place a query lives
 //   db/schema     imports nothing but drizzle-orm
 
@@ -38,7 +38,8 @@ const is_repository = (spec: string) => spec.startsWith('@/repositories');
 const violations = (files: string[], banned: (spec: string) => boolean): string[] =>
     files.flatMap((file) => import_specs(file).filter(banned).map((spec) => `${relative(ROOT, file)}: ${spec}`));
 
-const feature_services = ts_files(join(SRC, 'services')).filter((f) => !f.includes(join('services', 'common')));
+// services/common (infra) and services/middleware (Hono middleware, by definition) are exempt.
+const feature_services = ts_files(join(SRC, 'services')).filter((f) => !f.includes(join('services', 'common')) && !f.includes(join('services', 'middleware')));
 
 describe('layering', () => {
     it('routes never touch the database layer', () => {
@@ -52,6 +53,10 @@ describe('layering', () => {
 
     it('feature services never see drizzle, svc-db or Hono', () => {
         expect(violations(feature_services, (s) => is_drizzle(s) || is_svc_db(s) || is_hono(s))).toEqual([]);
+    });
+
+    it('middleware never sees drizzle or svc-db', () => {
+        expect(violations(ts_files(join(SRC, 'services', 'middleware')), (s) => is_drizzle(s) || is_svc_db(s))).toEqual([]);
     });
 
     it('repositories never see services (bar svc-db) or Hono', () => {

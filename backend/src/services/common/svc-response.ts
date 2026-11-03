@@ -9,6 +9,7 @@ export enum stc {
     UNAUTHORIZED = 401,
     ACCESS_DENIED = 403,
     NOT_FOUND = 404,
+    CONFLICT = 409,
     SERVER_FAULT = 500,
 }
 
@@ -18,6 +19,7 @@ export enum err {
     UNAUTHORIZED = 'UNAUTHORIZED',
     ACCESS_DENIED = 'ACCESS_DENIED',
     NOT_FOUND = 'ENTRY_NOT_FOUND',
+    CONFLICT = 'CONFLICT',
     SERVER_FAULT = 'SERVER_FAULT',
 }
 
