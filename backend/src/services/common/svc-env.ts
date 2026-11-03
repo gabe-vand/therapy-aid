@@ -8,6 +8,9 @@ interface EnvKey {
     port: number;
     // SQLite file path, or ':memory:' (tests).
     db_path: string;
+    // Where the daily snapshots go (services/backups) and how many of them are kept.
+    backup_dir: string;
+    backup_retention_days: number;
 }
 
 export const app_env: EnvKey = {
@@ -15,6 +18,8 @@ export const app_env: EnvKey = {
     revision: process.env.APP_REVISION || 'dev',
     port: Number(process.env.PORT || 3010),
     db_path: process.env.DB_PATH || './data/therapy-aid.sqlite',
+    backup_dir: process.env.BACKUP_DIR || './data/backups',
+    backup_retention_days: Number(process.env.BACKUP_RETENTION_DAYS || 30),
 };
 
 /** Vars the API cannot boot without. Everything else has a safe default above. */

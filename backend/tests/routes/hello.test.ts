@@ -19,7 +19,8 @@ describe('GET /health', () => {
     it('reports ok, the db, and the running revision', async () => {
         const { status, body } = await call<HealthStatus>('GET', '/health');
         expect(status).toBe(200);
-        expect(body.data).toEqual({ ok: true, revision: 'test', db_ok: true });
+        expect(body.data).toMatchObject({ ok: true, revision: 'test', db_ok: true });
+        expect(typeof body.data.backup_ok).toBe('boolean');
     });
 });
 

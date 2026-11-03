@@ -22,7 +22,7 @@
 <div class="wrap">
 
   <div class="stackline">
-    <strong>Status:</strong> hosting shell &mdash; no product features yet &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-02
+    <strong>Status:</strong> hosting shell &mdash; no product features yet &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-03
   </div>
 
   <section class="rule" id="platform">
@@ -36,7 +36,8 @@
         <li><span class="box">&#10003;</span> <code>/ship</code> skill: commit &rarr; PR &rarr; redeploy to the Pi, verified by the live revision on <code>/api/health</code>.</li>
         <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap.</li>
         <li class="todo"><span class="box"></span> CI (GitHub Actions running <code>bun run test</code> on PRs).</li>
-        <li class="todo"><span class="box"></span> Automated SQLite backups off the Pi.</li>
+        <li><span class="box">&#10003;</span> Daily SQLite snapshots on the Pi (<code>VACUUM INTO</code>, integrity-checked, 30 kept) in <code>~/therapy-aid-backups/</code>; <code>/api/health</code> reports <code>backup_ok</code>.</li>
+        <li class="todo"><span class="box"></span> Copying snapshots off the Pi (they share its SD card today).</li>
         <li class="todo"><span class="box"></span> Authentication &mdash; today anyone on the tailnet can use the app.</li>
       </ul>
     </div>

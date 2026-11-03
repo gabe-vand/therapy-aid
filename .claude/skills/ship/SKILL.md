@@ -95,6 +95,25 @@ $P pi@raspberrypi 'curl -s http://127.0.0.1:8080/api/health'
 - **Name came up as `therapy-aid-1`:** an older `therapy-aid` machine still exists in the admin
   console — delete it there, then `docker compose restart ts`.
 - **Data:** SQLite lives in the `db-data` volume and survives redeploys and `docker compose down`.
-  **Never run `docker compose down -v`** — it deletes the database. Back up with
-  `docker compose cp api:/data/therapy-aid.sqlite ./backup.sqlite`.
+  **Never run `docker compose down -v`** — it deletes the live database (the backups survive).
+
+### Backups and restore
+
+The API snapshots the database once per UTC day into `~/therapy-aid-backups/therapy-aid-YYYY-MM-DD.sqlite`
+on the Pi (verified with `integrity_check`, newest 30 kept). `curl …/api/health` → `backup_ok`
+must be `true`; if not, `docker compose logs api | grep backup`.
+
+```bash
+# list / copy one off the Pi (Windows ssh for the key):
+$P pi@raspberrypi 'ls -lh ~/therapy-aid-backups'
+/c/Windows/System32/OpenSSH/scp.exe pi@raspberrypi:therapy-aid-backups/therapy-aid-2026-11-03.sqlite .
+
+# restore a snapshot ON THE PI (in ~/therapy-aid). Stops the API, keeps the current DB aside:
+docker compose stop api
+docker run --rm -v therapy-aid_db-data:/data -v ~/therapy-aid-backups:/backups alpine sh -c \
+  'mkdir -p /data/pre-restore && mv /data/therapy-aid.sqlite* /data/pre-restore/ ; cp /backups/therapy-aid-YYYY-MM-DD.sqlite /data/therapy-aid.sqlite'
+docker compose start api
+```
+
+Restoring is destructive to everything written since that snapshot — confirm with the user first.
 - **Out of disk:** `docker system df`; `docker builder prune -f` clears build cache.

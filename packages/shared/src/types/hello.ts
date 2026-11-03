@@ -13,4 +13,6 @@ export interface HealthStatus {
     ok: boolean;
     revision: string;
     db_ok: boolean;
+    // A verified snapshot from today or yesterday exists (services/backups).
+    backup_ok: boolean;
 }
