@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Features</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs/docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Features</h1>
+    <p>The living ledger of what <strong>therapy-aid</strong> does and doesn't do yet. Updated in the same commit as every change (CLAUDE.md hard rule 3). Live at <a href="https://therapy-aid.elephant-trench.ts.net">therapy-aid.elephant-trench.ts.net</a> &mdash; tailnet only.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>Status:</strong> hosting shell &mdash; no product features yet &nbsp;&middot;&nbsp; <strong>Last updated:</strong> 2026-11-02
+  </div>
+
+  <section class="rule" id="platform">
+    <div class="rule-head"><span class="num">1</span><h3>Platform &amp; hosting</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> Bun workspace: <code>backend</code> (Hono), <code>frontend</code> (Vite + React 18), <code>packages/shared</code> types.</li>
+        <li><span class="box">&#10003;</span> SQLite database (<code>bun:sqlite</code> + Drizzle), idempotent DDL applied at boot from <code>backend/db-schemas/</code>.</li>
+        <li><span class="box">&#10003;</span> Docker Compose stack on the Raspberry Pi: <code>api</code>, <code>web</code> (nginx, SPA + <code>/api</code> proxy), <code>ts</code> (Tailscale sidecar).</li>
+        <li><span class="box">&#10003;</span> Served over HTTPS at <code>therapy-aid.elephant-trench.ts.net</code>, reachable only from the tailnet (Funnel off, no public ports).</li>
+        <li><span class="box">&#10003;</span> <code>/ship</code> skill: commit &rarr; PR &rarr; redeploy to the Pi, verified by the live revision on <code>/api/health</code>.</li>
+        <li><span class="box">&#10003;</span> Architecture tests: layering import bans and the 200-line file cap.</li>
+        <li class="todo"><span class="box"></span> CI (GitHub Actions running <code>bun run test</code> on PRs).</li>
+        <li class="todo"><span class="box"></span> Automated SQLite backups off the Pi.</li>
+        <li class="todo"><span class="box"></span> Authentication &mdash; today anyone on the tailnet can use the app.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="hello">
+    <div class="rule-head"><span class="num">2</span><h3>Hello-world smoke test</h3></div>
+    <div class="rule-body">
+      <p>The home page proves each layer answers: the SPA renders, <code>GET /api/hello</code> returns the greeting and build revision, and the visit counter (<code>POST /api/hello/visits</code>) writes to SQLite and persists across redeploys. Throwaway once real features land.</p>
+      <ul class="ledger">
+        <li><span class="box">&#10003;</span> <code>GET /health</code>, <code>GET /hello</code>, <code>POST /hello/visits</code>.</li>
+        <li><span class="box">&#10003;</span> Home page with per-layer status and a "Record a visit" button.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="product">
+    <div class="rule-head"><span class="num">3</span><h3>Product features</h3></div>
+    <div class="rule-body">
+      <ul class="ledger">
+        <li class="todo"><span class="box"></span> None yet.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  See <a href="docs/backend-conventions.html">Backend Conventions</a>, <a href="docs/frontend-conventions.html">Frontend Conventions</a>, and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

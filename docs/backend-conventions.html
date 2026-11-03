@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Backend Coding Conventions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Backend Coding Conventions</h1>
+    <p>The source of truth for backend code style across <strong>therapy-aid</strong>. Read before any work in <code>backend/</code>. Adapted from rx-unified-portal's conventions &mdash; same layering and discipline, with SQLite in place of a shared Postgres.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>Stack:</strong> Bun + Hono + TypeScript &nbsp;&middot;&nbsp; <strong>Database:</strong> SQLite (<code>bun:sqlite</code>) + Drizzle &nbsp;&middot;&nbsp; <strong>Hosting:</strong> Docker Compose on the Pi, tailnet only &nbsp;&middot;&nbsp; <strong>Tests:</strong> required (<code>bun test ./tests</code>).
+  </div>
+
+  <div class="note warn"><strong>The layering rule governs everything here.</strong> Routes &rarr; services &rarr; repositories &rarr; entities, and a query lives <em>only</em> in a repository. <code>tests/architecture/layering.test.ts</code> fails the suite on any shortcut. See &sect;13.</div>
+
+  <nav class="toc">
+    <h2>Rules</h2>
+    <ol>
+      <li><a href="#r1"><span class="n">1</span>Declarative</a></li>
+      <li><a href="#r2"><span class="n">2</span>snake_case on the wire and inside functions</a></li>
+      <li><a href="#r3"><span class="n">3</span>SQLite &mdash; one file, one process</a></li>
+      <li><a href="#r4"><span class="n">4</span>Idempotent DDL and inserts</a></li>
+      <li><a href="#r5"><span class="n">5</span>File size &mdash; hard cap</a></li>
+      <li><a href="#r6"><span class="n">6</span>Error handling &mdash; graceful, always</a></li>
+      <li><a href="#r7"><span class="n">7</span>Environment variables</a></li>
+      <li><a href="#r8"><span class="n">8</span>Documentation lives in docs/</a></li>
+      <li><a href="#r9"><span class="n">9</span>Comments &mdash; why, not what</a></li>
+      <li><a href="#r10"><span class="n">10</span>Tests &mdash; required</a></li>
+      <li><a href="#r11"><span class="n">11</span>Check the latest docs before coding</a></li>
+      <li><a href="#r12"><span class="n">12</span>When you touch old code</a></li>
+      <li><a href="#r13"><span class="n">13</span>Layered architecture</a></li>
+    </ol>
+  </nav>
+
+  <section class="rule" id="r1">
+    <div class="rule-head"><span class="num">1</span><h3>Declarative</h3></div>
+    <div class="rule-body">
+      <p>Express schemas, types, route definitions. Pure functions where possible; side effects at the edges.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r2">
+    <div class="rule-head"><span class="num">2</span><h3>snake_case on the wire and inside functions</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>JSON API keys: <code>snake_case</code> (the envelope is <code>{ data, status_code, message }</code>).</li>
+        <li>SQLite column names: <code>snake_case</code>.</li>
+        <li>Internal function variables: <code>snake_case</code>. Function names <code>camelCase</code> (<code>getHelloStatus</code>, <code>dbMigrate</code>); routers <code>router_&lt;module&gt;</code>.</li>
+        <li>Types/interfaces <code>PascalCase</code>; env vars and constants <code>UPPER_CASE</code>.</li>
+        <li>File/folder names: <code>kebab-case</code>. Inside the layer dirs files carry no role prefix &mdash; the directory conveys the role (<code>routes/hello/hello.ts</code>). Role prefixes remain only for shared infra: <code>svc-</code> (<code>services/common</code>), <code>md-</code> (middleware), <code>hlp-</code> (test helpers).</li>
+      </ul>
+      <p>A response shape the SPA also declares belongs in <code>@therapy-aid/shared</code> (<code>packages/shared/src/types/</code>), imported by the service that produces it &mdash; two identical interfaces on either side of the wire are two things that can drift. Internal shapes (row types, the pre-validation request body) stay in the module.</p>
+      <p>Formatting is Prettier's job, not yours: the one root <code>.prettierrc</code> &mdash; 4-space indent, 250 print width, single quotes, trailing commas, semicolons. Run <code>bun run format</code>.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r3">
+    <div class="rule-head"><span class="num">3</span><h3>SQLite &mdash; one file, one process</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>The database is a single SQLite file opened once in <code>svc-db.ts</code> with WAL, a 5 s <code>busy_timeout</code> and foreign keys on. <code>bun:sqlite</code> is built into Bun &mdash; no native module to compile on the Pi.</li>
+        <li>Queries use the Drizzle builder (<code>db</code>) by default. A raw statement (<code>sqlite.query(&hellip;)</code>) is fine where Drizzle has no equivalent &mdash; always with bound parameters, never string-concatenated SQL. Either way it lives in a repository (&sect;13).</li>
+        <li>Exactly one process writes the file: the <code>api</code> container. Never point a second process (a local dev server, a script) at the Pi's database file.</li>
+        <li>On the Pi the file is <code>/data/therapy-aid.sqlite</code> in the <code>db-data</code> volume. It survives every redeploy; <code>docker compose down -v</code> deletes it.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r4">
+    <div class="rule-head"><span class="num">4</span><h3>Idempotent DDL and inserts</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>All DDL lives in <code>backend/db-schemas/NNN.&lt;table&gt;.sql</code>, applied by <code>dbMigrate()</code> on every boot, in filename order, each file in its own transaction &mdash; so every statement is rerunnable (<code>create table if not exists</code>, <code>create index if not exists</code>).</li>
+        <li><strong>One file per table.</strong> A new number is for a new table. Every later change to that table is appended under its own DDL, dated in a comment. There is no applied-ledger, so a new number buys nothing and scatters one table's shape across the directory.</li>
+        <li>SQLite has no <code>add column if not exists</code>, so a plain <code>alter table &hellip; add column</code> fails on the second boot. When the first such change comes, give <code>svc-migrate.ts</code> a guarded step that checks <code>pragma_table_info</code> before altering, and test that a second boot is a no-op.</li>
+        <li>Every seed/insert uses <code>on conflict do nothing</code> / <code>on conflict do update</code>.</li>
+        <li><code>tests/services/common/svc-migrate.test.ts</code> enforces the naming and the <code>if not exists</code> rule, and that a second run is a no-op.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r5">
+    <div class="rule-head"><span class="num crit">5</span><h3>File size &mdash; hard cap</h3></div>
+    <div class="rule-body">
+      <p>Every file stays <strong>below 200 lines</strong>. Split proactively: routers per feature, helpers per concern, schema files per domain. <code>tests/architecture/file-size.test.ts</code> enforces it across the whole workspace, frontend included.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r6">
+    <div class="rule-head"><span class="num">6</span><h3>Error handling &mdash; graceful, always</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Every response &mdash; success or failure &mdash; goes through <code>rsp(c, data, stc, message)</code>; never raw <code>c.json</code>. <code>rsp</code> sets the real HTTP status too.</li>
+        <li>No silent <code>catch {}</code>: log with a <code>[module]</code> prefix, then answer. Client-facing errors never leak internals, stack traces, paths or SQL. <code>app.onError</code> in <code>app.ts</code> is the last-resort net.</li>
+        <li><code>/health</code> is reachable by anyone on the tailnet: booleans and the revision only.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r7">
+    <div class="rule-head"><span class="num">7</span><h3>Environment variables &mdash; structured and commented</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Read env ONLY through <code>app_env</code> in <code>svc-env.ts</code> &mdash; never <code>process.env.X</code> elsewhere. Boot validates via <code>getEnvStatus()</code> and exits loudly on a missing mandatory var.</li>
+        <li>Every var has a working local default where one is safe, so <code>bun run dev</code> needs no env file.</li>
+        <li><code>backend/.env.example</code> is committed with placeholders, grouped and commented. Real values never enter the repo; on the Pi, secrets go in <code>~/therapy-aid.env</code> (outside the deploy dir, which is replaced every deploy).</li>
+        <li>Any new var lands in <code>EnvKey</code> + <code>app_env</code> (+ <code>MANDATORY</code>) + <code>.env.example</code> in one commit.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r8">
+    <div class="rule-head"><span class="num">8</span><h3>Documentation lives in docs/, nowhere else</h3></div>
+    <div class="rule-body">
+      <p>There are no <code>.md</code> files under <code>src/</code>. Prose about a feature goes in <code>docs/</code> (HTML), and the <em>why</em> of a given file goes in that file's header comment (&sect;9). Update the repo-root <code>features.html</code> with every update &mdash; it is the implemented / not-implemented ledger.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r9">
+    <div class="rule-head"><span class="num">9</span><h3>Comments &mdash; why, not what</h3></div>
+    <div class="rule-body">
+      <p>A header comment on every file saying why it exists. Above every exported function: what it does and why. Inside: a comment per logical group, only where the code doesn't already say it.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r10">
+    <div class="rule-head"><span class="num">10</span><h3>Tests &mdash; required</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Every repository function, service, handler and helper gets tests under <code>tests/</code>, mirroring <code>src/</code>.</li>
+        <li><code>tests/helpers/hlp-test-env.ts</code> is preloaded (<code>bunfig.toml</code>) and points <code>DB_PATH</code> at <code>:memory:</code> before any module opens the database. Tests run against a real, empty SQLite &mdash; prefer that over mocking repositories; it is fast and it tests the SQL.</li>
+        <li>Routes are tested through <code>app.request()</code> on the real <code>app</code> &mdash; no port, no server.</li>
+        <li><code>mock.module</code> is global and first-load-wins in Bun: if you must stub, always spread the real module first (<code>{...(await import(M)), stubbed}</code>), and prefer <code>spyOn</code> over a namespace import for anything that has its own test.</li>
+        <li>Idempotency is tested explicitly.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r11">
+    <div class="rule-head"><span class="num">11</span><h3>Always check the latest docs before coding</h3></div>
+    <div class="rule-body">
+      <p>Use Context7 if available; otherwise the official docs. Don't write API calls from memory &mdash; Bun, Hono and Drizzle all change.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r12">
+    <div class="rule-head"><span class="num">12</span><h3>When you touch old code</h3></div>
+    <div class="rule-body">
+      <p>You also:</p>
+      <ul>
+        <li>Convert stray camelCase JSON keys, columns, and variables to snake_case (&sect;2).</li>
+        <li>Add types where missing, and unit tests for the part you're changing (&sect;10).</li>
+        <li>Make any non-idempotent migration/seed idempotent (&sect;4).</li>
+        <li>Split any file at or over the 200-line cap (&sect;5).</li>
+        <li>Replace silent or ad-hoc error handling with the patterns in &sect;6.</li>
+        <li>Update the comments (&sect;9), the relevant <code>docs/</code> page (&sect;8) &mdash; and <code>features.html</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r13">
+    <div class="rule-head"><span class="num crit">13</span><h3>Layered architecture &mdash; routes &rarr; services &rarr; repositories &rarr; entities (critical)</h3></div>
+    <div class="rule-body">
+      <p>Central layer directories, <strong>functional style throughout</strong> (no classes, no DI):</p>
+      <ol>
+        <li><code>src/routes/&lt;module&gt;/&lt;router&gt;.ts</code> &mdash; thin Hono routers: parse body &rarr; guard &rarr; call a service &rarr; <code>rsp()</code>. Never import <code>svc-db</code>, <code>drizzle-orm</code>, or a repository. <strong>One folder per module</strong>, even for a single file &mdash; no naked files directly under <code>src/routes/</code>.</li>
+        <li><code>src/services/&lt;module&gt;/&lt;topic&gt;.ts</code> &mdash; business logic. Calls repositories; never imports <code>drizzle-orm</code>, <code>svc-db</code>, or Hono. Only <code>services/common</code> (and later <code>services/middleware</code>) is exempt &mdash; and even there, queries live in repositories: <code>svc-db</code>/<code>svc-migrate</code> are the DB plumbing itself.</li>
+        <li><code>src/repositories/&lt;module&gt;.ts</code> &mdash; <strong>the only place a query may live</strong>. One narrow function per query (params in, rows out, no business logic).</li>
+        <li><code>src/db/schema/*.ts</code> &mdash; Drizzle entities mirroring the DDL; imports nothing but <code>drizzle-orm</code>.</li>
+      </ol>
+      <p><code>src/app.ts</code> holds the mount table; <code>src/index.ts</code> only boots. Hono-Context helpers belong in the module's <code>routes/&lt;module&gt;/common.ts</code>, never in services. <code>tests/architecture/layering.test.ts</code> checks each layer's import bans file by file.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Backend code style for <code>therapy-aid</code>. See also <a href="frontend-conventions.html">Frontend Conventions</a> and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

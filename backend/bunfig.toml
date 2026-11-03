@@ -1,0 +1,5 @@
+# Bun runtime + test config for the therapy-aid backend.
+[test]
+# Points the DB at :memory: before any module opens it — tests never touch a real SQLite file.
+preload = ["./tests/helpers/hlp-test-env.ts"]
+timeout = 15000

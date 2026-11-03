@@ -1,0 +1,27 @@
+/* therapy-aid design tokens — the one place colours are defined. Light by default, dark when
+   the OS asks for it. A new colour is a new token here, never a literal in a component. */
+:root {
+    --ink: #1d2a2a;
+    --muted: #5f706e;
+    --paper: #f4f7f5;
+    --surface: #ffffff;
+    --line: #dde5e1;
+    --accent: #2f7d6d;
+    --on-accent: #ffffff;
+    --ok: #2f9e6d;
+    --danger: #c2483d;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ink: #e6efec;
+        --muted: #93a6a2;
+        --paper: #111817;
+        --surface: #182220;
+        --line: #26332f;
+        --accent: #5fb7a3;
+        --on-accent: #0c1513;
+        --ok: #4cc28e;
+        --danger: #e36a5e;
+    }
+}

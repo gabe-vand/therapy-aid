@@ -1,0 +1,3 @@
+# LF everywhere. Without this, core.autocrlf on Windows makes `git archive` (scripts/deploy.sh)
+# ship CRLF files to the Pi, and a CRLF shell script or nginx.conf breaks there.
+* text=auto eol=lf
