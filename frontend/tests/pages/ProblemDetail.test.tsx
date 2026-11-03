@@ -27,7 +27,7 @@ describe('ProblemDetail page', () => {
         expect(screen.getByText('Spirals at night.')).toBeInTheDocument();
     });
 
-    it('renders the timeline: session link, manual tag, body and date', async () => {
+    it('renders the timeline: session link, Note chip, body and date', async () => {
         stub_api({
             'GET /api/problems/1': problem_detail({
                 updates: [
@@ -42,12 +42,12 @@ describe('ProblemDetail page', () => {
         expect(items).toHaveLength(2);
 
         expect(items[0]).toHaveTextContent('Tried breathing before bed.');
-        expect(items[0]).toHaveTextContent('manual');
+        expect(items[0]).toHaveTextContent('Note');
         expect(within(items[0]!).queryByRole('link')).not.toBeInTheDocument();
         expect(items[0]).toHaveTextContent('Oct 25, 2026');
 
         expect(items[1]).toHaveTextContent('David suggested a wind-down routine.');
-        expect(items[1]).not.toHaveTextContent('manual');
+        expect(items[1]).not.toHaveTextContent('Note');
         expect(within(items[1]!).getByRole('link', { name: 'Racing mind, morning structure' })).toHaveAttribute('href', '/sessions/4');
     });
 

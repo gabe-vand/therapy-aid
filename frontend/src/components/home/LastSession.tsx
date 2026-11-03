@@ -4,6 +4,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/States';
 import { paths } from '@/services/paths';
+import './home.css';
 
 /* Home's "last session" card: the newest session as a tappable row (title, date, status) with a
    link on to the full list. Its own loading/error states, so a slow list never blanks Home. */
@@ -21,15 +22,15 @@ export const LastSession = ({ session, loading, error, on_retry }: Props) => {
     } else if (error && !session) {
         body = <ErrorState message={error} on_retry={on_retry} />;
     } else if (!session) {
-        body = <p className="ta-muted px-5 py-4 text-[15px]">No sessions yet. Your most recent one shows up here.</p>;
+        body = <p className="ta-muted px-4 py-3 text-sm">No sessions yet. Your most recent one shows up here.</p>;
     } else {
         body = <SessionRow session={session} />;
     }
 
     return (
-        <section aria-labelledby="last-session-title" className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-                <h2 id="last-session-title" className="text-lg font-semibold">
+        <section aria-labelledby="last-session-title">
+            <div className="mb-2 flex items-center justify-between">
+                <h2 id="last-session-title" className="ta-section-title" style={{ margin: 0 }}>
                     Last session
                 </h2>
                 <ButtonLink to={paths.sessions} variant="ghost" size="sm">

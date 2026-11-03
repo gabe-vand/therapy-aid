@@ -30,9 +30,9 @@ const Row = ({ row }: { row: AiUsageRow }) => (
                     <Chip>earlier override</Chip>
                 </>
             )}
-            <span className="ta-muted block text-[12px]">
-                {row.model} · {row.effort}
-            </span>
+        </td>
+        <td className="ta-usage-model">
+            {row.model} · {row.effort}
         </td>
         <td>{int(row.calls)}</td>
         <td>{int(row.input_tokens + row.cache_write_tokens)}</td>
@@ -48,17 +48,17 @@ export const AiUsageCard = ({ usage, loading, error, on_reload }: Props) => (
     <Card aria-labelledby="usage-title">
         <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-                <h2 id="usage-title" className="text-lg font-semibold">
+                <h2 id="usage-title" className="ta-set-title">
                     AI usage
                 </h2>
-                {usage && <p className="ta-muted mt-1 text-[14px]">Since {relative_time(usage.since)}</p>}
+                {usage && <p className="ta-set-desc">Since {relative_time(usage.since)}</p>}
             </div>
-            <Button size="sm" onClick={on_reload} disabled={loading}>
+            <Button size="sm" variant="secondary" onClick={on_reload} disabled={loading}>
                 Refresh
             </Button>
         </div>
 
-        <div className="mt-4">
+        <div className="ta-set-section">
             {loading && usage === null ? (
                 <Loading label="Loading usage…">
                     <Skeleton lines={4} height={20} />
@@ -68,7 +68,7 @@ export const AiUsageCard = ({ usage, loading, error, on_reload }: Props) => (
             ) : usage ? (
                 <>
                     {!usage.configured && (
-                        <p className="mb-4 rounded-xl px-4 py-3 text-[14px] font-medium" style={{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>
+                        <p className="mb-4 rounded-lg px-4 py-3 text-[13px] font-medium" style={{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>
                             AI is not configured. Set ANTHROPIC_API_KEY on the server and every AI feature will start working.
                         </p>
                     )}
@@ -77,6 +77,7 @@ export const AiUsageCard = ({ usage, loading, error, on_reload }: Props) => (
                             <thead>
                                 <tr>
                                     <th scope="col">Task</th>
+                                    <th scope="col">Model</th>
                                     <th scope="col">Calls</th>
                                     <th scope="col">Input</th>
                                     <th scope="col">Cached</th>
@@ -91,13 +92,13 @@ export const AiUsageCard = ({ usage, loading, error, on_reload }: Props) => (
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colSpan={5}>Total</td>
+                                    <td colSpan={6}>Total</td>
                                     <td>{format_usd(usage.total_usd)}</td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
-                    <p className="ta-muted mt-3 text-[13px]">Totals reset whenever the server restarts, including every deploy. Costs are estimates from list prices.</p>
+                    <p className="ta-set-hint">Totals reset whenever the server restarts, including every deploy. Costs are estimates from list prices.</p>
                 </>
             ) : null}
         </div>

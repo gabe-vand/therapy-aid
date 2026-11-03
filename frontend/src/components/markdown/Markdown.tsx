@@ -8,9 +8,7 @@ import './markdown.css';
    would otherwise make the browser send that URL — private text included — to someone else's
    server. Links open in a new tab, and only on a click. */
 
-const components: Components = {
-    a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noreferrer noopener" />,
-};
+const components: Components = { a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noreferrer noopener" /> };
 
 export const Markdown = ({ text, className = '' }: { text: string; className?: string }) => (
     <div className={`ta-md ${className}`.trim()}>

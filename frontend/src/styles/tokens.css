@@ -1,54 +1,83 @@
-/* therapy-aid design tokens — the one place colours are defined. Light by default, dark when
-   the OS asks for it. A new colour is a new token here, never a literal in a component.
-   Pairs: every tone has a solid (text/icon/border) and a -soft (tinted background) variant. */
-:root {
-    --ink: #1d2a2a;
-    --ink-2: #3b4a49;
-    --muted: #5f706e;
-    --paper: #f4f7f5;
-    --surface: #ffffff;
-    --surface-2: #f8faf9;
-    --line: #dde5e1;
-    --line-2: #c6d3ce;
-    --accent: #2f7d6d;
-    --accent-soft: #e2f0eb;
+/* therapy-aid design tokens — the ONE place colours are defined. Light is the default; dark is
+   `data-theme="dark"` on <html>, set before first paint by public/theme.js and kept in sync by
+   services/theme.ts (never a media query here — the theme script resolves "system").
+   Pairs: every status tone has a solid (text/icon/border) and a -soft (tinted background).
+   Neutrals are slightly cool greys and the single accent is indigo (Linear-like). */
+:root,
+:root[data-theme='light'] {
+    color-scheme: light;
+    /* surfaces */
+    --paper: #ffffff; /* page background (main area) */
+    --surface: #ffffff; /* cards, panes, inputs */
+    --surface-2: #f7f7f8; /* sidebar, hover rows, subtle fills */
+    --surface-3: #ededef; /* pressed / selected rows */
+    --line: #e6e6e9; /* hairlines */
+    --line-2: #d2d3d8; /* input borders, stronger dividers */
+    /* text */
+    --ink: #18181b;
+    --ink-2: #3f3f46;
+    --muted: #71717a;
+    --faint: #a1a1aa; /* placeholders, disabled text */
+    /* accent */
+    --accent: #5e6ad2;
+    --accent-hover: #4f5bc4;
+    --accent-soft: #eef0fb;
     --on-accent: #ffffff;
-    --ok: #2f9e6d;
-    --ok-soft: #e1f3ea;
-    --warn: #a86a12;
-    --warn-soft: #fbf0dc;
-    --danger: #c2483d;
-    --danger-soft: #fbe6e3;
+    /* status */
+    --ok: #15803d;
+    --ok-soft: #e7f6ec;
+    --warn: #b45309;
+    --warn-soft: #fdf3e3;
+    --danger: #dc2626;
+    --danger-soft: #fdecec;
     --on-danger: #ffffff;
-    --overlay: rgba(16, 26, 25, 0.45);
-    --shadow: 0 1px 2px rgba(16, 26, 25, 0.06), 0 8px 24px rgba(16, 26, 25, 0.06);
-    --skeleton: #e8eeeb;
-    --skeleton-shine: #f3f6f4;
+    /* misc */
+    --overlay: rgba(24, 24, 27, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.16);
+    --shadow: var(--shadow-md); /* legacy name, kept for untouched components */
+    --skeleton: #ededef;
+    --skeleton-shine: #f7f7f8;
+    --focus: #5e6ad2;
+    /* shape + type (theme-independent) */
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-xl: 16px;
+    --font: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --ink: #e6efec;
-        --ink-2: #c3d1cd;
-        --muted: #93a6a2;
-        --paper: #111817;
-        --surface: #182220;
-        --surface-2: #1c2725;
-        --line: #26332f;
-        --line-2: #34443f;
-        --accent: #5fb7a3;
-        --accent-soft: #1b322d;
-        --on-accent: #0c1513;
-        --ok: #4cc28e;
-        --ok-soft: #173126;
-        --warn: #e2a64c;
-        --warn-soft: #33281a;
-        --danger: #e36a5e;
-        --danger-soft: #3a2220;
-        --on-danger: #160807;
-        --overlay: rgba(0, 0, 0, 0.6);
-        --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
-        --skeleton: #22302d;
-        --skeleton-shine: #2a3936;
-    }
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --paper: #101012;
+    --surface: #18181b;
+    --surface-2: #1f1f23;
+    --surface-3: #27272c;
+    --line: #27272b;
+    --line-2: #3a3a40;
+    --ink: #ededef;
+    --ink-2: #c8c8cc;
+    --muted: #8b8b93;
+    --faint: #5c5c64;
+    --accent: #7c85e6;
+    --accent-hover: #8f97ec;
+    --accent-soft: #24264a;
+    --on-accent: #ffffff;
+    --ok: #4ade80;
+    --ok-soft: #14301f;
+    --warn: #f0a94a;
+    --warn-soft: #33260f;
+    --danger: #f07171;
+    --danger-soft: #3a1c1c;
+    --on-danger: #ffffff;
+    --overlay: rgba(0, 0, 0, 0.6);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow: var(--shadow-md);
+    --skeleton: #27272c;
+    --skeleton-shine: #313136;
+    --focus: #8f97ec;
 }

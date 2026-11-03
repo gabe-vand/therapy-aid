@@ -1,5 +1,5 @@
 import type { SessionSource, SessionStatus } from '@therapy-aid/shared';
-import './sessions.css';
+import './session-steps.css';
 
 /* Where a session is in the pipeline: Uploaded → Transcribing → Summarizing → Ready. Notes skip
    transcription, so their stepper has three steps. A failed session marks the step it died on:

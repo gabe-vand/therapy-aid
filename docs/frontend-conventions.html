@@ -50,8 +50,7 @@
   <section class="rule" id="r1">
     <div class="rule-head"><span class="num">1</span><h3>Tokens, not colours</h3></div>
     <div class="rule-body">
-      <p>Every colour is a CSS custom property from <code>src/styles/tokens.css</code> (<code>var(--ink)</code>, <code>var(--surface)</code>, <code>var(--accent)</code>, &hellip;), defined once for light and once for dark. Never a hex literal in a component. A new colour is a new token. Tailwind is for layout utility; the visual identity comes from the tokens.</p>
-      <p>Page-scoped CSS never travels. A component meant for reuse on other screens must be style-self-contained &mdash; tokens via inline styles or its own CSS import &mdash; and must never borrow another page's classes: on a page that doesn't load that stylesheet it renders unstyled.</p>
+      <p>Every colour is a CSS custom property from <code>src/styles/tokens.css</code> (<code>var(--ink)</code>, <code>var(--surface)</code>, <code>var(--accent)</code>, &hellip;), defined once for light and once for dark. Never a hex literal in a component. A new colour is a new token. Tailwind is for layout utility; the visual identity comes from the tokens. The token set, theme, page widths, primitives, mobile and editor rules live in <a href="frontend-styling.html">Frontend Styling &amp; UI</a> &mdash; read it before touching styles or layout.</p>
     </div>
   </section>
 
@@ -180,7 +179,7 @@
 </div>
 
 <footer>
-  Frontend code style for <code>therapy-aid</code>. See also <a href="backend-conventions.html">Backend Conventions</a> and the root <code>CLAUDE.md</code>.
+  Frontend code style for <code>therapy-aid</code>. See also <a href="frontend-styling.html">Styling &amp; UI</a>, <a href="backend-conventions.html">Backend Conventions</a> and the root <code>CLAUDE.md</code>.
 </footer>
 
 </body>

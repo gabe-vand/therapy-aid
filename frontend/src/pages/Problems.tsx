@@ -1,15 +1,17 @@
 import { useState } from 'react';
+import { ChevronRight, Plus } from 'lucide-react';
 import type { Problem } from '@therapy-aid/shared';
 import { NewProblemForm } from '@/components/problems/NewProblemForm';
-import { ProblemCard } from '@/components/problems/ProblemCard';
+import { ProblemRow } from '@/components/problems/ProblemRow';
 import { Button } from '@/components/ui/Button';
-import { Loading, Skeleton } from '@/components/ui/Card';
+import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { useProblems } from '@/services/hooks/use-problems';
 
 /* The big-picture threads that persist across sessions. Active problems first (stale ones are
-   flagged and ask "Still relevant?" with Keep / Discard), resolved ones collapsed underneath.
+   flagged with a chip and inline Keep / Discard), resolved ones in a disclosure underneath.
    Discard is destructive, so it goes through a ConfirmDialog; Keep is a one-tap review. */
 export default function Problems() {
     const { problems, loading, error, reload, keep, discard, create, creating, busy_id, action_error } = useProblems();
@@ -28,12 +30,13 @@ export default function Problems() {
 
     const new_button = (
         <Button variant="primary" onClick={() => set_adding(true)} disabled={adding}>
-            + New problem
+            <Plus size={15} />
+            New problem
         </Button>
     );
 
     return (
-        <>
+        <Page width="wide">
             <PageHeader title="Problems" subtitle="The themes that keep coming up, and how they are moving." actions={new_button} />
 
             {adding && <NewProblemForm creating={creating} error={action_error} on_submit={create} on_cancel={() => set_adding(false)} />}
@@ -45,11 +48,11 @@ export default function Problems() {
 
             {loading ? (
                 <Loading label="Loading problems">
-                    <div className="flex flex-col gap-3">
-                        <Skeleton height={104} />
-                        <Skeleton height={104} />
-                        <Skeleton height={104} />
-                    </div>
+                    <Card padded={false}>
+                        <Skeleton height={56} />
+                        <Skeleton height={56} />
+                        <Skeleton height={56} />
+                    </Card>
                 </Loading>
             ) : error ? (
                 <ErrorState message={error} on_retry={reload} />
@@ -58,36 +61,33 @@ export default function Problems() {
                     {active.length === 0 ? (
                         <EmptyState title="No active problems" body="Problems appear on their own as your sessions are summarised, or you can add one yourself." action={!adding && new_button} />
                     ) : (
-                        <ul className="flex list-none flex-col gap-3 p-0" aria-label="Active problems">
-                            {active.map((p) => (
-                                <li key={p.id}>
-                                    <ProblemCard problem={p} busy={busy_id === p.id} on_keep={(x) => void keep(x.id)} on_discard={set_to_discard} />
-                                </li>
-                            ))}
-                        </ul>
+                        <Card padded={false}>
+                            <ul className="ta-prows" aria-label="Active problems">
+                                {active.map((p) => (
+                                    <li key={p.id}>
+                                        <ProblemRow problem={p} busy={busy_id === p.id} on_keep={(x) => void keep(x.id)} on_discard={set_to_discard} />
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
                     )}
 
                     {resolved.length > 0 && (
-                        <section className="mt-8">
-                            <button
-                                type="button"
-                                className="flex w-full items-center justify-between rounded-xl px-1 py-2 text-left text-[15px] font-semibold"
-                                aria-expanded={show_resolved}
-                                aria-controls="resolved-problems"
-                                onClick={() => set_show_resolved((v) => !v)}>
+                        <section>
+                            <button type="button" className="ta-disclosure" aria-expanded={show_resolved} aria-controls="resolved-problems" onClick={() => set_show_resolved((v) => !v)}>
+                                <ChevronRight aria-hidden />
                                 <span>Resolved ({resolved.length})</span>
-                                <span aria-hidden className="ta-muted">
-                                    {show_resolved ? '▲' : '▼'}
-                                </span>
                             </button>
                             {show_resolved && (
-                                <ul id="resolved-problems" className="mt-2 flex list-none flex-col gap-3 p-0">
-                                    {resolved.map((p) => (
-                                        <li key={p.id}>
-                                            <ProblemCard problem={p} />
-                                        </li>
-                                    ))}
-                                </ul>
+                                <Card padded={false} className="mt-2">
+                                    <ul id="resolved-problems" className="ta-prows">
+                                        {resolved.map((p) => (
+                                            <li key={p.id}>
+                                                <ProblemRow problem={p} />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Card>
                             )}
                         </section>
                     )}
@@ -103,6 +103,6 @@ export default function Problems() {
                 on_confirm={() => void confirm_discard()}
                 on_cancel={() => set_to_discard(null)}
             />
-        </>
+        </Page>
     );
 }

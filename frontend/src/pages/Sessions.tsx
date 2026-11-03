@@ -1,8 +1,10 @@
+import { Mic } from 'lucide-react';
 import type { SessionListItem } from '@therapy-aid/shared';
 import { SessionRow } from '@/components/sessions/SessionRow';
 import { ButtonLink } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { format_month } from '@/services/dates';
 import { useSessions } from '@/services/hooks/use-sessions';
 import { paths } from '@/services/paths';
@@ -29,20 +31,21 @@ export default function Sessions() {
         <>
             <ButtonLink to={paths.upload_notes}>Add notes</ButtonLink>
             <ButtonLink to={paths.record} variant="primary">
+                <Mic size={15} aria-hidden />
                 Record
             </ButtonLink>
         </>
     );
 
     return (
-        <>
+        <Page width="wide">
             <PageHeader title="Sessions" subtitle="Every conversation with David, in one place." actions={actions} />
 
             {loading && sessions.length === 0 && (
                 <Loading label="Loading sessions…">
-                    <Skeleton height={64} className="mb-3" />
-                    <Skeleton height={64} className="mb-3" />
-                    <Skeleton height={64} />
+                    <Skeleton height={56} className="mb-2" />
+                    <Skeleton height={56} className="mb-2" />
+                    <Skeleton height={56} />
                 </Loading>
             )}
             {!loading && error && <ErrorState message={error} on_retry={reload} />}
@@ -61,10 +64,10 @@ export default function Sessions() {
                 />
             )}
 
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-8">
                 {group_by_month(sessions).map((group) => (
                     <section key={group.month} aria-label={group.month}>
-                        <h2 className="ta-muted mb-2 px-1 text-sm font-semibold uppercase tracking-wide">{group.month}</h2>
+                        <h2 className="ta-month-label">{group.month}</h2>
                         <Card padded={false} className="overflow-hidden">
                             {group.items.map((s) => (
                                 <SessionRow key={s.id} session={s} />
@@ -73,6 +76,6 @@ export default function Sessions() {
                     </section>
                 ))}
             </div>
-        </>
+        </Page>
     );
 }

@@ -4,12 +4,13 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 112px;
-    height: 112px;
+    width: 72px;
+    height: 72px;
     border-radius: 999px;
     border: 0;
     background: var(--accent);
     color: var(--on-accent);
+    box-shadow: var(--shadow-md);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -17,6 +18,9 @@
         background 120ms ease;
 }
 
+.ta-rec-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
 .ta-rec-btn:active:not(:disabled) {
     transform: scale(0.96);
 }
@@ -25,12 +29,13 @@
     cursor: not-allowed;
 }
 .ta-rec-btn:focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 2px solid var(--focus);
     outline-offset: 4px;
 }
 
 /* While recording the button turns into the stop control and a soft ring pulses around it. */
-.ta-rec-btn[data-live='true'] {
+.ta-rec-btn[data-live='true'],
+.ta-rec-btn[data-live='true']:hover:not(:disabled) {
     background: var(--danger);
     color: var(--on-danger);
 }
@@ -64,14 +69,29 @@
 
 .ta-rec-time {
     font-variant-numeric: tabular-nums;
-    font-size: 44px;
+    font-size: 32px;
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1;
 }
 
+.ta-upload {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.ta-upload__caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
 .ta-progress {
-    height: 6px;
+    height: 4px;
     border-radius: 999px;
     background: var(--line);
     overflow: hidden;
@@ -83,4 +103,26 @@
     border-radius: 999px;
     background: var(--accent);
     transition: width 300ms ease;
+}
+
+.ta-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: var(--r-md);
+    background: var(--warn-soft);
+    color: var(--warn);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ta-notice svg {
+    flex: none;
+    margin-top: 2px;
+}
+
+.ta-upload .ta-notice {
+    margin: 16px 0 0;
 }

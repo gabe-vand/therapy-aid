@@ -1,0 +1,136 @@
+/* Buttons and icon buttons (Button.tsx). Linear look: 500 weight, --r-sm radius, a hairline
+   shadow on filled variants, 120ms transitions, and a 40px touch target on coarse pointers. */
+
+.ta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    font: inherit;
+    font-weight: 500;
+    font-size: 13.5px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease,
+        box-shadow 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ta-btn svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.ta-btn:disabled,
+.ta-btn[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ta-btn--sm {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+.ta-btn--lg {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 15px;
+    gap: 8px;
+}
+
+.ta-btn--lg svg {
+    width: 17px;
+    height: 17px;
+}
+
+.ta-btn--primary {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.ta-btn--primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.ta-btn--secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--line-2);
+    box-shadow: var(--shadow-sm);
+}
+
+.ta-btn--secondary:hover:not(:disabled) {
+    background: var(--surface-2);
+}
+
+.ta-btn--ghost {
+    background: transparent;
+    color: var(--ink-2);
+}
+
+.ta-btn--ghost:hover:not(:disabled) {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+.ta-btn--danger {
+    background: var(--danger);
+    color: var(--on-danger);
+    box-shadow: var(--shadow-sm);
+}
+
+.ta-btn--danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 88%, var(--ink));
+}
+
+/* Icon-only: square, no horizontal padding. */
+.ta-icon-btn {
+    width: 32px;
+    padding: 0;
+}
+
+.ta-icon-btn.ta-btn--ghost {
+    color: var(--muted);
+}
+
+.ta-icon-btn.ta-btn--sm {
+    width: 28px;
+}
+
+.ta-icon-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.ta-icon-btn[aria-pressed='true'],
+.ta-icon-btn[aria-expanded='true'] {
+    background: var(--surface-3);
+    color: var(--ink);
+}
+
+/* Phones and tablets: everything tapped is at least 40px. */
+@media (pointer: coarse) {
+    .ta-btn,
+    .ta-btn--sm {
+        height: 40px;
+    }
+
+    .ta-icon-btn,
+    .ta-icon-btn.ta-btn--sm {
+        width: 40px;
+    }
+}

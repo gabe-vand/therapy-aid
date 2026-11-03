@@ -1,28 +1,24 @@
-import { Link } from 'react-router-dom';
+import { FileText, Mic, NotebookPen } from 'lucide-react';
+import { ButtonLink } from '@/components/ui/Button';
 import { paths } from '@/services/paths';
+import './home.css';
 
-/* Home's three starting points, as large tap targets: record a session (the primary one, accent
-   filled), add notes, write in the journal. */
+/* Home's three starting points as one row of compact secondary buttons (a single column of 40px
+   buttons on a phone): record a session, add notes, write in the journal. */
 
 const ACTIONS = [
-    { to: paths.record, label: 'Record a session', hint: 'Capture it live', primary: true },
-    { to: paths.upload_notes, label: 'Add notes', hint: 'Paste what you wrote', primary: false },
-    { to: paths.journal, label: 'Write in journal', hint: 'Get it out of your head', primary: false },
+    { to: paths.record, label: 'Record', Icon: Mic },
+    { to: paths.upload_notes, label: 'Add notes', Icon: FileText },
+    { to: paths.journal, label: 'Journal', Icon: NotebookPen },
 ] as const;
 
 export const QuickActions = () => (
-    <nav aria-label="Quick actions" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {ACTIONS.map((a) => (
-            <Link
-                key={a.to}
-                to={a.to}
-                className="ta-card flex min-h-[72px] flex-col justify-center px-5 py-4 no-underline transition-colors"
-                style={a.primary ? { background: 'var(--accent)', borderColor: 'var(--accent)', color: 'var(--on-accent)' } : { color: 'var(--ink)' }}>
-                <span className="font-semibold">{a.label}</span>
-                <span className="text-sm" style={{ opacity: 0.8 }}>
-                    {a.hint}
-                </span>
-            </Link>
+    <nav aria-label="Quick actions" className="ta-quick">
+        {ACTIONS.map(({ to, label, Icon }) => (
+            <ButtonLink key={to} to={to}>
+                <Icon size={15} aria-hidden />
+                {label}
+            </ButtonLink>
         ))}
     </nav>
 );

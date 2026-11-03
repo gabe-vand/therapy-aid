@@ -1,8 +1,8 @@
+import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from '@/components/shell/AppShell';
 import Chat from '@/pages/Chat';
 import Home from '@/pages/Home';
-import Journal from '@/pages/Journal';
 import ProblemDetail from '@/pages/ProblemDetail';
 import Problems from '@/pages/Problems';
 import Record from '@/pages/Record';
@@ -12,9 +12,18 @@ import Settings from '@/pages/Settings';
 import UploadNotes from '@/pages/UploadNotes';
 import { paths } from '@/services/paths';
 
+// The journal carries the rich-text editor (TipTap, ~400 kB) — loaded only when the journal opens.
+const Journal = lazy(() => import('@/pages/Journal'));
+const journal = (
+    <Suspense fallback={null}>
+        <Journal />
+    </Suspense>
+);
+
 /* Flat route table — one page component per screen, all inside the AppShell layout. Paths come
    from services/paths.ts (links use the same builders). The static /sessions/record and
-   /sessions/notes outrank /sessions/:id. Unknown paths fall back to home. */
+   /sessions/notes outrank /sessions/:id. Unknown paths fall back to home.
+   The journal is code-split (see above) so TipTap is not in the bundle every other screen loads. */
 export default function App() {
     return (
         <Routes>
@@ -26,8 +35,8 @@ export default function App() {
                 <Route path={paths.session(':id')} element={<SessionDetail />} />
                 <Route path={paths.problems} element={<Problems />} />
                 <Route path={paths.problem(':id')} element={<ProblemDetail />} />
-                <Route path={paths.journal} element={<Journal />} />
-                <Route path={paths.journal_entry(':id')} element={<Journal />} />
+                <Route path={paths.journal} element={journal} />
+                <Route path={paths.journal_entry(':id')} element={journal} />
                 <Route path={paths.chat} element={<Chat />} />
                 <Route path={paths.chat_thread(':id')} element={<Chat />} />
                 <Route path={paths.settings} element={<Settings />} />

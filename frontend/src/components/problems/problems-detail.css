@@ -1,0 +1,171 @@
+/* Problem detail pieces: inline-editable text, the stale prompt, the section label, the
+   timeline and the action row. Tokens only. Split from problems.css for the 200-line cap. */
+
+/* Inline-editable text (title / description) */
+.ta-editable {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0 -8px;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    transition:
+        border-color 120ms,
+        background 120ms;
+}
+
+.ta-editable:hover,
+.ta-editable:focus-within {
+    border-color: var(--line);
+    background: var(--surface-2);
+}
+
+.ta-editable__value {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: var(--ink);
+}
+
+.ta-editable__value--title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.ta-editable__value--prose {
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--ink-2);
+}
+
+.ta-editable__pencil {
+    flex: none;
+    opacity: 0;
+    transition: opacity 120ms;
+}
+
+.ta-editable:hover .ta-editable__pencil,
+.ta-editable:focus-within .ta-editable__pencil {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .ta-editable__pencil {
+        opacity: 1;
+    }
+}
+
+.ta-editable__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ta-editable__form .ta-input {
+    font-size: 16px;
+}
+
+@media (min-width: 768px) {
+    .ta-editable__form .ta-input {
+        font-size: 14px;
+    }
+}
+
+/* Stale prompt on the detail page */
+.ta-stale {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--r-md);
+    background: var(--warn-soft);
+    color: var(--warn);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ta-stale svg {
+    flex: none;
+}
+
+.ta-stale p {
+    flex: 1 1 200px;
+    margin: 0;
+}
+
+/* Section label + timeline */
+.ta-section-label {
+    margin: 32px 0 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ta-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 20px;
+    border-left: 1px solid var(--line-2);
+}
+
+.ta-timeline__item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.ta-timeline__item:last-child {
+    padding-bottom: 0;
+}
+
+.ta-timeline__item::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 4px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+}
+
+.ta-timeline__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ta-timeline__meta a {
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.ta-timeline__body {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--ink);
+}
+
+/* Detail actions row */
+.ta-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ta-btn-danger-ghost {
+    color: var(--danger);
+}

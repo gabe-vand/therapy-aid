@@ -6,10 +6,7 @@ import { vi } from 'vitest';
 
 /* A Response carrying the { data, status_code, message } envelope. */
 export const envelope = (data: unknown, status_code = 200, message?: string) =>
-    new Response(JSON.stringify({ data, status_code, message: message ?? (status_code === 200 ? 'OKAY' : 'SERVER_FAULT') }), {
-        status: status_code,
-        headers: { 'content-type': 'application/json' },
-    });
+    new Response(JSON.stringify({ data, status_code, message: message ?? (status_code === 200 ? 'OKAY' : 'SERVER_FAULT') }), { status: status_code, headers: { 'content-type': 'application/json' } });
 
 export type RouteReply = unknown | Response | ((init: RequestInit | undefined, url: string) => unknown | Response | Promise<unknown | Response>);
 
@@ -30,7 +27,11 @@ export const stub_api = (routes: Record<string, RouteReply>) => {
 };
 
 /* Stubs fetch to fail as if the network were down. */
-export const stub_unreachable = () => vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))));
+export const stub_unreachable = () =>
+    vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))),
+    );
 
 /* The parsed JSON body of the n-th call to a fetch mock (for asserting what a hook sent). */
 export const sent_body = (mock: ReturnType<typeof vi.fn>, n = 0): unknown => {

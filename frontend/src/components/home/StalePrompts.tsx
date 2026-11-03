@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ErrorState } from '@/components/ui/States';
 import { elapsed_phrase } from '@/services/dates';
 import { paths } from '@/services/paths';
+import './home.css';
 
 /* "Still relevant?" cards for problems that have gone 30 days untouched. Keep resets the clock;
    Discard retires the problem, so it asks first. Renders nothing when there is nothing to ask
@@ -30,33 +31,39 @@ export const StalePrompts = ({ problems, busy_id, action_error, on_keep, on_disc
     };
 
     return (
-        <section aria-labelledby="stale-title" className="flex flex-col gap-3">
-            <h2 id="stale-title" className="text-lg font-semibold">
+        <section aria-labelledby="stale-title">
+            <h2 id="stale-title" className="ta-section-title">
                 Still relevant?
             </h2>
             {action_error && <ErrorState message={action_error} />}
-            {problems.map((p) => {
-                const busy = busy_id === p.id;
-                return (
-                    <Card key={p.id} as="article" className="flex flex-col gap-3" style={{ background: 'var(--warn-soft)', borderColor: 'transparent' }}>
-                        <p className="leading-relaxed">
-                            You haven’t talked about{' '}
-                            <Link to={paths.problem(p.id)} className="font-semibold underline underline-offset-2">
-                                {p.title}
-                            </Link>{' '}
-                            in {elapsed_phrase(last_touched(p))}. Still relevant?
-                        </p>
-                        <div className="flex gap-2">
-                            <Button size="sm" variant="primary" onClick={() => on_keep(p.id)} disabled={busy}>
-                                Keep
-                            </Button>
-                            <Button size="sm" onClick={() => set_discarding(p)} disabled={busy}>
-                                Discard
-                            </Button>
-                        </div>
-                    </Card>
-                );
-            })}
+            {problems.length > 0 && (
+                <Card padded={false}>
+                    <ul className="ta-quiet-list">
+                        {problems.map((p) => {
+                            const busy = busy_id === p.id;
+                            return (
+                                <li key={p.id}>
+                                    <p>
+                                        You haven’t talked about{' '}
+                                        <Link to={paths.problem(p.id)} className="underline underline-offset-2">
+                                            {p.title}
+                                        </Link>{' '}
+                                        in {elapsed_phrase(last_touched(p))}. Still relevant?
+                                    </p>
+                                    <div className="ta-quiet-list__actions">
+                                        <Button size="sm" onClick={() => on_keep(p.id)} disabled={busy}>
+                                            Keep
+                                        </Button>
+                                        <Button size="sm" variant="ghost" onClick={() => set_discarding(p)} disabled={busy}>
+                                            Discard
+                                        </Button>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </Card>
+            )}
             <ConfirmDialog
                 open={discarding !== null}
                 title="Discard this problem?"

@@ -1,13 +1,14 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import './ui.css';
 
-/* Surfaces, labels and loading placeholders shared by every page: a Card (1px --line border,
-   16px radius), a Chip (status / tag pill in one of five tones) and a Skeleton (shimmering
-   placeholder block that matches the shape of what is loading). */
+/* Surfaces, labels and loading placeholders shared by every page: a Card (hairline border,
+   --r-lg radius, 20/24px padding — only where a surface genuinely groups something), a Chip
+   (small status label in one of five tones) and a Skeleton (shimmering placeholder block that
+   matches the shape of what is loading). */
 
 type CardProps = HTMLAttributes<HTMLElement> & { as?: 'section' | 'article' | 'div'; padded?: boolean };
 
-export const Card = ({ as: Tag = 'section', padded = true, className, ...rest }: CardProps) => <Tag className={`ta-card${padded ? ' p-5 md:p-6' : ''}${className ? ` ${className}` : ''}`} {...rest} />;
+export const Card = ({ as: Tag = 'section', padded = true, className, ...rest }: CardProps) => <Tag className={`ta-card${padded ? ' ta-card--padded' : ''}${className ? ` ${className}` : ''}`} {...rest} />;
 
 export type ChipTone = 'neutral' | 'accent' | 'ok' | 'warn' | 'danger';
 

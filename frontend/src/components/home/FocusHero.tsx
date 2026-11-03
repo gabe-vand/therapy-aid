@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 import type { FocusSnapshot } from '@therapy-aid/shared';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Card, Loading, Skeleton } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { relative_time } from '@/services/dates';
 import { paths } from '@/services/paths';
+import './home.css';
 
 /* The banner at the top of Home: what to focus on right now. A one-line headline and up to three
    cards (what, why, and the one thing to do this week). Refresh regenerates it from the whole
@@ -12,16 +14,7 @@ import { paths } from '@/services/paths';
    from — point at Record / Add notes), and after one whose best-effort focus run failed (sessions
    exist, so offer "Generate my focus" — otherwise that state would be a dead end). */
 
-type Props = {
-    focus: FocusSnapshot | null;
-    has_sessions: boolean;
-    loading: boolean;
-    error: string | null;
-    on_reload: () => void;
-    on_regenerate: () => void;
-    regenerating: boolean;
-    regenerate_error: string | null;
-};
+type Props = { focus: FocusSnapshot | null; has_sessions: boolean; loading: boolean; error: string | null; on_reload: () => void; on_regenerate: () => void; regenerating: boolean; regenerate_error: string | null };
 
 export const FocusHero = ({ focus, has_sessions, loading, error, on_reload, on_regenerate, regenerating, regenerate_error }: Props) => {
     if (loading && !focus) {
@@ -68,37 +61,35 @@ export const FocusHero = ({ focus, has_sessions, loading, error, on_reload, on_r
     }
 
     return (
-        <section aria-labelledby="focus-headline" className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)' }}>
-                    Your focus right now
-                </p>
-                <div className="flex items-center gap-3">
-                    <span className="ta-muted text-sm">Updated {relative_time(focus.created_at)}</span>
-                    <Button size="sm" onClick={on_regenerate} disabled={regenerating}>
+        <section aria-labelledby="focus-headline" className="ta-focus">
+            <div className="ta-focus__top">
+                <p className="ta-eyebrow">Your focus right now</p>
+                <div className="ta-focus__meta">
+                    <span>Updated {relative_time(focus.created_at)}</span>
+                    <Button size="sm" variant="ghost" onClick={on_regenerate} disabled={regenerating}>
+                        <RefreshCw size={14} aria-hidden />
                         {regenerating ? 'Refreshing…' : 'Refresh'}
                     </Button>
                 </div>
             </div>
-            <h2 id="focus-headline" className="text-2xl font-semibold leading-snug tracking-tight md:text-[28px]">
+            <h2 id="focus-headline" className="ta-focus__headline">
                 {focus.headline}
             </h2>
             {regenerate_error && <ErrorState message={regenerate_error} />}
-            <ul className="flex flex-col gap-3" aria-busy={regenerating}>
+            <ul className="ta-focus__grid" aria-busy={regenerating}>
                 {focus.items.map((item) => (
                     <li key={item.title}>
-                        <Card as="article" className="flex flex-col gap-2" style={{ opacity: regenerating ? 0.6 : 1 }}>
-                            <h3 className="text-lg font-semibold">{item.title}</h3>
-                            <p className="leading-relaxed" style={{ color: 'var(--ink-2)' }}>
-                                {item.why}
-                            </p>
-                            <p className="mt-1 rounded-xl px-3 py-2 text-[15px] leading-relaxed" style={{ background: 'var(--accent-soft)' }}>
-                                <span className="font-semibold">This week: </span>
+                        <Card as="article" className="ta-focus__card" style={{ opacity: regenerating ? 0.6 : 1 }}>
+                            <h3>{item.title}</h3>
+                            <p className="ta-focus__why">{item.why}</p>
+                            <p className="ta-focus__week">
+                                <span>This week</span>
                                 {item.action}
                             </p>
                             {item.problem_id !== null && (
-                                <Link to={paths.problem(item.problem_id)} className="text-sm font-medium underline-offset-2 hover:underline" style={{ color: 'var(--accent)' }}>
-                                    See the related problem →
+                                <Link to={paths.problem(item.problem_id)} className="ta-focus__link">
+                                    See the related problem
+                                    <ArrowRight size={14} aria-hidden />
                                 </Link>
                             )}
                         </Card>

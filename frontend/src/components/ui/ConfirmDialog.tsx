@@ -4,18 +4,10 @@ import './ui.css';
 
 /* The confirmation every destructive action goes through (delete, discard, resolve). Controlled:
    the caller owns `open`. Escape or the backdrop cancels; the confirm button shows `busy` while
-   the caller's mutation runs, so a double-tap can't fire it twice. */
+   the caller's mutation runs, so a double-tap can't fire it twice. A centred card from 768px; a
+   bottom sheet (full width, top corners rounded, clear of the home indicator) on phones. */
 
-type Props = {
-    open: boolean;
-    title: string;
-    body?: ReactNode;
-    confirm_label: string;
-    tone?: 'danger' | 'primary';
-    busy?: boolean;
-    on_confirm: () => void;
-    on_cancel: () => void;
-};
+type Props = { open: boolean; title: string; body?: ReactNode; confirm_label: string; tone?: 'danger' | 'primary'; busy?: boolean; on_confirm: () => void; on_cancel: () => void };
 
 export const ConfirmDialog = ({ open, title, body, confirm_label, tone = 'danger', busy = false, on_confirm, on_cancel }: Props) => {
     useEffect(() => {
@@ -29,14 +21,14 @@ export const ConfirmDialog = ({ open, title, body, confirm_label, tone = 'danger
 
     if (!open) return null;
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+        <div className="ta-dialog-wrap">
             <div className="ta-overlay absolute inset-0" onClick={on_cancel} aria-hidden />
-            <div role="dialog" aria-modal="true" aria-labelledby="ta-confirm-title" className="ta-dialog relative w-full max-w-sm p-6">
-                <h2 id="ta-confirm-title" className="text-lg font-semibold">
+            <div role="dialog" aria-modal="true" aria-labelledby="ta-confirm-title" className="ta-dialog">
+                <h2 id="ta-confirm-title" className="ta-dialog__title">
                     {title}
                 </h2>
-                {body && <div className="ta-muted mt-2 text-[15px]">{body}</div>}
-                <div className="mt-6 flex justify-end gap-2">
+                {body && <div className="ta-dialog__body">{body}</div>}
+                <div className="ta-dialog__actions">
                     <Button variant="ghost" onClick={on_cancel} disabled={busy}>
                         Cancel
                     </Button>

@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import Settings from '@/pages/Settings';
 import { envelope, sent_body, stub_api } from '../helpers/hlp-fetch';
+import { reset_theme } from '../helpers/hlp-theme';
 import { usage, usage_row } from '../helpers/hlp-usage';
 
 const profile = { profile: 'I am Gabe. I work on my racing mind.', updated_at: '2026-10-01T12:00:00.000Z' };
@@ -87,13 +88,13 @@ describe('Settings: account and AI usage', () => {
 
         const summarize = within(rows[1]!).getAllByRole('cell');
         expect(summarize[0]).toHaveTextContent('Summarize');
-        expect(summarize[0]).toHaveTextContent('claude-sonnet-5-5 · high');
-        expect(summarize.slice(1).map((c) => c.textContent)).toEqual(['2', '15,000', '0', '1,800', '$0.03']);
+        expect(summarize[1]).toHaveTextContent('claude-sonnet-5-5 · high');
+        expect(summarize.slice(2).map((c) => c.textContent)).toEqual(['2', '15,000', '0', '1,800', '$0.03']);
 
         const chat = within(rows[2]!).getAllByRole('cell');
-        expect(chat.slice(1).map((c) => c.textContent)).toEqual(['3', '900', '29,870', '344', '$0.0087']);
+        expect(chat.slice(2).map((c) => c.textContent)).toEqual(['3', '900', '29,870', '344', '$0.0087']);
 
-        expect(within(rows[3]!).getAllByRole('cell')[0]).toHaveTextContent('claude-haiku-5-5 · low');
+        expect(within(rows[3]!).getAllByRole('cell')[1]).toHaveTextContent('claude-haiku-5-5 · low');
         expect(within(rows[4]!).getAllByRole('cell')[1]).toHaveTextContent('$0.04');
         expect(screen.getByText(/Since /)).toBeInTheDocument();
         expect(screen.getByText(/reset whenever the server restarts/)).toBeInTheDocument();
@@ -123,5 +124,16 @@ describe('Settings: account and AI usage', () => {
         stub_api({ ...routes(), 'GET /api/ai/usage': usage({ total_usd: 2.5 }) });
         fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
         await waitFor(() => expect(screen.getByText('$2.50')).toBeInTheDocument());
+    });
+});
+
+describe('Settings: appearance', () => {
+    afterEach(reset_theme);
+
+    it('switches the theme on <html> when Dark is pressed', () => {
+        stub_api(routes());
+        open();
+        fireEvent.click(within(screen.getByRole('group', { name: 'Theme' })).getByRole('button', { name: /Dark/ }));
+        expect(document.documentElement.dataset.theme).toBe('dark');
     });
 });

@@ -14,12 +14,7 @@ const parse = (iso: string | null | undefined): Date | null => {
 export const format_date = (iso: string | null | undefined, opts: { weekday?: boolean; year?: boolean } = {}): string => {
     const date = parse(iso);
     if (!date) return DASH;
-    return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        ...(opts.year === false ? {} : { year: 'numeric' }),
-        ...(opts.weekday ? { weekday: 'short' } : {}),
-    });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(opts.year === false ? {} : { year: 'numeric' }), ...(opts.weekday ? { weekday: 'short' } : {}) });
 };
 
 /* "3:45 PM". */

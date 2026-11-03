@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ErrorState, PageHeader } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { today_input } from '@/services/dates';
 import { useNotesUpload } from '@/services/hooks/use-notes-upload';
 import { paths } from '@/services/paths';
@@ -27,24 +28,21 @@ export default function UploadNotes() {
     };
 
     return (
-        <>
-            <Link to={paths.sessions} className="ta-muted mb-4 inline-block text-sm font-medium hover:underline">
-                ← Sessions
-            </Link>
-            <PageHeader title="Add notes" subtitle="Paste your own notes or a written summary of a session. It will be summarized the same way a recording is." />
+        <Page width="reading">
+            <PageHeader back={{ to: paths.sessions, label: 'Sessions' }} title="Add notes" subtitle="Paste your own notes or a written summary of a session. It will be summarized the same way a recording is." />
             <Card>
                 <form onSubmit={on_submit} className="flex flex-col gap-5">
-                    <label className="flex flex-col gap-1.5 text-sm font-medium">
+                    <label className="flex flex-col gap-1.5 text-[13px] font-medium">
                         Date of the session
                         <input className="ta-input md:max-w-56" type="date" value={date} max={today_input()} onChange={(e) => set_date(e.target.value)} required />
                     </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium">
+                    <label className="flex flex-col gap-1.5 text-[13px] font-medium">
                         <span>
                             Title <span className="ta-muted font-normal">(optional)</span>
                         </span>
                         <input className="ta-input" value={title} onChange={(e) => set_title(e.target.value)} placeholder="Leave blank to let the summary name it" />
                     </label>
-                    <label className="flex flex-col gap-1.5 text-sm font-medium">
+                    <label className="flex flex-col gap-1.5 text-[13px] font-medium">
                         Notes
                         <textarea
                             className="ta-input"
@@ -53,7 +51,7 @@ export default function UploadNotes() {
                             onChange={(e) => set_notes(e.target.value)}
                             placeholder="What did you and David talk about? Anything he suggested?"
                             required
-                            style={{ resize: 'vertical', minHeight: 220 }}
+                            style={{ resize: 'vertical', minHeight: 260, fontSize: 16 }}
                         />
                     </label>
                     {error && <ErrorState message={error} />}
@@ -67,6 +65,6 @@ export default function UploadNotes() {
                     </div>
                 </form>
             </Card>
-        </>
+        </Page>
     );
 }

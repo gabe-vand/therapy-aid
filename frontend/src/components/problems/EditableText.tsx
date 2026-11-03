@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Pencil } from 'lucide-react';
+import { Button, IconButton } from '@/components/ui/Button';
+import './problems-detail.css';
 
-/* Click-to-edit text for a problem's title and description. Shows the value with a quiet "Edit"
-   button; editing swaps in an input/textarea with Save / Cancel. The save is the caller's PATCH
-   (on_save resolves true on success). A title may not be blank; a description may be. */
+/* Click-to-edit text for a problem's title and description. Reads as plain text with a quiet hover
+   outline and a Pencil affordance (always visible on touch); editing swaps in a .ta-input (16px on
+   phones) with Save / Cancel. The save is the caller's PATCH (on_save resolves true on success). A
+   title may not be blank; a description may be. */
 
 type Props = {
     value: string;
@@ -37,11 +40,11 @@ export function EditableText({ value, label, multiline = false, required = false
 
     if (!editing) {
         return (
-            <div className="flex items-start justify-between gap-3">
-                {multiline ? <p className={`min-w-0 whitespace-pre-wrap text-[16px] ${value ? '' : 'ta-muted'}`}>{value || placeholder}</p> : <h1 className="min-w-0 text-2xl font-semibold leading-tight tracking-tight md:text-3xl">{value}</h1>}
-                <Button size="sm" variant="ghost" onClick={start} disabled={disabled} aria-label={`Edit ${label}`}>
-                    Edit
-                </Button>
+            <div className="ta-editable">
+                {multiline ? <p className={`ta-editable__value ta-editable__value--prose${value ? '' : ' ta-muted'}`}>{value || placeholder}</p> : <h1 className="ta-editable__value ta-editable__value--title">{value}</h1>}
+                <IconButton size="sm" className="ta-editable__pencil" onClick={start} disabled={disabled} aria-label={`Edit ${label}`}>
+                    <Pencil size={14} />
+                </IconButton>
             </div>
         );
     }
@@ -49,7 +52,7 @@ export function EditableText({ value, label, multiline = false, required = false
     const field_props = { className: 'ta-input', value: draft, 'aria-label': label, disabled: saving, autoFocus: true, onChange: (e: { target: { value: string } }) => set_draft(e.target.value) };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="ta-editable__form">
             {multiline ? <textarea rows={4} {...field_props} /> : <input maxLength={200} {...field_props} />}
             <div className="flex justify-end gap-2">
                 <Button size="sm" variant="ghost" onClick={() => set_editing(false)} disabled={saving}>

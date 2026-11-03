@@ -1,26 +1,34 @@
 /* Tailwind v4 for layout utilities only; the visual identity comes from the tokens below.
-   Components read colours as var(--token) — never a hardcoded value. */
+   Components read colours as var(--token) — never a hardcoded value. Inter is self-hosted
+   (@fontsource-variable/inter, imported in main.tsx) because the Pi's CSP only allows
+   font-src 'self'. Chrome is dense (14px body); content screens size themselves up. */
 @import 'tailwindcss';
 @import './tokens.css';
 
 html {
     -webkit-text-size-adjust: 100%;
+    background: var(--paper);
 }
 
 body {
     margin: 0;
     background: var(--paper);
     color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-family: var(--font);
+    font-size: 14px;
     line-height: 1.5;
+    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+/* Keyboard focus only — a mouse click never draws the ring. */
 :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
 }
 
 ::selection {
     background: var(--accent-soft);
+    color: var(--ink);
 }

@@ -9,9 +9,9 @@
 
 .ta-usage {
     width: 100%;
-    min-width: 520px;
+    min-width: 640px;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -24,9 +24,16 @@
 }
 
 .ta-usage th:first-child,
-.ta-usage td:first-child {
+.ta-usage td:first-child,
+.ta-usage th:nth-child(2),
+.ta-usage td:nth-child(2) {
     text-align: left;
     padding-left: 0;
+}
+
+.ta-usage th:nth-child(2),
+.ta-usage td:nth-child(2) {
+    padding-left: 8px;
 }
 
 .ta-usage th:last-child,
@@ -36,7 +43,7 @@
 
 .ta-usage thead th {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -49,4 +56,47 @@
 .ta-usage tfoot td {
     border-bottom: 0;
     font-weight: 650;
+}
+
+/* Card anatomy: title + muted description, then hairline-separated sections. */
+.ta-set-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.ta-set-desc {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13.5px;
+}
+
+.ta-set-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.ta-set-hint {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ta-set-login {
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: var(--r-md);
+    font-size: 13.5px;
+    overflow-wrap: anywhere;
+}
+
+textarea.ta-set-area {
+    min-height: 200px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.ta-usage-model {
+    font-family: var(--font-mono);
+    font-size: 12px;
 }

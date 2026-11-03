@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Frontend Styling &amp; UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Frontend Styling &amp; UI</h1>
+    <p>Tokens, theme, page layout, primitives, mobile and the journal editor in <strong>therapy-aid</strong>. Companion to <a href="frontend-conventions.html">Frontend Conventions</a>; read before touching <code>frontend/src/styles/</code>, <code>components/ui/</code> or any page layout.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>Look:</strong> Linear-style, light by default, dark and system available &nbsp;&middot;&nbsp; <strong>Font:</strong> Inter Variable &nbsp;&middot;&nbsp; <strong>Icons:</strong> lucide-react &nbsp;&middot;&nbsp; <strong>Designed at:</strong> 390px first.
+  </div>
+
+  <nav class="toc">
+    <h2>Rules</h2>
+    <ol>
+      <li><a href="#s1"><span class="n">1</span>Tokens and the three text colours</a></li>
+      <li><a href="#s2"><span class="n">2</span>Theme mechanism</a></li>
+      <li><a href="#s3"><span class="n">3</span>Page widths</a></li>
+      <li><a href="#s4"><span class="n">4</span>Primitives and icons</a></li>
+      <li><a href="#s5"><span class="n">5</span>Mobile rules</a></li>
+      <li><a href="#s6"><span class="n">6</span>The journal editor &mdash; Markdown is the stored format</a></li>
+    </ol>
+  </nav>
+
+  <section class="rule" id="s1">
+    <div class="rule-head"><span class="num">1</span><h3>Tokens and the three text colours</h3></div>
+    <div class="rule-body">
+      <p>Every colour is a custom property in <code>src/styles/tokens.css</code>, defined once for light and once for dark. Never a hex literal anywhere else; a new colour is a new token. Tailwind v4 is for layout utilities only.</p>
+      <ul>
+        <li>Surfaces: <code>--paper</code> (page), <code>--surface</code> (cards, panes, inputs), <code>--surface-2</code> (sidebar, hover, subtle fills), <code>--surface-3</code> (pressed, selected). Lines: <code>--line</code> (hairlines), <code>--line-2</code> (input borders).</li>
+        <li>Text: <code>--ink</code>, <code>--ink-2</code> and <code>--muted</code> do nearly all the work (<strong>three text colours</strong>); <code>--faint</code> is for placeholders and disabled only. Hierarchy comes from weight and these colours, not from size: headings are 15&ndash;20px semibold.</li>
+        <li>Accent and status: <code>--accent</code>, <code>--accent-hover</code>, <code>--accent-soft</code>, <code>--on-accent</code>; <code>--ok</code>, <code>--warn</code>, <code>--danger</code> each with a <code>-soft</code> fill (and <code>--on-danger</code>). Also <code>--focus</code>, <code>--overlay</code>, <code>--shadow-sm/md/lg</code>, <code>--skeleton</code>, <code>--r-sm/md/lg/xl</code>, <code>--font</code>, <code>--font-mono</code>.</li>
+        <li>Page-scoped CSS never travels: a reusable component imports its own CSS and never borrows another page's classes. Shared CSS is split by concern under <code>components/ui/</code> (<code>ui-buttons</code>, <code>-forms</code>, <code>-layout</code>, <code>-overlays</code>, <code>-surfaces</code>).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="s2">
+    <div class="rule-head"><span class="num">2</span><h3>Theme mechanism</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>The theme is <code>data-theme="light|dark"</code> on <code>&lt;html&gt;</code>; <code>tokens.css</code> keys on it. The preference is <code>light</code>, <code>dark</code> or <code>system</code>, stored in <code>localStorage['ta-theme']</code>, <strong>default light</strong>. Storage access is always guarded (private mode throws).</li>
+        <li><code>public/theme.js</code> is a classic script loaded in <code>index.html</code> before the module, so the first paint is already right. It is a file, not inline, because the Pi's CSP is <code>script-src 'self'</code>. It duplicates the key, values and default of <code>services/theme.ts</code> &mdash; keep the two in sync.</li>
+        <li><code>services/theme.ts</code> holds the pure logic (read, resolve, apply, <code>THEME_KEY</code>); <code>services/hooks/use-theme.ts</code> (<code>useTheme</code>) exposes <code>preference</code>, <code>resolved</code> and <code>set_preference</code>, follows the OS live while on <code>system</code>, and keeps every mounted toggle in sync.</li>
+        <li>The switch is <code>components/shell/ThemeToggle.tsx</code>: icons only in the sidebar, <code>show_labels</code> in Settings &rarr; Appearance. Tests use <code>tests/helpers/hlp-theme.ts</code> (<code>stub_dark_os</code>, <code>reset_theme</code>).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="s3">
+    <div class="rule-head"><span class="num">3</span><h3>Page widths</h3></div>
+    <div class="rule-body">
+      <p>Every page renders inside <code>&lt;Page width="&hellip;"&gt;</code> (<code>components/ui/Page.tsx</code>); the shell's <code>&lt;main&gt;</code> is full-bleed.</p>
+      <ul>
+        <li><code>reading</code> &mdash; 760px column for one thing to read or fill in (details, forms, Settings).</li>
+        <li><code>wide</code> (default) &mdash; 1120px for lists and dashboards.</li>
+        <li><code>full</code> &mdash; no max-width and no padding, for split panes (Journal, Chat). <strong>On desktop a <code>full</code> page owns its scroll</strong>: it is the whole main height and each pane scrolls on its own. <strong>On phones it lets the window scroll</strong> and shows one pane at a time.</li>
+        <li>Padding: 32px/40px on desktop, 20px top and 16px sides on phones. Sticky offsets on mobile use the shell's <code>--ta-topbar-h</code> and <code>--ta-tabbar-h</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="s4">
+    <div class="rule-head"><span class="num">4</span><h3>Primitives and icons</h3></div>
+    <div class="rule-body">
+      <p>Use these before writing markup of your own (all under <code>components/ui/</code>):</p>
+      <ul>
+        <li><code>Button</code> / <code>ButtonLink</code> (primary, secondary, ghost, danger; sm, md, lg) and <code>IconButton</code> (<code>aria-label</code> required, <code>aria-pressed</code> for toggles).</li>
+        <li><code>Card</code>, <code>Chip</code>, <code>Skeleton</code> / <code>Loading</code>; <code>PageHeader</code>, <code>BackLink</code>, <code>EmptyState</code>, <code>ErrorState</code> (role=alert).</li>
+        <li><code>SegmentedControl</code> (a labelled group of <code>aria-pressed</code> buttons), <code>Menu</code> (the overflow &ldquo;&hellip;&rdquo;), <code>ConfirmDialog</code> (a bottom sheet on phones), and the <code>.ta-input</code> class for inputs and textareas.</li>
+        <li>Icons are <code>lucide-react</code>: 16px in chrome, 18&ndash;20px in content. <strong>No emoji or text glyphs (+, arrows, triangles) in UI chrome.</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="s5">
+    <div class="rule-head"><span class="num">5</span><h3>Mobile rules</h3></div>
+    <div class="rule-body">
+      <p>The owner uses this on his phone. Design every screen at <strong>390px first</strong>, then widen.</p>
+      <ul>
+        <li>One column below 768px and nothing overflows horizontally (wide tables scroll inside their own wrapper).</li>
+        <li>Anything tapped is at least 40px tall. Inputs and the editor use 16px text, or iOS zooms on focus.</li>
+        <li>Respect <code>env(safe-area-inset-*)</code> on the top bar, tab bar and every fixed element; the chat composer sits above the tab bar.</li>
+        <li>Dialogs become bottom sheets below 768px (full width, rounded top corners). Headers wrap, with actions dropping below the title.</li>
+        <li>Journal and Chat show one pane at a time on phones (list, then document or conversation, with a back control).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="s6">
+    <div class="rule-head"><span class="num">6</span><h3>The journal editor &mdash; Markdown is the stored format</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>The journal editor is TipTap v3 (<code>@tiptap/react</code>, <code>starter-kit</code>, <code>@tiptap/markdown</code>) in <code>components/journal/RichEditor.tsx</code>: bold, italic, strike, headings, lists, quotes.</li>
+        <li><strong>The entry <code>body</code> stays a Markdown string.</strong> The backend, full-text search and the AI context pack are untouched. Anything that previews a body (<code>first_line()</code>) must strip Markdown syntax.</li>
+        <li>Read-only Markdown (summaries, chat answers) goes through <code>components/markdown/Markdown.tsx</code>, image-free by design.</li>
+        <li>Page tests <code>vi.mock('@/components/journal/RichEditor')</code> with a plain textarea taking the same props, so autosave tests stay simple; <code>tests/components/journal/RichEditor.test.tsx</code> exercises the real editor. The journal route is code-split in <code>App.tsx</code> so TipTap loads only when the journal opens.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Styling and UI for <code>therapy-aid</code>. See also <a href="frontend-conventions.html">Frontend Conventions</a> and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

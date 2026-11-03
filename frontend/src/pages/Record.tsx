@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RecordControl } from '@/components/record/RecordControl';
-import { RecordNotices } from '@/components/record/RecordNotices';
+import { Notice, RecordNotices } from '@/components/record/RecordNotices';
 import { UploadStatus } from '@/components/record/UploadStatus';
 import { Card } from '@/components/ui/Card';
 import { ErrorState, PageHeader } from '@/components/ui/States';
+import { Page } from '@/components/ui/Page';
 import { useRecorder } from '@/services/hooks/use-recorder';
 import { paths } from '@/services/paths';
 
@@ -23,27 +24,20 @@ export default function Record() {
     }, [session_id, notice, navigate]);
 
     return (
-        <>
-            <Link to={paths.sessions} className="ta-muted mb-4 inline-block text-sm font-medium hover:underline">
-                ← Sessions
-            </Link>
-            <PageHeader title="Record a session" subtitle="Put your phone down near you, keep the screen on, and tap the button." />
+        <Page width="reading">
+            <PageHeader back={{ to: paths.sessions, label: 'Sessions' }} title="Record a session" subtitle="Put your phone down near you, keep the screen on, and tap the button." />
             <RecordNotices secure={secure} supported={supported} />
             <Card>
-                {capture_warning && (
-                    <div role="alert" className="mb-4 rounded-xl px-4 py-3 text-[15px]" style={{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>
-                        {capture_warning}
-                    </div>
-                )}
+                {capture_warning && <Notice role="alert">{capture_warning}</Notice>}
                 {notice && (
-                    <div role="alert" className="mb-4 rounded-xl px-4 py-3 text-[15px]" style={{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>
+                    <Notice role="alert">
                         {notice}
                         {session_id !== null && (
-                            <Link to={paths.session(session_id)} className="mt-2 block font-semibold underline">
+                            <Link to={paths.session(session_id)} className="mt-2 block font-medium underline">
                                 Open the session
                             </Link>
                         )}
-                    </div>
+                    </Notice>
                 )}
                 <RecordControl phase={phase} elapsed_sec={elapsed_sec} on_start={() => void start()} on_stop={() => void stop()} />
                 <UploadStatus uploaded={uploaded} total={total} stalled={stalled} on_retry={() => void retry()} />
@@ -53,7 +47,7 @@ export default function Record() {
                     </div>
                 )}
             </Card>
-            <p className="ta-muted mt-4 text-sm">Closing this tab while recording will ask you to confirm. Leaving the page stops the recording and saves what was captured.</p>
-        </>
+            <p className="ta-muted mt-4 text-[13px]">Closing this tab while recording will ask you to confirm. Leaving the page stops the recording and saves what was captured.</p>
+        </Page>
     );
 }

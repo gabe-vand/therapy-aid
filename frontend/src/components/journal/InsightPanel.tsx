@@ -1,14 +1,18 @@
 import { forwardRef, useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import type { JournalInsight } from '@therapy-aid/shared';
 import { Markdown } from '@/components/markdown/Markdown';
 import { Button } from '@/components/ui/Button';
 import { Loading, Skeleton } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/States';
 import { format_date, format_time } from '@/services/dates';
+import './journal-insights.css';
 
-/* Where "I have an idea…" answers land. The newest insight is the hero (markdown); older ones for
-   this entry sit below in a collapsible history. While one is being written it shows a calm
-   waiting state (it can take up to a minute); a failure shows the message with Try again. */
+/* Where "I have an idea…" answers land, below the document at the same width. The newest insight
+   is the hero (markdown, on a soft accent wash); older ones for this entry sit below in a
+   collapsible history, separated by hairlines rather than nested cards. While one is being
+   written it shows a calm waiting state (it can take up to a minute); a failure shows the
+   message with Retry. */
 
 type Props = { insights: JournalInsight[]; generating: boolean; generate_error: string | null; history_error: string | null; on_retry: () => void; on_reload_history: () => void };
 
@@ -20,15 +24,16 @@ export const InsightPanel = forwardRef<HTMLElement, Props>(function InsightPanel
 
     if (!generating && !generate_error && !history_error && !latest) return null;
     return (
-        <section ref={ref} className="ta-card mt-4 p-5 md:p-6" aria-label="Insights" style={{ background: 'var(--accent-soft)', borderColor: 'transparent' }}>
-            <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)' }}>
-                💡 An idea for you
+        <section ref={ref} className="ta-insights" aria-label="Insights">
+            <h2 className="ta-insights__eyebrow">
+                <Lightbulb aria-hidden />
+                An idea for you
             </h2>
 
             {generating && (
                 <Loading label="Writing an insight">
                     <Skeleton lines={4} />
-                    <p className="ta-muted mt-3 text-[14px]">Reading this entry alongside your recent sessions. This can take up to a minute.</p>
+                    <p className="ta-insights__wait">Reading this entry alongside your recent sessions. This can take up to a minute.</p>
                 </Loading>
             )}
             {generate_error && !generating && <ErrorState message={generate_error} on_retry={on_retry} />}
@@ -37,21 +42,21 @@ export const InsightPanel = forwardRef<HTMLElement, Props>(function InsightPanel
             {!generating && latest && (
                 <article>
                     <Markdown text={latest.body} />
-                    <p className="ta-muted mt-3 text-[12px]">{stamp(latest)}</p>
+                    <p className="ta-insights__stamp">{stamp(latest)}</p>
                 </article>
             )}
 
             {earlier.length > 0 && (
-                <div className="mt-4 border-t pt-3" style={{ borderColor: 'var(--line-2)' }}>
+                <div className="ta-insights__history">
                     <Button size="sm" variant="ghost" aria-expanded={show_history} onClick={() => set_show_history((v) => !v)}>
                         {show_history ? 'Hide earlier ideas' : `Earlier ideas (${earlier.length})`}
                     </Button>
                     {show_history && (
-                        <ul className="mt-3 flex list-none flex-col gap-4 p-0">
+                        <ul className="ta-insights__list">
                             {earlier.map((i) => (
-                                <li key={i.id} className="ta-card p-4">
+                                <li key={i.id}>
                                     <Markdown text={i.body} />
-                                    <p className="ta-muted mt-2 text-[12px]">{stamp(i)}</p>
+                                    <p className="ta-insights__stamp">{stamp(i)}</p>
                                 </li>
                             ))}
                         </ul>

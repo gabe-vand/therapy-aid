@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '@therapy-aid/shared';
 import type { PendingMessage } from '@/services/hooks/use-chat';
 import { AssistantBubble, FailedNote, ThinkingBubble, UserBubble } from './MessageBubble';
-import './chat.css';
+import './chat-messages.css';
 
 /* The history plus the one in-flight exchange, scrolled so the newest message is in view. The
    optimistic user bubble comes from `pending`, followed by "Thinking…" or the failure note. */
@@ -19,12 +19,12 @@ export const MessageList = ({ messages, pending, on_retry, on_discard }: { messa
 
     return (
         <div className="ta-chat-body" aria-live="polite">
-            {messages.map((m) => (m.role === 'user' ? <UserBubble key={m.id} content={m.content} /> : <AssistantBubble key={m.id} content={m.content} />))}
+            {messages.map((m) => (m.role === 'user' ? <UserBubble key={m.id} content={m.content} /> : <AssistantBubble key={m.id} content={m.content} created_at={m.created_at} />))}
             {pending && <UserBubble content={pending.content} />}
             {pending && pending.error === null && <ThinkingBubble />}
             {pending && pending.error !== null && <FailedNote message={pending.error} on_retry={on_retry} on_discard={on_discard} />}
-            {/* The sticky composer covers the bottom edge, so the scroll target leaves room for it. */}
-            <div ref={end} aria-hidden style={{ scrollMarginBottom: 150 }} />
+            {/* On phones the sticky composer covers the bottom edge; .ta-chat-end leaves room for it. */}
+            <div ref={end} aria-hidden className="ta-chat-end" />
         </div>
     );
 };
