@@ -1,0 +1,116 @@
+/* Shared style for the docs/ HTML pages. Layout (hero → stackline → TOC → numbered rule
+   cards) is carried over from rx-unified-portal's docs/, which this repo's conventions adapt. */
+
+:root {
+  --ink: #16181d; --ink-2: #3c414b; --muted: #6b7280; --faint: #9aa1ad;
+  --paper: #f7f6f3; --surface: #fff; --surface-2: #f1efea;
+  --line: #e5e3dd; --line-2: #d9d6ce;
+  --accent: #d4472c; --accent-soft: rgba(212,71,44,.10);
+  --emerald: #0f8a5f; --emerald-soft: rgba(15,138,95,.10);
+  --warn: #8a5a0a; --warn-soft: #fbf1e2;
+  --blue: #1f5fa8; --blue-soft: rgba(31,95,168,.10);
+  --shadow: 0 1px 3px rgb(22 24 29/.06), 0 1px 2px -1px rgb(22 24 29/.06);
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font: 15px/1.6 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(60rem 40rem at 105% -10%, rgb(212 71 44/.05), transparent 60%),
+    radial-gradient(48rem 36rem at -10% 0%, rgb(22 24 29/.04), transparent 55%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3 { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -.018em; }
+a { color: var(--accent); }
+
+/* ── Hero ─────────────────────────────────────────────────── */
+header.hero {
+  padding: 48px 32px 28px; border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(40rem 24rem at 100% -40%, rgb(212 71 44/.08), transparent 60%),
+    linear-gradient(180deg, #fff 0%, var(--paper) 100%);
+}
+header.hero h1 { font-size: 30px; font-weight: 600; margin-bottom: 8px; }
+header.hero p { color: var(--muted); max-width: 860px; margin: 4px 0; }
+header.hero .wrap { padding: 0; }
+.wrap { max-width: 940px; margin: 0 auto; padding: 0 32px; }
+
+code, .mono {
+  font: 12.5px 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  color: #a2361f; background: var(--accent-soft);
+  padding: 1px 5px; border-radius: 5px;
+}
+
+/* ── Stack summary line ───────────────────────────────────── */
+.stackline {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 18px; margin: 24px 0 8px; font-size: 14px; color: var(--muted);
+}
+.stackline strong { color: var(--ink); }
+
+/* ── Table of contents ────────────────────────────────────── */
+nav.toc {
+  margin: 14px 0 8px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 16px 20px;
+}
+nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+nav.toc ol {
+  list-style: none; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 18px;
+}
+nav.toc a { color: var(--ink); text-decoration: none; font-size: 14px; display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
+nav.toc a:hover { color: var(--accent); }
+nav.toc a .n { font: 12px 'JetBrains Mono', monospace; color: var(--muted); min-width: 20px; }
+
+/* ── Rule / section cards ─────────────────────────────────── */
+section.rule {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  margin: 14px 0; overflow: hidden; box-shadow: var(--shadow); scroll-margin-top: 16px;
+}
+.rule-head {
+  display: flex; align-items: center; gap: 12px; padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+.rule-head .num {
+  font: 700 13px 'JetBrains Mono', monospace; color: #fff; background: var(--accent);
+  border-radius: 7px; padding: 3px 9px; flex: 0 0 auto;
+}
+.rule-head .num.crit { background: var(--ink); }
+.rule-head h3 { font-size: 16px; font-weight: 600; }
+.rule-body { padding: 16px 22px; font-size: 14px; }
+.rule-body p { margin: 8px 0; }
+.rule-body ul, .rule-body ol { margin: 8px 0; padding-left: 22px; }
+.rule-body ul ul { margin: 4px 0; }
+.rule-body li { margin: 4px 0; }
+.rule-body > :first-child { margin-top: 0; }
+.rule-body > :last-child { margin-bottom: 0; }
+.rule-body h4 { font-size: 13.5px; font-weight: 600; margin: 14px 0 4px; }
+
+/* ── Callouts ─────────────────────────────────────────────── */
+.note {
+  border-left: 3px solid var(--accent); background: var(--accent-soft);
+  padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0;
+  font-size: 13.5px; color: var(--ink-2);
+}
+.note.warn { border-color: var(--warn); background: var(--warn-soft); }
+.note.ok { border-color: var(--emerald); background: var(--emerald-soft); }
+.note strong { color: var(--ink); }
+
+/* ── Status ledger (plan pages) ───────────────────────────── */
+ul.ledger { list-style: none; padding: 0; margin: 8px 0; }
+ul.ledger li { display: flex; gap: 10px; align-items: baseline; margin: 7px 0; font-size: 14px; }
+ul.ledger .box {
+  font: 700 11px 'JetBrains Mono', monospace; flex: 0 0 auto; padding: 2px 7px;
+  border-radius: 6px; background: var(--emerald-soft); color: var(--emerald);
+  border: 1px solid rgb(15 138 95/.25); text-transform: uppercase; letter-spacing: .4px;
+}
+ul.ledger li.todo .box { background: var(--surface-2); color: var(--muted); border-color: var(--line-2); }
+
+footer { color: var(--muted); font-size: 13px; padding: 30px 32px 60px; text-align: center; }
+footer code { color: #a2361f; }

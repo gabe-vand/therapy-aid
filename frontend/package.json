@@ -1,0 +1,35 @@
+{
+    "name": "therapy-aid-frontend",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "lint": "tsc -b",
+        "preview": "vite preview",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\""
+    },
+    "dependencies": {
+        "@therapy-aid/shared": "workspace:*",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.30.0"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.16",
+        "@testing-library/jest-dom": "^6.6.3",
+        "@testing-library/react": "^16.1.0",
+        "@types/react": "^18.3.18",
+        "@types/react-dom": "^18.3.5",
+        "@vitejs/plugin-react-swc": "^3.7.2",
+        "happy-dom": "^20.8.9",
+        "prettier": "^3.8.3",
+        "tailwindcss": "^4.1.16",
+        "typescript": "^5.9.3",
+        "vite": "^6.3.5",
+        "vitest": "^3"
+    }
+}

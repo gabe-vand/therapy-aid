@@ -1,0 +1,12 @@
+/* Tailwind v4 for layout utilities only; the visual identity comes from the tokens below.
+   Components read colours as var(--token) — never a hardcoded value. */
+@import 'tailwindcss';
+@import './tokens.css';
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,5 @@
+# Workspace-root install config. `peer = true` lets backend and frontend keep their own
+# peer-dependency versions instead of one hoisted winner.
+# backend/bunfig.toml stays — it configures `bun test` and is read from that cwd.
+[install]
+peer = true

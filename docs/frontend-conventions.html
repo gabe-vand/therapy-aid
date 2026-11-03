@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#16181d" />
+<title>therapy-aid &mdash; Frontend Coding Conventions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Frontend Coding Conventions</h1>
+    <p>The source of truth for frontend code style across <strong>therapy-aid</strong>. Read before any work in <code>frontend/</code>. Adapted from rx-unified-portal's conventions.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="stackline">
+    <strong>Stack:</strong> Vite + React 18 + TypeScript + Tailwind v4 &nbsp;&middot;&nbsp; <strong>Runtime:</strong> Bun &nbsp;&middot;&nbsp; <strong>Routing:</strong> react-router v6 &nbsp;&middot;&nbsp; <strong>Design:</strong> token-driven (<code>src/styles/tokens.css</code>) &nbsp;&middot;&nbsp; <strong>Tests:</strong> required (Vitest + React Testing Library on happy-dom).
+  </div>
+
+  <div class="note warn"><strong>Components never touch the network.</strong> Every API call lives in a <code>services/hooks/use-*.ts</code> hook that owns its loading and error state. See &sect;5.</div>
+
+  <nav class="toc">
+    <h2>Rules</h2>
+    <ol>
+      <li><a href="#r1"><span class="n">1</span>Tokens, not colours</a></li>
+      <li><a href="#r2"><span class="n">2</span>Declarative</a></li>
+      <li><a href="#r3"><span class="n">3</span>snake_case on the wire and inside functions</a></li>
+      <li><a href="#r4"><span class="n">4</span>File size &mdash; hard cap</a></li>
+      <li><a href="#r5"><span class="n">5</span>Hooks are the only way to call APIs</a></li>
+      <li><a href="#r6"><span class="n">6</span>State</a></li>
+      <li><a href="#r7"><span class="n">7</span>Error handling &mdash; graceful, always</a></li>
+      <li><a href="#r8"><span class="n">8</span>Environment variables</a></li>
+      <li><a href="#r9"><span class="n">9</span>Idempotent</a></li>
+      <li><a href="#r10"><span class="n">10</span>Documentation lives in docs/</a></li>
+      <li><a href="#r11"><span class="n">11</span>Comments &mdash; why, not what</a></li>
+      <li><a href="#r12"><span class="n">12</span>Tests &mdash; required</a></li>
+      <li><a href="#r13"><span class="n">13</span>Check the latest docs before coding</a></li>
+      <li><a href="#r14"><span class="n">14</span>When you touch old code</a></li>
+    </ol>
+  </nav>
+
+  <section class="rule" id="r1">
+    <div class="rule-head"><span class="num">1</span><h3>Tokens, not colours</h3></div>
+    <div class="rule-body">
+      <p>Every colour is a CSS custom property from <code>src/styles/tokens.css</code> (<code>var(--ink)</code>, <code>var(--surface)</code>, <code>var(--accent)</code>, &hellip;), defined once for light and once for dark. Never a hex literal in a component. A new colour is a new token. Tailwind is for layout utility; the visual identity comes from the tokens.</p>
+      <p>Page-scoped CSS never travels. A component meant for reuse on other screens must be style-self-contained &mdash; tokens via inline styles or its own CSS import &mdash; and must never borrow another page's classes: on a page that doesn't load that stylesheet it renders unstyled.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r2">
+    <div class="rule-head"><span class="num">2</span><h3>Declarative</h3></div>
+    <div class="rule-body">
+      <p>State &rarr; derived state &rarr; render. No imperative DOM mutation.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r3">
+    <div class="rule-head"><span class="num">3</span><h3>snake_case on the wire and inside functions</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>JSON keys and store fields: <code>snake_case</code>.</li>
+        <li>Internal function variables and hook return fields: <code>snake_case</code> (<code>record_visit</code>, <code>set_status</code>).</li>
+        <li>React-owned identifiers (<code>onClick</code>, <code>className</code>, <code>useFoo</code>) and component names keep framework casing.</li>
+      </ul>
+      <p>A type the API also declares belongs in <code>@therapy-aid/shared</code>, not in a second copy under <code>src/services/types/</code>. What stays in the SPA is what the SPA alone knows: view-models, editor state, and request payloads whose server-side twin is deliberately looser.</p>
+      <p>Formatting is Prettier's job: the one root <code>.prettierrc</code>. Run <code>bun run format</code>.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r4">
+    <div class="rule-head"><span class="num crit">4</span><h3>File size &mdash; hard cap</h3></div>
+    <div class="rule-body">
+      <p>Every file stays <strong>below 200 lines</strong> &mdash; components, hooks, pages, tests, everything. Split pages into feature components early: a screen is usually one page file plus 3&ndash;6 section components under <code>components/&lt;feature&gt;/</code>. Enforced by <code>backend/tests/architecture/file-size.test.ts</code>.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r5">
+    <div class="rule-head"><span class="num crit">5</span><h3>Hooks are the only way to do API calls and shared logic</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Components never call <code>fetch</code> or <code>services/api.ts</code> directly. Every API call lives in a custom hook (<code>services/hooks/use-&lt;domain&gt;.ts</code>) that owns loading and error state.</li>
+        <li><code>services/api.ts</code> resolves to the <code>{ data, status_code, message }</code> envelope and never throws &mdash; a network failure becomes an envelope with a human message.</li>
+        <li>Mutation hooks expose an explicit trigger; they do not auto-fire.</li>
+        <li><strong>An auto-loading hook must drop a superseded response.</strong> Pass a cancel flag into the loader and check it <em>after</em> every await, immediately before the <code>set_*</code> calls: <code>useEffect(() =&gt; { const signal = {cancelled:false}; load(signal); return () =&gt; { signal.cancelled = true; }; }, [load])</code>. <code>use-hello.ts</code> is the reference.</li>
+        <li>A destructive action gates on <em>loading</em>, not just on a count &mdash; before data arrives the count is zero.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r6">
+    <div class="rule-head"><span class="num">6</span><h3>State</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li><code>useState</code> for local UI. When state genuinely needs sharing across screens, add Zustand (persisted where it should survive a reload) under <code>services/store/</code> &mdash; don't reach for it before then.</li>
+        <li><code>localStorage</code> for identity/selection, <code>sessionStorage</code> for drafts, none for ephemeral UI.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r7">
+    <div class="rule-head"><span class="num">7</span><h3>Error handling &mdash; graceful, always</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Every async call has a success path and a failure path &mdash; no infinite loading.</li>
+        <li>No silent <code>catch {}</code>. Show the envelope's <code>message</code>, never a raw exception.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r8">
+    <div class="rule-head"><span class="num">8</span><h3>Environment variables</h3></div>
+    <div class="rule-body">
+      <p>Read <code>import.meta.env.*</code> only through <code>services/env.ts</code>. <code>VITE_API_BASE_URL</code> stays unset &mdash; the SPA calls the relative <code>/api</code>, which nginx (Pi) and the Vite dev proxy forward. <code>.env.example</code> is committed; never put secrets in <code>VITE_</code> vars &mdash; they ship in the bundle.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r9">
+    <div class="rule-head"><span class="num">9</span><h3>Idempotent</h3></div>
+    <div class="rule-body">
+      <p>Strict-mode double-mount, repeated mutations, and store rehydration must be safe. Never push to arrays without dedup; derive counters, don't increment them.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r10">
+    <div class="rule-head"><span class="num">10</span><h3>Documentation lives in docs/, nowhere else</h3></div>
+    <div class="rule-body">
+      <p>No <code>.md</code> under <code>src/</code>. Prose about a feature goes in <code>docs/</code> (HTML); the <em>why</em> of a given file goes in its header comment. Update the repo-root <code>features.html</code> with every update.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r11">
+    <div class="rule-head"><span class="num">11</span><h3>Comments &mdash; why, not what</h3></div>
+    <div class="rule-body">
+      <p>Above every component and hook: what and why. Inside: a comment per logical group, only where the code doesn't already say it.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r12">
+    <div class="rule-head"><span class="num">12</span><h3>Tests &mdash; required</h3></div>
+    <div class="rule-body">
+      <ul>
+        <li>Vitest + <code>@testing-library/react</code> + <code>@testing-library/jest-dom</code> on happy-dom. Matchers wired once in <code>tests/setup.ts</code>.</li>
+        <li>Test files live in <code>tests/</code> mirroring <code>src/</code>, glob <code>tests/**/*.test.{ts,tsx}</code>. Shared fixtures go in <code>tests/helpers/hlp-*.ts</code>.</li>
+        <li>Stub <code>fetch</code> per test with <code>vi.stubGlobal</code> (see <code>hlp-fetch.ts</code>); <code>setup.ts</code> unstubs after each test so nothing leaks.</li>
+        <li>Every new hook and component gets tests; touching untested code adds tests for the part touched.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="rule" id="r13">
+    <div class="rule-head"><span class="num">13</span><h3>Always check the latest docs before coding</h3></div>
+    <div class="rule-body">
+      <p>Use Context7 if available; otherwise the official docs. Don't write API calls from memory &mdash; React, Tailwind v4, Vite and Bun change.</p>
+    </div>
+  </section>
+
+  <section class="rule" id="r14">
+    <div class="rule-head"><span class="num">14</span><h3>When you touch old code</h3></div>
+    <div class="rule-body">
+      <p>You also:</p>
+      <ul>
+        <li>Convert stray camelCase JSON keys, store fields, and variables to snake_case (&sect;3).</li>
+        <li>Add types where missing, and unit tests for the part you're changing (&sect;12).</li>
+        <li>Split the file if it is at or over the 200-line cap (&sect;4).</li>
+        <li>Move any direct API calls in components into hooks (&sect;5).</li>
+        <li>Replace silent or ad-hoc error handling with the patterns in &sect;7.</li>
+        <li>Update the comments (&sect;11), the relevant <code>docs/</code> page (&sect;10) &mdash; and <code>features.html</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Frontend code style for <code>therapy-aid</code>. See also <a href="backend-conventions.html">Backend Conventions</a> and the root <code>CLAUDE.md</code>.
+</footer>
+
+</body>
+</html>

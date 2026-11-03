@@ -1,0 +1,60 @@
+# therapy-aid on the Pi: SPA + API + SQLite, reachable ONLY over the tailnet.
+#
+#   tailnet ──https──▶ ts (node "therapy-aid", tailscale serve :443) ──▶ web:80 (nginx)
+#                                                                         └─ /api/* ──▶ api:3010 ──▶ /data/therapy-aid.sqlite
+#
+# The `ts` sidecar joins the tailnet as its own machine, which is what gives the app its own name
+# (https://therapy-aid.<tailnet>.ts.net) and a real Let's Encrypt cert, without renaming the Pi.
+# Funnel is off in serve.json — nothing here is reachable from the public internet. The only
+# host port is web on 127.0.0.1:8080, for debugging from the Pi itself.
+#
+# Deployed by scripts/deploy.sh (the /ship skill); see .claude/skills/ship/SKILL.md.
+name: therapy-aid
+
+services:
+    api:
+        build: { context: ., dockerfile: backend/Dockerfile }
+        environment:
+            APP_REVISION: ${APP_REVISION:-unknown}
+        volumes:
+            - db-data:/data
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'bun', '-e', "fetch('http://localhost:3010/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+            interval: 30s
+            timeout: 5s
+            start_period: 10s
+            retries: 3
+
+    web:
+        build: { context: ., dockerfile: frontend/Dockerfile }
+        depends_on: [api]
+        ports:
+            - '127.0.0.1:8080:80'
+        restart: unless-stopped
+
+    ts:
+        image: tailscale/tailscale:stable
+        hostname: therapy-aid
+        environment:
+            # Log in ONCE with scripts/ts-login.sh (not from these logs — see that script for why);
+            # the node identity then lives in ts-state and survives every redeploy. A TS_AUTHKEY
+            # in ~/therapy-aid.env (optional) is the non-interactive alternative.
+            TS_AUTHKEY: ${TS_AUTHKEY:-}
+            # Only `tailscale up` when not yet logged in. Without it, containerboot re-runs `up`
+            # every boot and refuses to start whenever the saved prefs differ from its flags.
+            TS_AUTH_ONCE: 'true'
+            TS_STATE_DIR: /var/lib/tailscale
+            TS_SERVE_CONFIG: /config/serve.json
+            TS_USERSPACE: 'true'
+        volumes:
+            - ts-state:/var/lib/tailscale
+            - ./deploy/tailscale:/config:ro
+        depends_on: [web]
+        restart: unless-stopped
+
+volumes:
+    # The SQLite database. Named volumes outlive `docker compose down` and every redeploy; only
+    # `docker compose down -v` deletes them — never run that on the Pi.
+    db-data:
+    ts-state:
